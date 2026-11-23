@@ -1,7 +1,16 @@
 use keyring::Entry;
 use serde::Serialize;
+use std::fs;
+use std::net::TcpListener;
+use std::path::PathBuf;
+use std::sync::Mutex;
 use sysinfo::System;
-use tauri::Manager;
+use tauri::{Emitter, Manager, State};
+
+struct AppState {
+    sys: Mutex<System>,
+    _instance_lock: Option<TcpListener>,
+}
 
 #[derive(Serialize)]
 pub struct DesktopState {
@@ -16,9 +25,13 @@ pub struct DesktopState {
 }
 
 #[tauri::command]
-fn get_desktop_state(window: tauri::WebviewWindow) -> DesktopState {
-    let mut sys = System::new();
-    sys.refresh_memory();
+fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -> DesktopState {
+    let (used_ram_mb, total_ram_mb) = if let Ok(mut sys) = state.sys.lock() {
+        sys.refresh_memory();
+        (sys.used_memory() / 1024 / 1024, sys.total_memory() / 1024 / 1024)
+    } else {
+        (0, 0)
+    };
 
     let (cursor_x, cursor_y, active_window) = get_windows_context();
     let pos = window
@@ -26,7 +39,7 @@ fn get_desktop_state(window: tauri::WebviewWindow) -> DesktopState {
         .unwrap_or(tauri::PhysicalPosition::new(0, 0));
     let size = window
         .outer_size()
-        .unwrap_or(tauri::PhysicalSize::new(290, 140));
+        .unwrap_or(tauri::PhysicalSize::new(310, 145));
     let screen_w = window
         .primary_monitor()
         .ok()
@@ -38,8 +51,8 @@ fn get_desktop_state(window: tauri::WebviewWindow) -> DesktopState {
         cursor_x,
         cursor_y,
         active_window,
-        used_ram_mb: sys.used_memory() / 1024 / 1024,
-        total_ram_mb: sys.total_memory() / 1024 / 1024,
+        used_ram_mb,
+        total_ram_mb,
         win_center_x: pos.x + (size.width as i32) / 2,
         win_y: pos.y,
         screen_w,
@@ -49,9 +62,9 @@ fn get_desktop_state(window: tauri::WebviewWindow) -> DesktopState {
 #[tauri::command]
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
     let (w, h, align_right) = match mode.as_str() {
-        "expanded" => (420.0_f64, 570.0_f64, false),
+        "expanded" => (440.0_f64, 600.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
-        _ => (290.0_f64, 140.0_f64, false),
+        _ => (310.0_f64, 150.0_f64, false),
     };
 
     window
@@ -83,6 +96,236 @@ fn start_drag(window: tauri::WebviewWindow) {
 fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
+
+#[tauri::command]
+fn media_control(action: String) {
+    send_media_key(&action);
+}
+
+#[cfg(windows)]
+fn send_media_key(action: &str) {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{
+        keybd_event, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, VK_MEDIA_NEXT_TRACK,
+        VK_MEDIA_PLAY_PAUSE, VK_MEDIA_PREV_TRACK, VK_VOLUME_DOWN, VK_VOLUME_MUTE, VK_VOLUME_UP,
+    };
+
+    let vk = match action {
+        "play_pause" => VK_MEDIA_PLAY_PAUSE.0 as u8,
+        "next" => VK_MEDIA_NEXT_TRACK.0 as u8,
+        "prev" => VK_MEDIA_PREV_TRACK.0 as u8,
+        "vol_up" => VK_VOLUME_UP.0 as u8,
+        "vol_down" => VK_VOLUME_DOWN.0 as u8,
+        "mute" => VK_VOLUME_MUTE.0 as u8,
+        _ => return,
+    };
+
+    unsafe {
+        keybd_event(vk, 0, KEYBD_EVENT_FLAGS(0), 0);
+        keybd_event(vk, 0, KEYEVENTF_KEYUP, 0);
+    }
+}
+
+#[cfg(not(windows))]
+fn send_media_key(_action: &str) {}
+
+#[tauri::command]
+fn get_clipboard_text() -> Option<String> {
+    let mut cb = arboard::Clipboard::new().ok()?;
+    let text = cb.get_text().ok()?;
+    let trimmed = text.trim();
+    if trimmed.is_empty() || trimmed.len() > 2000 {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+#[tauri::command]
+fn set_clipboard_text(text: String) -> Result<(), String> {
+    let mut cb = arboard::Clipboard::new().map_err(|e| e.to_string())?;
+    cb.set_text(text).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn save_file_bytes(filename: String, bytes: Vec<u8>) -> Result<String, String> {
+    let safe_name: String = filename
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '_',
+            _ => c,
+        })
+        .collect();
+
+    let base = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .unwrap_or_else(|_| ".".to_string());
+
+    let mut dir = PathBuf::from(base);
+    dir.push("Desktop");
+    dir.push("Lumo_Arquivos");
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+
+    let mut target = dir;
+    target.push(if safe_name.is_empty() {
+        "arquivo_lumo.bin".to_string()
+    } else {
+        safe_name
+    });
+
+    fs::write(&target, bytes).map_err(|e| e.to_string())?;
+    Ok(target.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn schedule_shutdown(minutes: u32) -> Result<String, String> {
+    run_shutdown_cmd(minutes)
+}
+
+#[tauri::command]
+fn cancel_shutdown() -> Result<(), String> {
+    run_cancel_shutdown_cmd()
+}
+
+#[cfg(windows)]
+fn run_shutdown_cmd(minutes: u32) -> Result<String, String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+
+    let secs = minutes.max(1).saturating_mul(60);
+    let _ = Command::new("shutdown")
+        .args(["/a"])
+        .creation_flags(0x08000000)
+        .output();
+
+    Command::new("shutdown")
+        .args(["/s", "/t", &secs.to_string()])
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    Ok(format!("Desligamento agendado para {} min.", minutes.max(1)))
+}
+
+#[cfg(windows)]
+fn run_cancel_shutdown_cmd() -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+
+    Command::new("shutdown")
+        .args(["/a"])
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn run_shutdown_cmd(minutes: u32) -> Result<String, String> {
+    Ok(format!("Simulado: {} min", minutes))
+}
+
+#[cfg(not(windows))]
+fn run_cancel_shutdown_cmd() -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+fn open_external_url(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") {
+        return Err("URL inválida.".to_string());
+    }
+    open_url_os(&url)
+}
+
+#[cfg(windows)]
+fn open_url_os(url: &str) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+
+    Command::new("cmd")
+        .args(["/C", "start", "", url])
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn open_url_os(_url: &str) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+fn get_autostart() -> bool {
+    check_autostart_win()
+}
+
+#[tauri::command]
+fn set_autostart(enabled: bool) -> Result<bool, String> {
+    toggle_autostart_win(enabled)
+}
+
+#[cfg(windows)]
+fn check_autostart_win() -> bool {
+    use winreg::enums::*;
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    if let Ok(key) = hkcu.open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Run") {
+        return key.get_value::<String, _>("Lumo").is_ok();
+    }
+    false
+}
+
+#[cfg(windows)]
+fn toggle_autostart_win(enabled: bool) -> Result<bool, String> {
+    use winreg::enums::*;
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let (key, _) = hkcu
+        .create_subkey(r"Software\Microsoft\Windows\CurrentVersion\Run")
+        .map_err(|e| e.to_string())?;
+
+    if enabled {
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let val = format!("\"{}\"", exe.display());
+        key.set_value("Lumo", &val).map_err(|e| e.to_string())?;
+        Ok(true)
+    } else {
+        let _ = key.delete_value("Lumo");
+        Ok(false)
+    }
+}
+
+#[cfg(not(windows))]
+fn check_autostart_win() -> bool {
+    false
+}
+
+#[cfg(not(windows))]
+fn toggle_autostart_win(enabled: bool) -> Result<bool, String> {
+    Ok(enabled)
+}
+
+#[cfg(windows)]
+fn watch_hotkey(app: tauri::AppHandle) {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_MENU, VK_SPACE};
+    let mut was_down = false;
+    loop {
+        let is_down = unsafe {
+            let alt = (GetAsyncKeyState(VK_MENU.0 as i32) as u16 & 0x8000) != 0;
+            let space = (GetAsyncKeyState(VK_SPACE.0 as i32) as u16 & 0x8000) != 0;
+            alt && space
+        };
+        if is_down && !was_down {
+            let _ = app.emit("toggle-lumo", ());
+        }
+        was_down = is_down;
+        std::thread::sleep(std::time::Duration::from_millis(45));
+    }
+}
+
+#[cfg(not(windows))]
+fn watch_hotkey(_app: tauri::AppHandle) {}
 
 #[cfg(windows)]
 fn get_windows_context() -> (i32, i32, String) {
@@ -124,7 +367,7 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
     let entry = Entry::new("lumo-assistant", "gemini").map_err(|e| e.to_string())?;
     let api_key = entry
         .get_password()
-        .map_err(|_| "Configure sua chave Gemini na aba Config.".to_string())?;
+        .map_err(|_| "Configure sua chave Gemini nas Configurações (⚙️).".to_string())?;
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
@@ -133,7 +376,7 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
 
     let body = serde_json::json!({
         "systemInstruction": {
-            "parts": [{ "text": "Você é o Lumo, um assistente de desktop curioso, leve e direto. Responda em português de forma curta (máximo 3 frases)." }]
+            "parts": [{ "text": "Você é o Lumo, um assistente de desktop curioso, simpático e leve. Responda em português de forma clara e curta (máximo 3 frases)." }]
         },
         "contents": [{
             "parts": [{ "text": prompt }]
@@ -158,18 +401,30 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
 }
 
 pub fn run() {
+    // Trava de instância única (impede abrir 2 Lumos ao mesmo tempo)
+    let lock = match TcpListener::bind("127.0.0.1:48291") {
+        Ok(listener) => Some(listener),
+        Err(_) => std::process::exit(0),
+    };
+
     tauri::Builder::default()
+        .manage(AppState {
+            sys: Mutex::new(System::new()),
+            _instance_lock: lock,
+        })
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 if let Ok(Some(monitor)) = window.primary_monitor() {
                     let scale = monitor.scale_factor();
                     let screen_w = monitor.size().width as f64 / scale;
-                    let x = ((screen_w - 290.0) / 2.0).max(0.0);
+                    let x = ((screen_w - 310.0) / 2.0).max(0.0);
                     let _ = window.set_position(tauri::Position::Logical(
                         tauri::LogicalPosition::new(x, 8.0),
                     ));
                 }
             }
+            let handle = app.handle().clone();
+            std::thread::spawn(move || watch_hotkey(handle));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -177,6 +432,15 @@ pub fn run() {
             set_window_mode,
             start_drag,
             quit_app,
+            media_control,
+            get_clipboard_text,
+            set_clipboard_text,
+            save_file_bytes,
+            schedule_shutdown,
+            cancel_shutdown,
+            open_external_url,
+            get_autostart,
+            set_autostart,
             save_api_key,
             ask_gemini
         ])

@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lumo</title>
+  <title>Lumo v1.0</title>
   <style>
     :root {
       --accent: #f6b974;
       --accent-soft: rgba(246, 185, 116, 0.16);
-      --accent-glow: rgba(246, 185, 116, 0.34);
-      --bg-pill: rgba(14, 15, 20, 0.94);
-      --bg-panel: rgba(16, 17, 23, 0.96);
+      --accent-glow: rgba(246, 185, 116, 0.36);
+      --bg-pill: rgba(13, 14, 19, 0.94);
+      --bg-panel: rgba(15, 16, 22, 0.96);
       --border: rgba(255, 255, 255, 0.11);
       --text: #f3f4f6;
       --muted: #9ca3af;
       --danger: #f87171;
       --ok: #34d399;
+      --love: #fb7185;
     }
 
     * {
@@ -42,11 +43,10 @@
       align-items: center;
       padding-top: 8px;
       position: relative;
+      transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
-
-    #app.comfort-warm {
-      filter: sepia(0.14) saturate(1.05);
-    }
+    #app.comfort-warm { filter: sepia(0.14) saturate(1.06); }
+    #app.shutting-down { opacity: 0; transform: translateY(-22px) scale(0.82); }
 
     #corner-sensor {
       display: none;
@@ -56,7 +56,7 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: rgba(14, 15, 20, 0.88);
+      background: rgba(13, 14, 19, 0.92);
       border: 1px solid var(--accent);
       box-shadow: 0 0 18px var(--accent-glow);
       align-items: center;
@@ -64,7 +64,6 @@
       cursor: pointer;
       animation: pulseCorner 2.2s infinite ease-in-out;
     }
-
     #corner-sensor .dot {
       width: 10px;
       height: 10px;
@@ -72,40 +71,80 @@
       background: var(--accent);
       box-shadow: 0 0 10px var(--accent);
     }
-
     @keyframes pulseCorner {
-      0%, 100% { transform: scale(0.92); opacity: 0.7; }
-      50% { transform: scale(1.04); opacity: 1; }
+      0%, 100% { transform: scale(0.92); opacity: 0.72; }
+      50% { transform: scale(1.06); opacity: 1; }
     }
 
+    /* Cápsula Obsidian */
     #lumo-pill {
       position: relative;
       flex-shrink: 0;
-      min-width: 146px;
+      min-width: 152px;
       height: 54px;
       padding: 0 20px;
       border-radius: 999px;
       background: var(--bg-pill);
       border: 1px solid var(--border);
       box-shadow:
-        0 12px 32px rgba(0, 0, 0, 0.55),
-        0 0 24px var(--accent-soft),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        0 12px 32px rgba(0, 0, 0, 0.58),
+        0 0 26px var(--accent-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
       cursor: pointer;
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+      animation: pillBoot 0.75s cubic-bezier(0.22, 1, 0.36, 1), pillBreath 4.6s ease-in-out 0.8s infinite;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.2s ease;
+    }
+    #lumo-pill.drag-over {
+      border-color: var(--accent);
+      transform: scale(1.09);
+      box-shadow: 0 0 36px var(--accent-glow);
+    }
+    @keyframes pillBoot {
+      from { opacity: 0; transform: translateY(-28px) scale(0.7); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pillBreath {
+      0%, 100% { box-shadow: 0 12px 32px rgba(0,0,0,0.58), 0 0 22px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.15); }
+      50% { box-shadow: 0 14px 36px rgba(0,0,0,0.62), 0 0 32px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.2); }
+    }
+    #lumo-pill:hover { transform: translateY(1px) scale(1.03); }
+    #lumo-pill:active { transform: scale(0.96, 1.04); }
+    #lumo-pill.hop { animation: hopBounce 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes hopBounce {
+      0% { transform: scale(1); }
+      35% { transform: translateY(-7px) scale(1.06, 0.94); }
+      70% { transform: translateY(2px) scale(0.97, 1.03); }
+      100% { transform: scale(1); }
     }
 
-    #lumo-pill:hover {
-      transform: translateY(1px) scale(1.02);
-      box-shadow:
-        0 14px 36px rgba(0, 0, 0, 0.65),
-        0 0 30px var(--accent-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    #float-emote {
+      position: absolute;
+      top: -6px;
+      right: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      opacity: 0;
+      pointer-events: none;
     }
+    #float-emote.show { animation: floatUp 1.6s ease-out infinite; }
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+      30% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-14px) scale(1.1); }
+    }
+
+    .eq-bars { display: none; align-items: flex-end; gap: 2px; height: 14px; }
+    .eq-bars.show { display: flex; }
+    .eq-bar { width: 3px; background: var(--accent); border-radius: 2px; animation: eqDance 0.7s infinite ease-in-out alternate; }
+    .eq-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+    .eq-bar:nth-child(2) { height: 13px; animation-delay: 0.2s; }
+    .eq-bar:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+    @keyframes eqDance { from { transform: scaleY(0.35); } to { transform: scaleY(1.1); } }
 
     .face {
       position: relative;
@@ -115,9 +154,8 @@
       gap: 18px;
       width: 68px;
       height: 32px;
-      transition: transform 0.1s ease-out;
+      will-change: transform;
     }
-
     .eye {
       width: 13px;
       height: 19px;
@@ -125,9 +163,8 @@
       background: var(--accent);
       box-shadow: 0 0 14px var(--accent-glow);
       position: relative;
-      transition: height 0.14s ease, width 0.14s ease, border-radius 0.16s ease, transform 0.14s ease, background 0.3s ease;
+      transition: height 0.14s ease, width 0.14s ease, border-radius 0.16s ease, transform 0.16s ease, background 0.25s ease;
     }
-
     .eye::after {
       content: '';
       position: absolute;
@@ -136,8 +173,8 @@
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.85);
-      transition: opacity 0.15s ease;
+      background: rgba(255, 255, 255, 0.88);
+      transition: opacity 0.12s ease;
     }
 
     .face.blink .eye { height: 3px; border-radius: 4px; }
@@ -154,44 +191,53 @@
     }
     .face.happy .eye::after { opacity: 0; }
 
+    .face.love .eye {
+      background: var(--love);
+      box-shadow: 0 0 16px rgba(251, 113, 133, 0.65);
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      animation: lovePulse 0.55s infinite alternate ease-in-out;
+    }
+    @keyframes lovePulse { from { transform: scale(0.92); } to { transform: scale(1.16); } }
+
     .blush {
       position: absolute;
-      bottom: 3px;
-      width: 10px;
+      bottom: 2px;
+      width: 11px;
       height: 5px;
       border-radius: 50%;
-      background: rgba(251, 113, 133, 0.55);
+      background: rgba(251, 113, 133, 0.65);
       filter: blur(2px);
       opacity: 0;
       transition: opacity 0.25s ease;
     }
-    .blush.left { left: 2px; }
-    .blush.right { right: 2px; }
-    .face.happy .blush { opacity: 1; }
+    .blush.left { left: 1px; }
+    .blush.right { right: 1px; }
+    .face.happy .blush, .face.love .blush { opacity: 1; }
 
-    .face.bored .eye, .face.tired .eye {
-      height: 9px;
-      border-radius: 4px 4px 10px 10px;
-      transform: translateY(2px);
+    .face.focused .eye { height: 11px; width: 15px; border-radius: 3px 3px 8px 8px; transform: translateY(1px); }
+    .face.music .eye { animation: musicBob 0.55s infinite alternate cubic-bezier(0.22, 1, 0.36, 1); }
+    .face.music .eye.right { animation-delay: 0.12s; }
+    @keyframes musicBob { from { transform: translateY(2px) scaleY(0.92); } to { transform: translateY(-3px) scaleY(1.06); } }
+
+    .face.bored .eye { height: 9px; border-radius: 3px 3px 10px 10px; transform: translateY(3px); }
+    .face.sleepy .eye, .face.goodbye .eye {
+      height: 3.5px; width: 15px; border-radius: 0 0 12px 12px; opacity: 0.65; transform: translateY(3px);
     }
-
-    .face.sleepy .eye {
-      height: 4px;
-      width: 14px;
-      border-radius: 0 0 10px 10px;
-      opacity: 0.7;
-    }
-    .face.sleepy .eye::after { opacity: 0; }
-
+    .face.sleepy .eye::after, .face.goodbye .eye::after { opacity: 0; }
     .face.surprised .eye { width: 16px; height: 22px; }
 
-    .face.listening .eye {
-      animation: listenPulse 0.7s infinite alternate ease-in-out;
+    .face.dizzy .eye {
+      height: 14px; width: 14px; border-radius: 50%;
+      border: 3px dashed var(--accent); background: transparent; box-shadow: none;
+      animation: spinDizzy 0.6s linear infinite;
     }
-    @keyframes listenPulse {
-      from { transform: scaleY(0.85); }
-      to { transform: scaleY(1.2); }
-    }
+    .face.dizzy .eye::after { opacity: 0; }
+    @keyframes spinDizzy { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .face.listening .eye { animation: listenPulse 0.6s infinite alternate ease-in-out; }
+    @keyframes listenPulse { from { transform: scaleY(0.8); } to { transform: scaleY(1.22); } }
 
     #pill-badge {
       display: none;
@@ -201,23 +247,22 @@
       background: var(--accent-soft);
       padding: 3px 8px;
       border-radius: 999px;
-      letter-spacing: 0.3px;
     }
     #pill-badge.show { display: inline-block; }
 
-    /* Posicao absoluta para nunca empurrar o painel */
+    /* Balão de fala + Micro-ajuda clicável */
     #speech-bubble {
       position: fixed;
       top: 68px;
       left: 50%;
-      transform: translateX(-50%) translateY(-6px) scale(0.96);
+      transform: translateX(-50%) translateY(-6px) scale(0.95);
       width: max-content;
-      max-width: 268px;
-      padding: 7px 13px;
+      max-width: 292px;
+      padding: 7px 14px;
       border-radius: 14px;
-      background: rgba(16, 17, 23, 0.94);
+      background: rgba(15, 16, 22, 0.96);
       border: 1px solid var(--border);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
       font-size: 12px;
       line-height: 1.35;
       color: var(--text);
@@ -225,31 +270,36 @@
       opacity: 0;
       pointer-events: none;
       z-index: 20;
-      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
     #speech-bubble.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0) scale(1);
     }
+    #speech-bubble.clickable {
+      pointer-events: auto;
+      cursor: pointer;
+      border-color: var(--accent);
+    }
 
+    /* Painel Principal */
     #panel {
       display: none;
       margin-top: 10px;
-      width: 396px;
-      height: 482px;
+      width: 416px;
+      height: 512px;
       border-radius: 24px;
       background: var(--bg-panel);
       border: 1px solid var(--border);
       box-shadow:
-        0 24px 60px rgba(0, 0, 0, 0.75),
-        0 0 32px var(--accent-soft),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        0 26px 64px rgba(0, 0, 0, 0.78),
+        0 0 34px var(--accent-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13);
       flex-direction: column;
       overflow: hidden;
       animation: panelOpen 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
     #panel.open { display: flex; }
-
     @keyframes panelOpen {
       from { opacity: 0; transform: translateY(-10px) scale(0.96); }
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -259,26 +309,25 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 14px 8px;
+      padding: 11px 12px 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       gap: 4px;
     }
 
     .tabs {
       display: flex;
-      gap: 4px;
+      gap: 2px;
       background: rgba(255, 255, 255, 0.04);
       padding: 3px;
       border-radius: 12px;
     }
-
     .tab-btn {
       background: transparent;
       border: none;
       color: var(--muted);
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 500;
-      padding: 6px 9px;
+      padding: 6px 8px;
       border-radius: 9px;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -289,58 +338,44 @@
       font-weight: 600;
     }
 
-    .icon-actions { display: flex; gap: 5px; }
-
+    .icon-actions { display: flex; gap: 4px; }
     .circle-btn {
-      width: 28px;
-      height: 28px;
+      width: 27px;
+      height: 27px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
-      font-size: 12px;
+      font-size: 11.5px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
     }
-    .circle-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .circle-btn:hover, .circle-btn.active-btn { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
     .circle-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
-    .circle-btn.recording {
-      background: rgba(248, 113, 113, 0.2);
-      border-color: var(--danger);
-      color: var(--danger);
-    }
+    .circle-btn.recording { background: rgba(248, 113, 113, 0.2); border-color: var(--danger); color: var(--danger); }
 
     .tab-content {
       display: none;
       flex: 1;
-      padding: 14px 16px;
+      padding: 13px 15px;
       overflow-y: auto;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .tab-content.active { display: flex; }
-
     .tab-content::-webkit-scrollbar { width: 4px; }
-    .tab-content::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 4px;
-    }
+    .tab-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
 
-    .summary-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    .greeting h2 { font-size: 17px; font-weight: 600; }
-    .greeting p { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+    .summary-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .greeting h2 { font-size: 16.5px; font-weight: 600; }
+    .greeting p { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     .ram-pill {
-      font-size: 11px;
-      padding: 5px 10px;
+      font-size: 10.5px;
+      padding: 5px 9px;
       border-radius: 999px;
       background: rgba(52, 211, 153, 0.12);
       border: 1px solid rgba(52, 211, 153, 0.28);
@@ -349,177 +384,185 @@
       font-weight: 500;
     }
 
+    .pro-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f6b974, #f59e0b);
+      color: #111;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
     .card {
       background: rgba(255, 255, 255, 0.035);
       border: 1px solid rgba(255, 255, 255, 0.07);
       border-radius: 16px;
-      padding: 12px 14px;
+      padding: 11px 13px;
     }
-
-    .card-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
+    .card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
     .label-xs {
-      font-size: 10.5px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       color: var(--accent);
       font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .switch {
-      position: relative;
-      width: 38px;
-      height: 20px;
-      display: inline-block;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 999px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .slider::before {
-      content: '';
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      left: 3px;
-      bottom: 3px;
-      background: #fff;
-      border-radius: 50%;
-      transition: 0.2s;
-    }
-    input:checked + .slider { background: var(--accent); }
-    input:checked + .slider::before { transform: translateX(18px); background: #111; }
-
-    .task-list { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
-    .task-item {
+      margin-bottom: 5px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 11px;
-      background: rgba(255, 255, 255, 0.025);
-      font-size: 12.5px;
     }
-    .task-left { display: flex; align-items: center; gap: 9px; cursor: pointer; flex: 1; }
-    .check-circle {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 1.5px solid var(--muted);
+
+    .pro-lock {
+      background: rgba(246, 185, 116, 0.08);
+      border: 1px dashed rgba(246, 185, 116, 0.35);
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      flex-shrink: 0;
+      gap: 8px;
     }
-    .task-item.done .check-circle {
-      background: var(--accent);
+    .pro-lock p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    /* Banner de atualização */
+    #update-banner {
+      display: none;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 13px;
+      padding: 8px 11px;
+      font-size: 11.5px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #update-banner.show { display: flex; }
+
+    /* Drop Zone (Bandeja Mágica) */
+    .drop-zone {
+      border: 1.5px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 15px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .drop-zone:hover, .drop-zone.active {
       border-color: var(--accent);
-      color: #111;
-      font-weight: bold;
+      background: var(--accent-soft);
     }
+    .drop-zone p { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+    .pocket-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 13px;
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 11.5px;
+    }
+    .pocket-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pocket-thumb { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; }
+    .pocket-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* Controles de Mídia */
+    .media-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0 6px; }
+    .media-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 15px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s ease;
+    }
+    .media-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.06); }
+    .media-btn.main-play {
+      width: 50px; height: 50px; background: var(--accent); color: #111; border: none; font-size: 18px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .vol-row { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+
+    .ambient-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 8px; }
+    .ambient-btn {
+      padding: 9px 6px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03); color: var(--text); font-size: 11px;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.2s ease;
+    }
+    .ambient-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+    /* Switch */
+    .switch { position: relative; width: 36px; height: 19px; display: inline-block; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.15); border-radius: 999px; cursor: pointer; transition: 0.2s; }
+    .slider::before { content: ''; position: absolute; width: 13px; height: 13px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+    input:checked + .slider { background: var(--accent); }
+    input:checked + .slider::before { transform: translateX(17px); background: #111; }
+
+    .task-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .task-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.025); font-size: 12px;
+    }
+    .task-left { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; overflow: hidden; }
+    .task-left span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .check-circle {
+      width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--muted);
+      display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0;
+    }
+    .task-item.done .check-circle { background: var(--accent); border-color: var(--accent); color: #111; font-weight: bold; }
     .task-item.done span { text-decoration: line-through; color: var(--muted); }
-    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 2px 5px; }
+    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 2px 5px; }
     .del-btn:hover { color: var(--danger); }
 
-    .inline-form { display: flex; gap: 6px; margin-top: 8px; }
-
-    input[type="text"], input[type="password"], input[type="time"] {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 11px;
-      padding: 8px 11px;
-      color: var(--text);
-      font-size: 12.5px;
-      outline: none;
+    .inline-form { display: flex; gap: 6px; margin-top: 7px; }
+    input[type="text"], input[type="password"], select, textarea {
+      flex: 1; background: rgba(0, 0, 0, 0.36); border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px; padding: 7px 10px; color: var(--text); font-size: 12px; outline: none;
     }
-    input:focus { border-color: var(--accent); }
+    select option { background: #12131a; color: #f3f4f6; }
+    textarea { width: 100%; resize: none; min-height: 70px; user-select: text; line-height: 1.4; }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 
     .btn-primary {
-      background: var(--accent);
-      color: #111318;
-      border: none;
-      border-radius: 11px;
-      padding: 8px 13px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
+      background: var(--accent); color: #111318; border: none; border-radius: 10px;
+      padding: 7px 12px; font-size: 11.5px; font-weight: 600; cursor: pointer;
     }
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 11.5px;
-      cursor: pointer;
+      background: rgba(255, 255, 255, 0.06); color: var(--text); border: 1px solid var(--border);
+      border-radius: 9px; padding: 5px 9px; font-size: 11px; cursor: pointer;
     }
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-    #chat-box {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
-      padding-right: 2px;
-    }
-    .msg {
-      padding: 9px 12px;
-      border-radius: 14px;
-      font-size: 12.5px;
-      line-height: 1.42;
-      max-width: 88%;
-      user-select: text;
-    }
-    .msg.user {
-      align-self: flex-end;
-      background: var(--accent-soft);
-      border: 1px solid var(--accent-glow);
-    }
-    .msg.ai {
-      align-self: flex-start;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .copy-mini { display: inline-block; margin-top: 5px; font-size: 10.5px; color: var(--accent); cursor: pointer; }
+    #chat-box { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
+    .msg { padding: 8px 11px; border-radius: 14px; font-size: 12px; line-height: 1.4; max-width: 88%; user-select: text; }
+    .msg.user { align-self: flex-end; background: var(--accent-soft); border: 1px solid var(--accent-glow); }
+    .msg.ai { align-self: flex-start; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .copy-mini { display: inline-block; margin-top: 4px; font-size: 10px; color: var(--accent); cursor: pointer; }
 
-    .timer-display {
-      font-size: 32px;
-      font-weight: 700;
-      text-align: center;
-      color: var(--accent);
-      letter-spacing: 1px;
-      margin: 4px 0 8px;
-    }
-    .preset-row { display: flex; justify-content: center; gap: 6px; }
+    .timer-display { font-size: 26px; font-weight: 700; text-align: center; color: var(--accent); letter-spacing: 1px; margin: 2px 0 6px; }
+    .preset-row { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
 
     .theme-dots { display: flex; gap: 10px; margin-top: 6px; }
-    .theme-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .theme-dot { width: 23px; height: 23px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
     .theme-dot.active { border-color: #fff; transform: scale(1.1); }
   </style>
 </head>
 <body>
   <div id="app">
-    <div id="corner-sensor" title="Chamar o Lumo de volta" onclick="wakeFromGame()">
+    <div id="corner-sensor" title="Chamar o Lumo (ou Alt + Espaço)" onclick="wakeFromGame()">
       <div class="dot"></div>
     </div>
 
-    <div id="lumo-pill" title="Clique para abrir · Arraste para mover · 2 cliques para carinho">
-      <div class="face" id="lumo-face">
+    <div id="lumo-pill" title="Clique: abrir · 2 cliques: carinho · Arraste arquivos aqui · Alt+Espaço">
+      <span id="float-emote">♪</span>
+      <div class="eq-bars" id="eq-bars">
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+      </div>
+      <div class="face sleepy" id="lumo-face">
         <div class="blush left"></div>
         <div class="eye left"></div>
         <div class="eye right"></div>
@@ -528,29 +571,37 @@
       <span id="pill-badge">25:00</span>
     </div>
 
-    <div id="speech-bubble">Oi! Tudo pronto por aqui.</div>
+    <div id="speech-bubble" onclick="onBubbleClick()">Acordando...</div>
 
     <div id="panel">
       <div class="nav">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="resumo" onclick="switchTab('resumo')">Resumo</button>
+          <button class="tab-btn active" data-tab="resumo" onclick="switchTab('resumo')">Início</button>
+          <button class="tab-btn" data-tab="midia" onclick="switchTab('midia')">Mídia</button>
+          <button class="tab-btn" data-tab="bolso" onclick="switchTab('bolso')">Bolso</button>
           <button class="tab-btn" data-tab="ia" onclick="switchTab('ia')">IA</button>
-          <button class="tab-btn" data-tab="foco" onclick="switchTab('foco')">Foco</button>
-          <button class="tab-btn" data-tab="config" onclick="switchTab('config')">Config</button>
+          <button class="tab-btn" data-tab="util" onclick="switchTab('util')">Util</button>
         </div>
         <div class="icon-actions">
           <button class="circle-btn" id="mic-btn" title="Comando de voz" onclick="toggleVoice()">🎙️</button>
-          <button class="circle-btn" title="Esconder no canto (Modo Jogo)" onclick="hideForGame('Modo jogo ativado. Encoste no canto superior direito!')">🎮</button>
-          <button class="circle-btn" title="Recolher" onclick="togglePanel(false)">—</button>
-          <button class="circle-btn danger" title="Fechar Lumo" onclick="quitApp()">✕</button>
+          <button class="circle-btn" id="stealth-btn" title="Modo Furtivo (silencia em calls)" onclick="toggleStealth()">🤫</button>
+          <button class="circle-btn" id="cfg-btn" title="Configurações & Pro" onclick="switchTab('config')">⚙️</button>
+          <button class="circle-btn" title="Recolher (Esc)" onclick="togglePanel(false)">—</button>
+          <button class="circle-btn danger" title="Dormir / Sair" onclick="gracefulShutdown()">🌙</button>
         </div>
       </div>
 
+      <!-- ABA 1: INÍCIO / RESUMO -->
       <div class="tab-content active" id="tab-resumo">
+        <div id="update-banner">
+          <span id="update-text">Nova versão disponível!</span>
+          <button class="btn-primary" style="padding:4px 9px; font-size:11px;" onclick="openUpdateLink()">Atualizar</button>
+        </div>
+
         <div class="summary-top">
           <div class="greeting">
             <h2 id="greeting-text">Bom dia!</h2>
-            <p id="uptime-text">Ativo há 0m · Windows Nativo</p>
+            <p id="uptime-text">Ativo há 0m · Alt+Espaço</p>
           </div>
           <div class="ram-pill" id="ram-stat">RAM: -- / -- GB</div>
         </div>
@@ -558,8 +609,8 @@
         <div class="card">
           <div class="card-row">
             <div>
-              <div class="label-xs">Próximo Alarme</div>
-              <div style="font-size: 13.5px; font-weight: 600;" id="next-alarm-label">07:30 · Acordar</div>
+              <div class="label-xs" style="margin-bottom:2px;">Próximo Alarme</div>
+              <div style="font-size: 13px; font-weight: 600;" id="next-alarm-label">07:30 · Acordar</div>
             </div>
             <label class="switch">
               <input type="checkbox" id="next-alarm-toggle" checked onchange="toggleMainAlarm(this.checked)" />
@@ -569,7 +620,10 @@
         </div>
 
         <div class="card" style="flex: 1; display: flex; flex-direction: column;">
-          <div class="label-xs">Tarefas de Hoje</div>
+          <div class="label-xs">
+            <span>Tarefas de Hoje</span>
+            <span id="task-limit-label" style="color:var(--muted); font-weight:400;"></span>
+          </div>
           <div class="task-list" id="task-list"></div>
           <form class="inline-form" onsubmit="addTask(event)">
             <input type="text" id="new-task-input" placeholder="+ Nova tarefa..." />
@@ -578,23 +632,105 @@
         </div>
       </div>
 
-      <div class="tab-content" id="tab-ia">
-        <div class="card-row">
-          <span class="label-xs" style="margin:0;">Gemini 2.5 Flash · Direto via Rust</span>
-          <button class="btn-ghost" onclick="switchTab('config')">Chave API</button>
+      <!-- ABA 2: MÍDIA & AMBIENTE -->
+      <div class="tab-content" id="tab-midia">
+        <div class="card">
+          <div class="label-xs">
+            <span>Controle Universal do Windows</span>
+            <span style="color:var(--ok);">Spotify · YouTube · PC</span>
+          </div>
+          <p style="font-size:11px; color:var(--muted); text-align:center;">
+            Controla qualquer música ou vídeo tocando no PC sem gastar RAM.
+          </p>
+          <div class="media-controls">
+            <button class="media-btn" title="Anterior" onclick="sendMedia('prev')">⏮</button>
+            <button class="media-btn main-play" title="Play / Pause" onclick="sendMedia('play_pause')">⏯</button>
+            <button class="media-btn" title="Próxima" onclick="sendMedia('next')">⏭</button>
+          </div>
+          <div class="vol-row">
+            <button class="btn-ghost" onclick="sendMedia('vol_down')">🔉 -</button>
+            <button class="btn-ghost" onclick="sendMedia('mute')">🔇 Mudo</button>
+            <button class="btn-ghost" onclick="sendMedia('vol_up')">🔊 +</button>
+          </div>
         </div>
-        <div id="chat-box">
-          <div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div>
+
+        <div class="card" style="flex:1;">
+          <div class="label-xs">
+            <span>Som Ambiente Integrado (0 MB extra)</span>
+            <span class="pro-badge" id="ambient-pro-badge">PRO</span>
+          </div>
+          <p style="font-size:11px; color:var(--muted);">
+            Sons relaxantes offline que fazem o Lumo entrar no ritmo.
+          </p>
+          <div class="ambient-grid">
+            <button class="ambient-btn" id="amb-lofi" onclick="toggleAmbient('lofi')">
+              <span style="font-size:18px;">🎹</span><span>Lo-fi Zen</span>
+            </button>
+            <button class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain')">
+              <span style="font-size:18px;">🌧️</span><span>Chuva</span>
+            </button>
+            <button class="ambient-btn" id="amb-brown" onclick="toggleAmbient('brown')">
+              <span style="font-size:18px;">🌊</span><span>Foco</span>
+            </button>
+          </div>
+          <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; color:var(--muted);">Volume:</span>
+            <input type="range" id="ambient-vol" min="0" max="100" value="35" oninput="updateAmbientVol(this.value)" style="flex:1; accent-color: var(--accent);" />
+          </div>
         </div>
-        <form class="inline-form" onsubmit="sendPrompt(event)">
-          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." />
-          <button type="submit" class="btn-primary" id="ai-send-btn">Enviar</button>
-        </form>
       </div>
 
-      <div class="tab-content" id="tab-foco">
+      <!-- ABA 3: BOLSO (BANDEJA MÁGICA + CONVERSOR LOCAL) -->
+      <div class="tab-content" id="tab-bolso">
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-picker').click()">
+          <div style="font-size:20px;">📂</div>
+          <div style="font-size:12.5px; font-weight:600;">Bandeja Mágica</div>
+          <p>Arraste arquivos aqui (ou no rostinho do Lumo) para guardar ou converter imagens localmente.</p>
+          <input type="file" id="file-picker" multiple style="display:none;" onchange="handleFiles(this.files)" />
+        </div>
+
+        <div class="card" style="padding:8px 12px;">
+          <div class="card-row">
+            <span style="font-size:11px; color:var(--muted);">Qualidade de compressão (JPG/WebP): <strong id="q-val" style="color:var(--accent);">80%</strong></span>
+            <input type="range" id="img-quality" min="25" max="95" value="80" oninput="document.getElementById('q-val').textContent=this.value+'%'" style="width:110px; accent-color:var(--accent);" />
+          </div>
+        </div>
+
+        <div id="pocket-list" style="display:flex; flex-direction:column; gap:8px; flex:1;">
+          <div style="font-size:11.5px; color:var(--muted); text-align:center; margin-top:14px;">
+            Nenhum arquivo no bolso ainda. Os arquivos convertidos são salvos em <strong>Área de Trabalho\Lumo_Arquivos</strong>.
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 4: IA -->
+      <div class="tab-content" id="tab-ia">
+        <div id="ia-pro-gate" class="pro-lock" style="display:none; margin:auto;">
+          <span class="pro-badge">LUMO PRO</span>
+          <h3 style="font-size:15px;">Gemini 2.5 direto no Lumo</h3>
+          <p>Pergunte qualquer coisa sem abrir o navegador e economize mais de 1 GB de RAM.</p>
+          <button class="btn-primary" onclick="switchTab('config')">Ativar Lumo Pro</button>
+        </div>
+
+        <div id="ia-body" style="display:flex; flex-direction:column; flex:1; gap:10px;">
+          <div class="card-row">
+            <span class="label-xs" style="margin:0;">Gemini 2.5 Flash · Direto via Rust</span>
+            <button class="btn-ghost" onclick="switchTab('config')">Chave API</button>
+          </div>
+          <div id="chat-box">
+            <div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div>
+          </div>
+          <form class="inline-form" onsubmit="sendPrompt(event)">
+            <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." />
+            <button type="submit" class="btn-primary" id="ai-send-btn">Enviar</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ABA 5: UTIL (POMODORO + MODO SONECA PC + NOTAS + CTRL+C) -->
+      <div class="tab-content" id="tab-util">
         <div class="card">
-          <div class="label-xs">Timer de Foco</div>
+          <div class="label-xs">Timer Pomodoro</div>
           <div class="timer-display" id="timer-display">25:00</div>
           <div class="preset-row">
             <button class="btn-ghost" onclick="setTimer(25)">25m</button>
@@ -604,27 +740,87 @@
           </div>
         </div>
 
-        <div class="card" style="flex: 1;">
-          <div class="label-xs">Alarmes Diários</div>
-          <div class="task-list" id="alarm-list"></div>
-          <form class="inline-form" onsubmit="addAlarm(event)">
-            <input type="time" id="alarm-time" required style="max-width: 105px;" />
-            <input type="text" id="alarm-name" placeholder="Nome do alarme" />
-            <button type="submit" class="btn-primary">+</button>
-          </form>
+        <div class="card">
+          <div class="label-xs">
+            <span>Modo Soneca (Desligar PC)</span>
+            <span id="sleep-status" style="color:var(--muted); font-weight:400;">Inativo</span>
+          </div>
+          <div class="preset-row">
+            <button class="btn-ghost" onclick="schedulePcSleep(30)">30m</button>
+            <button class="btn-ghost" onclick="schedulePcSleep(60)">1h</button>
+            <button class="btn-ghost" onclick="schedulePcSleep(90)">1h30</button>
+            <button class="btn-ghost" style="color:var(--danger);" onclick="cancelPcSleep()">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">
+            <span>Bloco de Notas Rápido</span>
+            <span class="pro-badge" id="notes-pro-badge">PRO</span>
+          </div>
+          <textarea id="quick-notes" placeholder="Anote ideias ou rascunhos..." oninput="saveQuickNotes(this.value)"></textarea>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">
+            <span>Histórico de Ctrl+C (+ Micro-ajuda)</span>
+            <span class="pro-badge" id="clip-pro-badge">PRO</span>
+          </div>
+          <div class="task-list" id="clipboard-list"></div>
         </div>
       </div>
 
+      <!-- ABA 6: CONFIGURAÇÕES (ABERTA PELA ENGRENAGEM) -->
       <div class="tab-content" id="tab-config">
         <div class="card">
-          <div class="label-xs">Chave API Gemini (Cofre do Windows)</div>
-          <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">
-            Salva com criptografia nativa no Gerenciador de Credenciais do Windows.
-          </p>
-          <form class="inline-form" onsubmit="saveGeminiKey(event)">
-            <input type="password" id="api-key-input" placeholder="Cole sua AIzaSy..." />
-            <button type="submit" class="btn-primary">Salvar</button>
+          <div class="label-xs">
+            <span>Plano Atual · Lumo v1.0.0</span>
+            <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
+          </div>
+          <form class="inline-form" onsubmit="activateLicense(event)">
+            <input type="text" id="license-input" placeholder="Chave Pro (Teste: LUMO-PRO-2026)" />
+            <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
           </form>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">Personalidade & Voz</div>
+          <div class="inline-form" style="margin-top:4px;">
+            <select id="personality-select" onchange="setPersonality(this.value)" title="Nível de personalidade">
+              <option value="zen">Zen (zero interrupções)</option>
+              <option value="balanced" selected>Equilibrado (padrão)</option>
+              <option value="companion">Companheiro (curioso)</option>
+            </select>
+            <select id="voice-select" onchange="setVoiceMode(this.value)" title="Modo de voz">
+              <option value="mascot">Voz Mascote</option>
+              <option value="spoken">Voz Falada (PT-BR)</option>
+              <option value="chimes">Só Chimes</option>
+              <option value="mute">Mudo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-row" style="margin-bottom:7px;">
+            <div>
+              <div style="font-size:12px; font-weight:600;">Iniciar com o Windows</div>
+              <div style="font-size:10.5px; color:var(--muted);">Acorda junto quando você liga o PC</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autostart-toggle" onchange="toggleAutostart(this.checked)" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="card-row">
+            <div>
+              <div style="font-size:12px; font-weight:600;">Dicas ao abrir Jogos + Auto-esconder</div>
+              <div style="font-size:10.5px; color:var(--muted);">Mostra dica no loading e vai pro canto</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autohide-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
 
         <div class="card">
@@ -632,48 +828,513 @@
           <div class="theme-dots">
             <div class="theme-dot active" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente"></div>
             <div class="theme-dot" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar"></div>
-            <div class="theme-dot" style="background:#67e8f9" onclick="setTheme('cyan', this)" title="Ciano Névoa"></div>
-            <div class="theme-dot" style="background:#c4b5fd" onclick="setTheme('lavender', this)" title="Lavanda Zen"></div>
+            <div class="theme-dot" style="background:#67e8f9" onclick="setTheme('cyan', this, true)" title="Ciano Névoa (Pro)"></div>
+            <div class="theme-dot" style="background:#c4b5fd" onclick="setTheme('lavender', this, true)" title="Lavanda Zen (Pro)"></div>
+            <div class="theme-dot" style="background:#34d399" onclick="setTheme('emerald', this, true)" title="Esmeralda (Pro)"></div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-row" style="margin-bottom: 8px;">
-            <div>
-              <div style="font-size: 12.5px; font-weight: 600;">Auto-esconder em Jogos</div>
-              <div style="font-size: 11px; color: var(--muted);">Detecta jogos e vai para o canto</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autohide-toggle" checked />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <input type="text" id="game-keywords" value="valorant, minecraft, cs2, roblox, fortnite, dead by daylight, five nights, outlast, r.e.p.o, elden ring, gta, rimworld, stardew" />
+          <div class="label-xs">Chave API Gemini (Cofre do Windows)</div>
+          <form class="inline-form" onsubmit="saveGeminiKey(event)">
+            <input type="password" id="api-key-input" placeholder="Cole sua AIzaSy..." />
+            <button type="submit" class="btn-primary">Salvar</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    const APP_VERSION = '1.0.0';
+    const REPO_API = 'https://api.github.com/repos/VitorSilva010/Lumo/releases/latest';
     const invoke = window.__TAURI__?.core?.invoke || null;
+    const listen = window.__TAURI__?.event?.listen || null;
 
+    let isPro = localStorage.getItem('lumo_pro') === 'true';
+    let personality = localStorage.getItem('lumo_personality') || 'balanced';
+    let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
+    let stealthManual = false;
+    let stealthAuto = false;
     let isExpanded = false;
     let isHiddenInGame = false;
+    let isShuttingDown = false;
     let manualSummonUntil = 0;
     let lastInteraction = Date.now();
     let startTime = Date.now();
+    let petCombo = 0, lastPetTime = 0;
+    let activeAmbient = null;
+    let bubbleCopyPayload = null;
+    let latestReleaseUrl = null;
+    let usdRate = 5.80, eurRate = 6.25;
 
-    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Revisar metas do dia","done":false},{"text":"Beber água","done":true}]');
+    let targetEyeX = 0, targetEyeY = 0, currentEyeX = 0, currentEyeY = 0;
+    let lastCursorX = 0, lastDir = 0, shakeCount = 0, lastShakeReset = Date.now();
+
+    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Explorar o Lumo v1.0","done":false},{"text":"Beber água","done":true}]');
     let alarms = JSON.parse(localStorage.getItem('lumo_alarms') || '[{"time":"07:30","label":"Acordar","enabled":true}]');
+    let clipHistory = JSON.parse(localStorage.getItem('lumo_clips') || '[]');
+    let pocketFiles = [];
 
     const themes = {
-      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.16)', glow: 'rgba(246, 185, 116, 0.34)' },
+      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.16)', glow: 'rgba(246, 185, 116, 0.36)' },
       lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.14)', glow: 'rgba(243, 244, 246, 0.28)' },
-      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.15)', glow: 'rgba(103, 232, 249, 0.32)' },
-      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.16)', glow: 'rgba(196, 181, 253, 0.34)' }
+      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.16)', glow: 'rgba(103, 232, 249, 0.35)' },
+      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.16)', glow: 'rgba(196, 181, 253, 0.35)' },
+      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.16)', glow: 'rgba(52, 211, 153, 0.35)' }
     };
 
-    function setTheme(name, el) {
+    // Base local instantânea de Dicas de Jogos
+    const gameTipsDB = [
+      { keys: ['minecraft'], name: 'Minecraft', tips: ['Dica: F3 + G mostra as bordas dos chunks — ótimo pra farms!', 'Dica: Carregue sempre um balde de água na barra quente contra quedas.'] },
+      { keys: ['valorant'], name: 'Valorant', tips: ['Dica: Mantenha a mira na altura da cabeça antes mesmo de abrir o pixel.', 'Dica: Cheque a economia do time antes de forçar compra!'] },
+      { keys: ['counter-strike', 'cs2'], name: 'CS2', tips: ['Dica: Contra-strafe (A/D) zera sua imprecisão antes do primeiro tiro.', 'Dica: Use utilitários antes de morrer — não guarde smoke pro além!'] },
+      { keys: ['dead by daylight'], name: 'Dead by Daylight', tips: ['Dica: Olhe para trás nos loops para ler a luz vermelha do killer.', 'Dica: Evite fechar os 3 geradores mais próximos no final (3-gen).'] },
+      { keys: ['rimworld'], name: 'RimWorld', tips: ['Dica: Evite paredes de madeira perto de fiações — incêndio é traiçoeiro!', 'Dica: Uma mesa bonita perto da cozinha evita o debuff de comer sem mesa.'] },
+      { keys: ['stardew valley'], name: 'Stardew Valley', tips: ['Dica: Assista à TV todo domingo para não perder receitas da Rainha do Molho.', 'Dica: Guarde pelo menos 1 item de cada estação pro Centro Comunitário!'] },
+      { keys: ['roblox'], name: 'Roblox', tips: ['Dica: Shift Lock facilita muito parkour e câmera em jogos de ação.', 'Dica: Boa jogatina! Se precisar de ajuda rápida, aperte Alt+Espaço.'] },
+      { keys: ['five nights', 'fnaf'], name: 'FNAF', tips: ['Dica: Ouça bem os passos nos fones — o som entrega antes das câmeras!', 'Dica: Economize energia e fique de olho nas rotas mais rápidas.'] },
+      { keys: ['outlast'], name: 'Outlast', tips: ['Dica: Desligue a visão noturna sempre que houver luz para poupar bateria.', 'Dica: Feche portas atrás de você durante perseguições para ganhar segundos.'] },
+      { keys: ['r.e.p.o', 'repo'], name: 'R.E.P.O.', tips: ['Dica: Cuidado ao carregar itens frágeis nas curvas — bater derruba o valor!', 'Dica: Combine rotas silenciosas com o time antes de extrair.'] },
+      { keys: ['elden ring'], name: 'Elden Ring', tips: ['Dica: Se um chefe parecer impossível, explore outra área e volte mais forte.', 'Dica: Role para dentro dos golpes largos em vez de recuar!'] },
+      { keys: ['fortnite'], name: 'Fortnite', tips: ['Dica: Mantenha sempre um item de mobilidade no inventário pro final da safe.', 'Dica: Recarregue todas as armas assim que vencer uma trocação.'] },
+      { keys: ['grand theft auto', 'gta'], name: 'GTA', tips: ['Dica: Use o menu de interação rápido para comer snacks e recuperar vida em cobertura.', 'Dica: Boa sessão em Los Santos! Tô no canto se precisar.'] },
+      { keys: ['papers, please'], name: 'Papers, Please', tips: ['Dica: Confira sempre o peso, a cidade emissora e a data de validade primeiro!', 'Dica: Glória a Arstotzka! Fique atento às regras novas do boletim diário.'] },
+      { keys: ['prison architect'], name: 'Prison Architect', tips: ['Dica: Coloque detectores de metal na saída da cantina e da oficina.', 'Dica: Separe prisioneiros de segurança máxima dos demais logo cedo.'] },
+      { keys: ['league of legends'], name: 'LoL', tips: ['Dica: Dê uma olhada no minimapa a cada 2 ou 3 minions farmados.', 'Dica: Controle de visão no rio antes dos objetivos ganha metade das lutas.'] }
+    ];
+
+    function isStealth() { return stealthManual || stealthAuto; }
+
+    function toggleStealth() {
+      stealthManual = !stealthManual;
+      document.getElementById('stealth-btn').classList.toggle('active-btn', stealthManual);
+      if (stealthManual) {
+        if (window.speechSynthesis) speechSynthesis.cancel();
+        say('Modo Furtivo ativado (sem som em calls).', 2200, true);
+      } else {
+        playChirp(540, 740, 0.16);
+        say('Modo Furtivo desativado!', 2000, true);
+      }
+    }
+
+    // --- Áudio, Voz de Mascote & Voz Falada ---
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playChirp(startFreq = 540, endFreq = 760, dur = 0.2) {
+      if (voiceMode === 'mute' || isStealth()) return;
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + dur * 0.7);
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + dur + 0.02);
+      } catch (_) {}
+    }
+
+    function speakMascotGibberish(text) {
+      if (isStealth()) return;
+      try {
+        const ctx = getAudioCtx();
+        const count = Math.min(9, Math.max(3, Math.floor(text.length / 8)));
+        for (let i = 0; i < count; i++) {
+          const t = ctx.currentTime + i * 0.068;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'triangle';
+          const base = 420 + ((text.charCodeAt(i * 2 % text.length) % 10) * 38);
+          osc.frequency.setValueAtTime(base, t);
+          osc.frequency.exponentialRampToValueAtTime(base * 1.18, t + 0.045);
+          g.gain.setValueAtTime(0.032, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.065);
+        }
+      } catch (_) {}
+    }
+
+    function speakText(text) {
+      if (isStealth() || voiceMode === 'mute' || voiceMode === 'chimes') return;
+      if (voiceMode === 'mascot') {
+        speakMascotGibberish(text);
+        return;
+      }
+      if (voiceMode === 'spoken' && 'speechSynthesis' in window) {
+        try {
+          speechSynthesis.cancel();
+          const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
+          const u = new SpeechSynthesisUtterance(clean);
+          u.lang = 'pt-BR';
+          u.rate = 1.08;
+          u.pitch = 1.12;
+          const voices = speechSynthesis.getVoices();
+          const best = voices.find(v => v.lang.includes('pt') && (v.name.includes('Francisca') || v.name.includes('Antonio') || v.name.includes('Natural')))
+            || voices.find(v => v.lang.includes('pt'));
+          if (best) u.voice = best;
+          speechSynthesis.speak(u);
+        } catch (_) {}
+      }
+    }
+
+    // --- Som Ambiente Offline ---
+    let ambientNodes = [], ambientGain = null, lofiTimer = null;
+
+    function stopAmbient() {
+      clearInterval(lofiTimer);
+      lofiTimer = null;
+      ambientNodes.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
+      ambientNodes = [];
+      activeAmbient = null;
+      document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('eq-bars').classList.remove('show');
+      setEmote('');
+      setExpression(timerInterval ? 'focused' : 'normal');
+    }
+
+    function toggleAmbient(mode) {
+      if (!isPro) { playChirp(320, 240, 0.2); switchTab('config'); return; }
+      if (activeAmbient === mode) { stopAmbient(); return; }
+      stopAmbient();
+      activeAmbient = mode;
+      document.getElementById('amb-' + mode).classList.add('active');
+      document.getElementById('eq-bars').classList.add('show');
+      setExpression('music');
+      setEmote('♪');
+
+      const ctx = getAudioCtx();
+      ambientGain = ctx.createGain();
+      ambientGain.gain.value = ((document.getElementById('ambient-vol').value || 35) / 100) * 0.28;
+      ambientGain.connect(ctx.destination);
+
+      if (mode === 'rain' || mode === 'brown') {
+        const bufferSize = ctx.sampleRate * 2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          lastOut = (lastOut + 0.02 * white) / 1.02;
+          data[i] = mode === 'brown' ? lastOut * 3.5 : white * 0.35;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = mode === 'rain' ? 950 : 280;
+        noise.connect(filter);
+        filter.connect(ambientGain);
+        noise.start();
+        ambientNodes.push(noise);
+      } else if (mode === 'lofi') {
+        const chords = [
+          [261.63, 329.63, 392.00, 493.88],
+          [220.00, 261.63, 329.63, 392.00],
+          [174.61, 220.00, 261.63, 329.63],
+          [196.00, 246.94, 293.66, 349.23]
+        ];
+        let step = 0;
+        const playChord = () => {
+          const notes = chords[step % chords.length];
+          step++;
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            const now = ctx.currentTime + idx * 0.04;
+            g.gain.setValueAtTime(0.0001, now);
+            g.gain.linearRampToValueAtTime(0.09, now + 0.25);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+            osc.connect(g);
+            g.connect(ambientGain);
+            osc.start(now);
+            osc.stop(now + 2.5);
+          });
+        };
+        playChord();
+        lofiTimer = setInterval(playChord, 2600);
+      }
+    }
+
+    function updateAmbientVol(v) { if (ambientGain) ambientGain.gain.value = (v / 100) * 0.28; }
+
+    async function sendMedia(action) {
+      playChirp(520, 640, 0.12);
+      hopPill();
+      if (invoke) await invoke('media_control', { action });
+      if (action === 'play_pause' && !activeAmbient) {
+        const face = document.getElementById('lumo-face');
+        const bouncing = face.classList.toggle('music');
+        document.getElementById('eq-bars').classList.toggle('show', bouncing);
+        setEmote(bouncing ? '♪' : '');
+      }
+    }
+
+    // --- Bandeja Mágica (Drag & Drop + Conversor/Compressor Local) ---
+    function setupDragAndDrop() {
+      const targets = [document.getElementById('lumo-pill'), document.getElementById('drop-zone')];
+      targets.forEach(el => {
+        el.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          el.classList.add(el.id === 'lumo-pill' ? 'drag-over' : 'active');
+          setExpression('surprised');
+        });
+        el.addEventListener('dragleave', () => {
+          el.classList.remove('drag-over', 'active');
+          setExpression(activeAmbient ? 'music' : 'normal');
+        });
+        el.addEventListener('drop', (e) => {
+          e.preventDefault();
+          el.classList.remove('drag-over', 'active');
+          if (e.dataTransfer?.files?.length) {
+            handleFiles(e.dataTransfer.files);
+          }
+        });
+      });
+    }
+
+    async function handleFiles(fileList) {
+      const files = Array.from(fileList);
+      if (!files.length) return;
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          pocketFiles.unshift({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            dataUrl: reader.result
+          });
+          pocketFiles = pocketFiles.slice(0, 8);
+          renderPocket();
+        };
+        reader.readAsDataURL(file);
+      }
+      hopPill();
+      setExpression('happy');
+      playChirp(580, 860, 0.18);
+      if (!isExpanded) await togglePanel(true);
+      switchTab('bolso');
+      setTimeout(() => setExpression(activeAmbient ? 'music' : 'normal'), 1600);
+    }
+
+    function formatSize(bytes) {
+      return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function renderPocket() {
+      const list = document.getElementById('pocket-list');
+      if (!pocketFiles.length) {
+        list.innerHTML = '<div style="font-size:11.5px; color:var(--muted); text-align:center; margin-top:14px;">Nenhum arquivo no bolso ainda. Os arquivos convertidos são salvos em <strong>Área de Trabalho\\Lumo_Arquivos</strong>.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      pocketFiles.forEach((f, idx) => {
+        const isImg = f.type.startsWith('image/');
+        const div = document.createElement('div');
+        div.className = 'pocket-item';
+        div.innerHTML = `
+          <div class="pocket-head">
+            <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+              ${isImg ? `<img class="pocket-thumb" src="${f.dataUrl}" />` : `<div class="pocket-thumb">📄</div>`}
+              <div style="overflow:hidden;">
+                <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:255px;">${f.name.replace(/</g, '&lt;')}</div>
+                <div style="font-size:10.5px; color:var(--muted);">${formatSize(f.size)}</div>
+              </div>
+            </div>
+            <button class="del-btn" onclick="removePocket(${idx})">✕</button>
+          </div>
+          <div class="pocket-actions">
+            ${isImg ? `
+              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/webp', 'webp')">→ WebP</button>
+              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/jpeg', 'jpg')">→ JPG</button>
+              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/png', 'png')">→ PNG</button>
+            ` : `<button class="btn-ghost" onclick="saveRawPocket(${idx})">💾 Salvar na pasta Lumo</button>`}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function removePocket(idx) { pocketFiles.splice(idx, 1); renderPocket(); }
+
+    async function saveRawPocket(idx) {
+      const f = pocketFiles[idx];
+      if (!f || !invoke) return;
+      const res = await fetch(f.dataUrl);
+      const buf = new Uint8Array(await res.arrayBuffer());
+      try {
+        await invoke('save_file_bytes', { filename: f.name, bytes: Array.from(buf) });
+        playChirp(620, 900, 0.18);
+        hopPill();
+        say('Salvo em Área de Trabalho\\Lumo_Arquivos!', 3000, true);
+      } catch (e) {
+        say('Erro ao salvar: ' + e, 3000, true);
+      }
+    }
+
+    async function convertImage(idx, mime, ext) {
+      if (!isPro && ext === 'webp') {
+        switchTab('config');
+        say('Conversão WebP é do Lumo Pro!', 2600, true);
+        return;
+      }
+      const f = pocketFiles[idx];
+      if (!f) return;
+      const quality = (parseInt(document.getElementById('img-quality').value, 10) || 80) / 100;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (mime === 'image/jpeg') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const baseName = f.name.replace(/\.[^.]+$/, '');
+          const outName = `${baseName}_lumo.${ext}`;
+          if (invoke) {
+            const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
+            try {
+              await invoke('save_file_bytes', { filename: outName, bytes });
+              playChirp(640, 960, 0.22);
+              hopPill();
+              say(`Convertido (${formatSize(blob.size)}) em Desktop\\Lumo_Arquivos!`, 3500, true);
+            } catch (e) {
+              say('Erro ao salvar imagem: ' + e, 3000, true);
+            }
+          }
+        }, mime, quality);
+      };
+      img.src = f.dataUrl;
+    }
+
+    // --- Modo Soneca (Desligamento Programado do PC) ---
+    async function schedulePcSleep(mins) {
+      if (!invoke) return;
+      try {
+        await invoke('schedule_shutdown', { minutes: mins });
+        document.getElementById('sleep-status').textContent = `Desliga em ${mins}m`;
+        document.getElementById('sleep-status').style.color = 'var(--accent)';
+        setExpression('sleepy');
+        playChirp(480, 340, 0.24);
+        say(`Modo Soneca: desligo o PC em ${mins} min.`, 3200, true);
+      } catch (e) {
+        say('Erro ao agendar: ' + e, 2800, true);
+      }
+    }
+
+    async function cancelPcSleep() {
+      if (!invoke) return;
+      try {
+        await invoke('cancel_shutdown');
+        document.getElementById('sleep-status').textContent = 'Cancelado';
+        document.getElementById('sleep-status').style.color = 'var(--muted)';
+        setExpression('normal');
+        playChirp(520, 680, 0.16);
+      } catch (_) {}
+    }
+
+    // --- Verificador de Atualizações (GitHub Releases) ---
+    async function checkForUpdates() {
+      try {
+        const res = await fetch(REPO_API, { headers: { 'Accept': 'application/vnd.github+json' } });
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = (data.tag_name || '').replace(/^v/i, '').trim();
+        if (latest && latest !== APP_VERSION) {
+          latestReleaseUrl = data.html_url;
+          document.getElementById('update-text').textContent = `Lumo v${latest} disponível!`;
+          document.getElementById('update-banner').classList.add('show');
+          if (personality !== 'zen') {
+            say(`Opa! Saiu a atualização v${latest} no GitHub!`, 4500);
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function openUpdateLink() {
+      if (latestReleaseUrl && invoke) {
+        await invoke('open_external_url', { url: latestReleaseUrl });
+      }
+    }
+
+    // --- Freemium & Config ---
+    function applyPlanUI() {
+      document.getElementById('plan-status-badge').textContent = isPro ? 'PRO ATIVO ★' : 'GRÁTIS';
+      document.getElementById('license-btn').textContent = isPro ? 'Ativo' : 'Ativar';
+      document.getElementById('ia-pro-gate').style.display = isPro ? 'none' : 'flex';
+      document.getElementById('ia-body').style.display = isPro ? 'flex' : 'none';
+      document.getElementById('ambient-pro-badge').style.display = isPro ? 'none' : 'inline-block';
+      document.getElementById('notes-pro-badge').style.display = isPro ? 'none' : 'inline-block';
+      document.getElementById('clip-pro-badge').style.display = isPro ? 'none' : 'inline-block';
+
+      const notes = document.getElementById('quick-notes');
+      notes.disabled = !isPro;
+      notes.placeholder = isPro
+        ? 'Anote ideias, links ou rascunhos... (salva automático)'
+        : '🔒 Recurso Lumo Pro — ative nas Configurações.';
+
+      document.getElementById('task-limit-label').textContent = isPro ? 'Ilimitado' : `${tasks.length}/5 (Grátis)`;
+      renderClipboard();
+    }
+
+    function activateLicense(e) {
+      e.preventDefault();
+      const code = document.getElementById('license-input').value.trim().toUpperCase();
+      if (code === 'LUMO-PRO-2026' || code.startsWith('LUMO-')) {
+        isPro = true;
+        localStorage.setItem('lumo_pro', 'true');
+        document.getElementById('license-input').value = '';
+        applyPlanUI();
+        setExpression('love');
+        playChirp(600, 980, 0.3);
+        say('Lumo Pro ativado! Tudo liberado ✨', 3500, true);
+        setTimeout(() => setExpression('normal'), 2600);
+      } else if (code === 'FREE') {
+        isPro = false;
+        localStorage.setItem('lumo_pro', 'false');
+        applyPlanUI();
+        say('Voltando para o modo Grátis.', 2200, true);
+      } else {
+        playChirp(260, 180, 0.2);
+        say('Chave inválida. Teste com LUMO-PRO-2026', 2800, true);
+      }
+    }
+
+    function setPersonality(val) {
+      personality = val;
+      localStorage.setItem('lumo_personality', val);
+      playChirp(520, 680, 0.14);
+    }
+
+    function setVoiceMode(val) {
+      voiceMode = val;
+      localStorage.setItem('lumo_voice', val);
+      speakText('Oi! Agora estou falando assim.');
+    }
+
+    function setTheme(name, el, proOnly = false) {
+      if (proOnly && !isPro) { playChirp(300, 220, 0.18); return; }
       const t = themes[name] || themes.amber;
       document.documentElement.style.setProperty('--accent', t.accent);
       document.documentElement.style.setProperty('--accent-soft', t.soft);
@@ -683,49 +1344,100 @@
       localStorage.setItem('lumo_theme', name);
     }
 
-    function chime(freq = 580) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.35, ctx.currentTime + 0.14);
-        gain.gain.setValueAtTime(0.04, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      } catch (_) {}
+    function setEmote(sym) {
+      const el = document.getElementById('float-emote');
+      el.textContent = sym;
+      el.classList.toggle('show', Boolean(sym));
+    }
+
+    function hopPill() {
+      const p = document.getElementById('lumo-pill');
+      p.classList.remove('hop');
+      void p.offsetWidth;
+      p.classList.add('hop');
+    }
+
+    function setExpression(type) {
+      const face = document.getElementById('lumo-face');
+      face.className = 'face';
+      if (type !== 'normal') face.classList.add(type);
+      if (type === 'sleepy') setEmote('zZz');
+      else if (type === 'love') setEmote('♥');
+      else if (type === 'music') setEmote('♪');
+      else if (type !== 'dizzy') setEmote('');
     }
 
     let bubbleTimeout;
-    function say(text, duration = 4200) {
-      if (isHiddenInGame || isExpanded) return;
+    function say(text, duration = 4200, force = false, copyValue = null, voice = false) {
+      if (!force && (isHiddenInGame || isExpanded)) return;
       const bubble = document.getElementById('speech-bubble');
       bubble.textContent = text;
+      bubbleCopyPayload = copyValue;
+      bubble.classList.toggle('clickable', Boolean(copyValue));
       bubble.classList.add('show');
+      if (voice) speakText(text);
       clearTimeout(bubbleTimeout);
-      bubbleTimeout = setTimeout(() => bubble.classList.remove('show'), duration);
+      bubbleTimeout = setTimeout(() => {
+        bubble.classList.remove('show', 'clickable');
+        bubbleCopyPayload = null;
+      }, duration);
+    }
+
+    async function onBubbleClick() {
+      if (!bubbleCopyPayload) return;
+      if (invoke) await invoke('set_clipboard_text', { text: bubbleCopyPayload });
+      playChirp(680, 920, 0.16);
+      say('Copiado! ✓', 1500, true);
+    }
+
+    // 60 FPS olhos suaves
+    function animateEyes() {
+      currentEyeX += (targetEyeX - currentEyeX) * 0.18;
+      currentEyeY += (targetEyeY - currentEyeY) * 0.18;
+      document.getElementById('lumo-face').style.transform =
+        `translate(${currentEyeX.toFixed(2)}px, ${currentEyeY.toFixed(2)}px)`;
+      requestAnimationFrame(animateEyes);
+    }
+    requestAnimationFrame(animateEyes);
+
+    function scheduleBlink() {
+      setTimeout(() => {
+        const face = document.getElementById('lumo-face');
+        const locked = ['happy', 'sleepy', 'goodbye', 'dizzy', 'love'].some(c => face.classList.contains(c));
+        if (!locked && !isShuttingDown) {
+          face.classList.add('blink');
+          setTimeout(() => face.classList.remove('blink'), 130);
+        }
+        scheduleBlink();
+      }, 2600 + Math.random() * 3400);
+    }
+    scheduleBlink();
+
+    async function gracefulShutdown() {
+      if (isShuttingDown) return;
+      isShuttingDown = true;
+      stopAmbient();
+      if (isExpanded) {
+        isExpanded = false;
+        document.getElementById('panel').classList.remove('open');
+        await syncWindowMode('pill');
+      }
+      setExpression('goodbye');
+      playChirp(520, 260, 0.45);
+      say('Tô indo descansar... até mais! 🌙', 1400, true, null, true);
+      setTimeout(() => document.getElementById('app').classList.add('shutting-down'), 650);
+      setTimeout(async () => { if (invoke) await invoke('quit_app'); }, 1450);
     }
 
     async function syncWindowMode(mode) {
       if (!invoke) return;
-      try {
-        await invoke('set_window_mode', { mode });
-      } catch (e) {
-        console.error('Erro janela:', e);
-      }
-    }
-
-    async function quitApp() {
-      if (invoke) await invoke('quit_app');
+      try { await invoke('set_window_mode', { mode }); } catch (_) {}
     }
 
     async function togglePanel(forceState) {
+      if (isShuttingDown) return;
       lastInteraction = Date.now();
-      setExpression('normal');
+      if (isHiddenInGame) await wakeFromGame();
       isExpanded = typeof forceState === 'boolean' ? forceState : !isExpanded;
       const panel = document.getElementById('panel');
 
@@ -733,147 +1445,281 @@
         document.getElementById('speech-bubble').classList.remove('show');
         await syncWindowMode('expanded');
         panel.classList.add('open');
-        chime(520);
+        playChirp(480, 680, 0.16);
       } else {
         panel.classList.remove('open');
         await syncWindowMode('pill');
+        playChirp(620, 440, 0.14);
       }
     }
+
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isExpanded) togglePanel(false); });
 
     const pill = document.getElementById('lumo-pill');
     let downX = 0, downY = 0, dragged = false, clickTimer = null;
 
-    pill.addEventListener('pointerdown', (e) => {
-      downX = e.clientX;
-      downY = e.clientY;
-      dragged = false;
-    });
-
+    pill.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; dragged = false; });
     pill.addEventListener('pointermove', async (e) => {
       if (e.buttons === 1 && !dragged && invoke) {
-        const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
-        if (dist > 10) {
+        if (Math.hypot(e.clientX - downX, e.clientY - downY) > 10) {
           dragged = true;
+          setExpression('surprised');
+          if (personality === 'companion') say('Uhuul, tô voando!', 1400);
           await invoke('start_drag');
+          setTimeout(() => setExpression(activeAmbient ? 'music' : 'normal'), 1100);
         }
       }
     });
 
     pill.addEventListener('click', () => {
-      if (dragged) return;
+      if (dragged || isShuttingDown) return;
       if (clickTimer) {
         clearTimeout(clickTimer);
         clickTimer = null;
         lastInteraction = Date.now();
-        setExpression('happy');
-        chime(740);
-        say('Hehe, valeu pelo carinho!');
-        setTimeout(() => setExpression('normal'), 2400);
+        hopPill();
+        petCombo = (Date.now() - lastPetTime < 4500) ? petCombo + 1 : 1;
+        lastPetTime = Date.now();
+        if (petCombo >= 2) {
+          setExpression('love');
+          playChirp(680, 1040, 0.25);
+          say('Aí eu fico mal acostumado! ♥', 2600, false, null, true);
+        } else {
+          setExpression('happy');
+          playChirp(620, 860, 0.2);
+          say('Hehe, valeu pelo carinho!', 2400, false, null, true);
+        }
+        setTimeout(() => setExpression(activeAmbient ? 'music' : 'normal'), 2600);
       } else {
-        clickTimer = setTimeout(() => {
-          clickTimer = null;
-          togglePanel();
-        }, 210);
+        clickTimer = setTimeout(() => { clickTimer = null; togglePanel(); }, 210);
       }
     });
 
-    function setExpression(type) {
-      const face = document.getElementById('lumo-face');
-      face.className = 'face';
-      if (type !== 'normal') face.classList.add(type);
-    }
-
-    setInterval(() => {
-      const face = document.getElementById('lumo-face');
-      if (face.classList.contains('happy') || face.classList.contains('sleepy')) return;
-      face.classList.add('blink');
-      setTimeout(() => face.classList.remove('blink'), 140);
-    }, 3800);
-
+    // --- Monitoramento Windows + Furtivo Automático + Dicas de Jogos ---
+    let activeGamePendingHide = false;
     async function pollWindows() {
-      if (!invoke) return;
+      if (!invoke || isShuttingDown) return;
       try {
         const state = await invoke('get_desktop_state');
         const usedGb = (state.used_ram_mb / 1024).toFixed(1);
         const totalGb = (state.total_ram_mb / 1024).toFixed(0);
         document.getElementById('ram-stat').textContent = `RAM: ${usedGb} / ${totalGb} GB`;
 
+        const title = (state.active_window || '').toLowerCase();
+
+        // Modo Furtivo Automático em Calls/Gravações
+        stealthAuto = ['obs ', 'google meet', 'zoom meeting', 'microsoft teams'].some(k => title.includes(k));
+        document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
+
         if (isHiddenInGame) {
-          if (state.cursor_x >= state.screen_w - 25 && state.cursor_y <= 25) {
-            wakeFromGame();
-          }
+          if (state.cursor_x >= state.screen_w - 25 && state.cursor_y <= 25) wakeFromGame();
           return;
         }
 
-        const dx = Math.max(-7, Math.min(7, (state.cursor_x - state.win_center_x) / 60));
-        const dy = Math.max(-4, Math.min(5, (state.cursor_y - (state.win_y + 35)) / 70));
-        document.getElementById('lumo-face').style.transform = `translate(${dx}px, ${dy}px)`;
+        targetEyeX = Math.max(-8, Math.min(8, (state.cursor_x - state.win_center_x) / 55));
+        targetEyeY = Math.max(-4.5, Math.min(5.5, (state.cursor_y - (state.win_y + 35)) / 65));
 
+        // Tontura ao chacoalhar mouse perto
+        const dxMouse = state.cursor_x - lastCursorX;
+        const nearLumo = Math.abs(state.cursor_x - state.win_center_x) < 220 && state.cursor_y < 180;
+        if (nearLumo && Math.abs(dxMouse) > 45) {
+          const dir = Math.sign(dxMouse);
+          if (dir !== 0 && dir !== lastDir) { shakeCount++; lastDir = dir; }
+        }
+        lastCursorX = state.cursor_x;
+        if (Date.now() - lastShakeReset > 1300) { shakeCount = 0; lastShakeReset = Date.now(); }
+        if (shakeCount >= 5 && personality !== 'zen') {
+          shakeCount = 0;
+          setExpression('dizzy');
+          playChirp(420, 290, 0.35);
+          say('Eitaa, calma que eu fico tonto! 😵‍💫', 2800, false, null, true);
+          setTimeout(() => setExpression(activeAmbient ? 'music' : 'normal'), 2600);
+        }
+
+        // Detecção de Jogo + Dica na tela de loading
         const autoHide = document.getElementById('autohide-toggle').checked;
-        if (autoHide && Date.now() > manualSummonUntil && state.active_window) {
-          const title = state.active_window.toLowerCase();
-          const keywords = document.getElementById('game-keywords').value
-            .split(',')
-            .map(k => k.trim().toLowerCase())
-            .filter(Boolean);
-
-          if (keywords.some(k => title.includes(k))) {
-            hideForGame(`Jogo detectado (${state.active_window.slice(0, 18)}). Fui pro canto!`);
+        if (autoHide && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
+          const game = gameTipsDB.find(g => g.keys.some(k => title.includes(k)));
+          if (game) {
+            activeGamePendingHide = true;
+            const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
+            setExpression('focused');
+            hopPill();
+            if (isExpanded) await togglePanel(false);
+            say(`🎮 ${game.name}: ${tip}`, 5200, true, null, true);
+            setTimeout(() => {
+              activeGamePendingHide = false;
+              hideForGame('', 150);
+            }, 5200);
           }
         }
       } catch (_) {}
     }
-    setInterval(pollWindows, 140);
+    setInterval(pollWindows, 120);
 
-    async function hideForGame(msg) {
+    // --- Clipboard + Micro-ajuda silenciosa (Moeda / Conta / Cor) ---
+    let lastClipSeen = '';
+    function analyzeClipboardMicroHelp(text) {
+      if (isExpanded || isHiddenInGame) return;
+
+      // 1. Conversão de Dólar / Euro
+      const curMatch = text.match(/^(?:US\$|\$|USD)\s*(\d+(?:[.,]\d{1,2})?)$/i)
+        || text.match(/^(\d+(?:[.,]\d{1,2})?)\s*(?:USD|dólares|dolares)$/i);
+      if (curMatch) {
+        const val = parseFloat(curMatch[1].replace(',', '.'));
+        if (!isNaN(val)) {
+          const brl = (val * usdRate).toFixed(2).replace('.', ',');
+          say(`💵 US$ ${val} ≈ R$ ${brl} (clique p/ copiar)`, 4800, false, `R$ ${brl}`);
+          return;
+        }
+      }
+      const eurMatch = text.match(/^(?:€|EUR)\s*(\d+(?:[.,]\d{1,2})?)$/i);
+      if (eurMatch) {
+        const val = parseFloat(eurMatch[1].replace(',', '.'));
+        if (!isNaN(val)) {
+          const brl = (val * eurRate).toFixed(2).replace('.', ',');
+          say(`💶 € ${val} ≈ R$ ${brl} (clique p/ copiar)`, 4800, false, `R$ ${brl}`);
+          return;
+        }
+      }
+
+      // 2. Conta matemática simples
+      if (text.length <= 32 && /^[\d\s+\-*/().,]+$/.test(text) && /[+\-*/]/.test(text)) {
+        try {
+          const normalized = text.replace(/,/g, '.');
+          const res = Function('"use strict"; return (' + normalized + ')')();
+          if (typeof res === 'number' && Number.isFinite(res)) {
+            const out = Number.isInteger(res) ? String(res) : res.toFixed(2).replace('.', ',');
+            say(`🧮 = ${out} (clique p/ copiar)`, 4500, false, out);
+          }
+        } catch (_) {}
+      }
+    }
+
+    async function pollClipboard() {
+      if (!invoke) return;
+      try {
+        const text = await invoke('get_clipboard_text');
+        if (text && text !== lastClipSeen) {
+          const firstRun = lastClipSeen === '';
+          lastClipSeen = text;
+          if (!firstRun) analyzeClipboardMicroHelp(text);
+          if (isPro && clipHistory[0] !== text) {
+            clipHistory = [text, ...clipHistory.filter(c => c !== text)].slice(0, 10);
+            localStorage.setItem('lumo_clips', JSON.stringify(clipHistory));
+            renderClipboard();
+          }
+        }
+      } catch (_) {}
+    }
+    setInterval(pollClipboard, 1500);
+
+    function renderClipboard() {
+      const list = document.getElementById('clipboard-list');
+      list.innerHTML = '';
+      if (!isPro) {
+        list.innerHTML = '<div style="font-size:11px; color:var(--muted);">🔒 Ative o Lumo Pro para salvar tudo o que você copia.</div>';
+        return;
+      }
+      if (!clipHistory.length) {
+        list.innerHTML = '<div style="font-size:11px; color:var(--muted);">Copie qualquer texto no PC e ele aparecerá aqui.</div>';
+        return;
+      }
+      clipHistory.forEach((txt, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        div.innerHTML = `
+          <div class="task-left" onclick="copyClip(${idx})" title="Clique para copiar">
+            <span>📋 ${txt.replace(/</g, '&lt;')}</span>
+          </div>
+          <button class="del-btn" onclick="deleteClip(${idx})">✕</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    async function copyClip(idx) {
+      if (clipHistory[idx] && invoke) {
+        await invoke('set_clipboard_text', { text: clipHistory[idx] });
+        playChirp(640, 820, 0.14);
+        hopPill();
+      }
+    }
+    function deleteClip(idx) { clipHistory.splice(idx, 1); localStorage.setItem('lumo_clips', JSON.stringify(clipHistory)); renderClipboard(); }
+    function saveQuickNotes(val) { localStorage.setItem('lumo_notes', val); }
+
+    async function hideForGame(msg, delayMs = 950) {
       if (isHiddenInGame) return;
       if (isExpanded) {
         isExpanded = false;
         document.getElementById('panel').classList.remove('open');
         await syncWindowMode('pill');
       }
-      say(msg, 1800);
+      if (msg) say(msg, 1800, true);
       setTimeout(async () => {
         isHiddenInGame = true;
         document.getElementById('lumo-pill').style.display = 'none';
         document.getElementById('speech-bubble').classList.remove('show');
         document.getElementById('corner-sensor').style.display = 'flex';
         await syncWindowMode('hidden');
-      }, 900);
+      }, delayMs);
     }
 
     async function wakeFromGame() {
       if (!isHiddenInGame) return;
       isHiddenInGame = false;
-      manualSummonUntil = Date.now() + 35000;
+      manualSummonUntil = Date.now() + 45000;
       document.getElementById('corner-sensor').style.display = 'none';
       document.getElementById('lumo-pill').style.display = 'flex';
       setExpression('surprised');
-      chime(660);
+      hopPill();
+      playChirp(520, 780, 0.18);
       await syncWindowMode('pill');
-      say('Voltei! Precisa de algo?');
-      setTimeout(() => setExpression('normal'), 1600);
+      if (personality !== 'zen') say('Voltei! Precisa de algo?');
+      setTimeout(() => setExpression(activeAmbient ? 'music' : 'normal'), 1600);
     }
 
+    const idleLines = [
+      'Tudo calmo por aqui...',
+      'Já bebeu água hoje?',
+      'Dica: arraste uma imagem em mim pra converter rápido!',
+      'Aperte Alt + Espaço pra me chamar de qualquer tela.'
+    ];
     setInterval(() => {
+      if (isShuttingDown) return;
       const idleSec = (Date.now() - lastInteraction) / 1000;
       const upMin = Math.floor((Date.now() - startTime) / 60000);
-      const hrs = Math.floor(upMin / 60);
-      const mins = upMin % 60;
+      const hrs = Math.floor(upMin / 60), mins = upMin % 60;
       document.getElementById('uptime-text').textContent =
-        `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m · ${invoke ? 'Windows Nativo' : 'Modo Preview'}`;
+        `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m · ${isStealth() ? 'Modo Furtivo' : 'Alt+Espaço'}`;
 
       if (hrs >= 8) document.getElementById('app').classList.add('comfort-warm');
 
-      if (!isExpanded && !isHiddenInGame) {
+      if (!isExpanded && !isHiddenInGame && !activeAmbient && !timerInterval) {
         if (idleSec > 180) setExpression('sleepy');
-        else if (idleSec > 75) setExpression('bored');
+        else if (idleSec > 75) {
+          setExpression('bored');
+          if (personality === 'companion' && Math.random() < 0.28) {
+            say(idleLines[Math.floor(Math.random() * idleLines.length)]);
+          }
+        }
       }
-    }, 5000);
+    }, 9000);
+
+    async function toggleAutostart(val) {
+      if (!invoke) return;
+      try {
+        await invoke('set_autostart', { enabled: val });
+        playChirp(val ? 560 : 420, val ? 760 : 320, 0.16);
+      } catch (_) {
+        document.getElementById('autostart-toggle').checked = !val;
+      }
+    }
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+      document.getElementById('cfg-btn').classList.toggle('active-btn', tab === 'config');
     }
 
     function renderTasks() {
@@ -885,88 +1731,37 @@
         div.innerHTML = `
           <div class="task-left" onclick="toggleTask(${idx})">
             <div class="check-circle">${t.done ? '✓' : ''}</div>
-            <span>${t.text}</span>
+            <span>${t.text.replace(/</g, '&lt;')}</span>
           </div>
           <button class="del-btn" onclick="deleteTask(${idx})">✕</button>
         `;
         list.appendChild(div);
       });
       localStorage.setItem('lumo_tasks', JSON.stringify(tasks));
+      document.getElementById('task-limit-label').textContent = isPro ? 'Ilimitado' : `${tasks.length}/5 (Grátis)`;
     }
 
     function addTask(e) {
       e.preventDefault();
+      if (!isPro && tasks.length >= 5) { playChirp(300, 220, 0.18); switchTab('config'); return; }
       const input = document.getElementById('new-task-input');
       const val = input.value.trim();
       if (!val) return;
       tasks.push({ text: val, done: false });
       input.value = '';
+      playChirp(520, 680, 0.12);
       renderTasks();
     }
 
     function toggleTask(idx) {
       tasks[idx].done = !tasks[idx].done;
-      if (tasks[idx].done) chime(700);
+      if (tasks[idx].done) { playChirp(620, 880, 0.18); hopPill(); }
       renderTasks();
     }
+    function deleteTask(idx) { tasks.splice(idx, 1); renderTasks(); }
+    function toggleMainAlarm(val) { if (alarms[0]) { alarms[0].enabled = val; localStorage.setItem('lumo_alarms', JSON.stringify(alarms)); } }
 
-    function deleteTask(idx) {
-      tasks.splice(idx, 1);
-      renderTasks();
-    }
-
-    function renderAlarms() {
-      const list = document.getElementById('alarm-list');
-      list.innerHTML = '';
-      alarms.forEach((a, idx) => {
-        const div = document.createElement('div');
-        div.className = 'task-item';
-        div.innerHTML = `
-          <span><strong>${a.time}</strong> · ${a.label || 'Alarme'}</span>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" ${a.enabled ? 'checked' : ''} onchange="toggleAlarmItem(${idx}, this.checked)" />
-            <button class="del-btn" onclick="deleteAlarm(${idx})">✕</button>
-          </div>
-        `;
-        list.appendChild(div);
-      });
-      if (alarms[0]) {
-        document.getElementById('next-alarm-label').textContent = `${alarms[0].time} · ${alarms[0].label || 'Alarme'}`;
-        document.getElementById('next-alarm-toggle').checked = alarms[0].enabled;
-      }
-      localStorage.setItem('lumo_alarms', JSON.stringify(alarms));
-    }
-
-    function addAlarm(e) {
-      e.preventDefault();
-      const time = document.getElementById('alarm-time').value;
-      const label = document.getElementById('alarm-name').value.trim() || 'Lembrete';
-      if (!time) return;
-      alarms.push({ time, label, enabled: true });
-      document.getElementById('alarm-name').value = '';
-      renderAlarms();
-    }
-
-    function toggleAlarmItem(idx, val) { alarms[idx].enabled = val; renderAlarms(); }
-    function toggleMainAlarm(val) { if (alarms[0]) { alarms[0].enabled = val; renderAlarms(); } }
-    function deleteAlarm(idx) { alarms.splice(idx, 1); renderAlarms(); }
-
-    let lastTriggeredMin = '';
-    setInterval(() => {
-      const hhmm = new Date().toTimeString().slice(0, 5);
-      if (hhmm === lastTriggeredMin) return;
-      const hit = alarms.find(a => a.enabled && a.time === hhmm);
-      if (hit) {
-        lastTriggeredMin = hhmm;
-        if (isHiddenInGame) wakeFromGame();
-        chime(820);
-        say(`⏰ Alarme: ${hit.label} (${hit.time})!`, 8000);
-      }
-    }, 15000);
-
-    let timerSeconds = 25 * 60;
-    let timerInterval = null;
-
+    let timerSeconds = 25 * 60, timerInterval = null;
     function updateTimerUI() {
       const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
       const s = String(timerSeconds % 60).padStart(2, '0');
@@ -978,34 +1773,30 @@
     }
 
     function setTimer(mins) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+      clearInterval(timerInterval); timerInterval = null;
       document.getElementById('timer-toggle-btn').textContent = 'Iniciar';
       timerSeconds = mins * 60;
+      if (!activeAmbient) setExpression('normal');
       updateTimerUI();
     }
 
     function toggleTimer() {
       const btn = document.getElementById('timer-toggle-btn');
       if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+        clearInterval(timerInterval); timerInterval = null;
         btn.textContent = 'Retomar';
+        if (!activeAmbient) setExpression('normal');
         updateTimerUI();
       } else {
         btn.textContent = 'Pausar';
+        if (!activeAmbient) setExpression('focused');
         timerInterval = setInterval(() => {
-          if (timerSeconds > 0) {
-            timerSeconds--;
-            updateTimerUI();
-          } else {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            btn.textContent = 'Iniciar';
-            updateTimerUI();
-            setExpression('happy');
-            chime(880);
-            say('Sessão de foco concluída! Boa!');
+          if (timerSeconds > 0) { timerSeconds--; updateTimerUI(); }
+          else {
+            clearInterval(timerInterval); timerInterval = null;
+            btn.textContent = 'Iniciar'; updateTimerUI();
+            setExpression('happy'); hopPill(); playChirp(680, 1020, 0.3);
+            say('Sessão de foco concluída! Mandou bem!', 5000, true, null, true);
           }
         }, 1000);
         updateTimerUI();
@@ -1016,16 +1807,14 @@
       e.preventDefault();
       const input = document.getElementById('api-key-input');
       const key = input.value.trim();
-      if (!key) return;
-      if (invoke) {
-        try {
-          await invoke('save_api_key', { provider: 'gemini', apiKey: key });
-          input.value = '';
-          chime(720);
-          appendMsg('Chave salva com segurança no Windows!', 'ai');
-        } catch (err) {
-          appendMsg('Erro ao salvar chave: ' + err, 'ai');
-        }
+      if (!key || !invoke) return;
+      try {
+        await invoke('save_api_key', { provider: 'gemini', apiKey: key });
+        input.value = '';
+        playChirp(620, 880, 0.2);
+        appendMsg('Chave salva com criptografia no cofre do Windows!', 'ai');
+      } catch (err) {
+        appendMsg('Erro ao salvar chave: ' + err, 'ai');
       }
     }
 
@@ -1039,7 +1828,8 @@
         copy.className = 'copy-mini';
         copy.textContent = 'Copiar resposta';
         copy.onclick = () => {
-          navigator.clipboard.writeText(text);
+          if (invoke) invoke('set_clipboard_text', { text });
+          else navigator.clipboard.writeText(text);
           copy.textContent = 'Copiado ✓';
         };
         div.appendChild(copy);
@@ -1055,29 +1845,23 @@
       if (!prompt) return;
       input.value = '';
       appendMsg(prompt, 'user');
-
       const btn = document.getElementById('ai-send-btn');
-      btn.disabled = true;
-      btn.textContent = '...';
-
+      btn.disabled = true; btn.textContent = '...';
       if (invoke) {
         try {
           const reply = await invoke('ask_gemini', { prompt });
           appendMsg(reply, 'ai');
+          speakText(reply);
         } catch (err) {
           appendMsg('⚠️ ' + err, 'ai');
         }
       }
-      btn.disabled = false;
-      btn.textContent = 'Enviar';
+      btn.disabled = false; btn.textContent = 'Enviar';
     }
 
     function toggleVoice() {
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRec) {
-        appendMsg('Reconhecimento de voz indisponível neste PC.', 'ai');
-        return;
-      }
+      if (!SpeechRec) return;
       const btn = document.getElementById('mic-btn');
       const rec = new SpeechRec();
       rec.lang = 'pt-BR';
@@ -1087,38 +1871,71 @@
       rec.onresult = (ev) => {
         const transcript = ev.results[0][0].transcript;
         const lower = transcript.toLowerCase();
-        if (lower.includes('resumo')) switchTab('resumo');
-        else if (lower.includes('foco') || lower.includes('timer')) {
-          switchTab('foco');
-          toggleTimer();
+        if (lower.includes('música') || lower.includes('tocar') || lower.includes('pausar')) {
+          switchTab('midia'); sendMedia('play_pause');
+        } else if (lower.includes('desligar') && lower.includes('pc')) {
+          const m = lower.match(/(\d+)/);
+          schedulePcSleep(m ? parseInt(m[1], 10) : 30);
+        } else if (lower.includes('foco') || lower.includes('timer')) {
+          switchTab('util'); toggleTimer();
         } else if (lower.includes('esconder') || lower.includes('jogo')) {
           hideForGame('Indo pro canto!');
-        } else {
+        } else if (lower.includes('tchau') || lower.includes('dormir')) {
+          gracefulShutdown();
+        } else if (isPro) {
           switchTab('ia');
           document.getElementById('ai-input').value = transcript;
           sendPrompt(new Event('submit'));
         }
       };
-
-      rec.onend = () => {
-        btn.classList.remove('recording');
-        setExpression('normal');
-      };
+      rec.onend = () => { btn.classList.remove('recording'); setExpression(activeAmbient ? 'music' : 'normal'); };
       rec.start();
     }
 
-    (function init() {
+    // Cotação silenciosa em segundo plano para micro-ajuda de moeda
+    async function fetchRates() {
+      try {
+        const r = await fetch('https://open.er-api.com/v6/latest/USD');
+        const d = await r.json();
+        if (d?.rates?.BRL) {
+          usdRate = d.rates.BRL;
+          if (d.rates.EUR) eurRate = d.rates.BRL / d.rates.EUR;
+        }
+      } catch (_) {}
+    }
+
+    (async function init() {
       const savedTheme = localStorage.getItem('lumo_theme');
       if (savedTheme) setTheme(savedTheme);
+      document.getElementById('personality-select').value = personality;
+      document.getElementById('voice-select').value = voiceMode;
+      document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
 
       const h = new Date().getHours();
-      document.getElementById('greeting-text').textContent =
-        h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!';
+      const saudacao = h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!';
+      document.getElementById('greeting-text').textContent = saudacao;
 
+      if (invoke) {
+        try { document.getElementById('autostart-toggle').checked = await invoke('get_autostart'); } catch (_) {}
+      }
+      if (listen) listen('toggle-lumo', () => togglePanel());
+
+      setupDragAndDrop();
       renderTasks();
-      renderAlarms();
+      applyPlanUI();
       syncWindowMode('pill');
-      setTimeout(() => say('Oi! Clique em mim para abrir seu resumo.'), 700);
+      fetchRates();
+      setTimeout(checkForUpdates, 3500);
+
+      setTimeout(() => {
+        setExpression('surprised');
+        hopPill();
+        playChirp(420, 740, 0.28);
+        if (personality !== 'zen') {
+          say(`${saudacao} Lumo v1.0 pronto!`, 4200, false, null, true);
+        }
+        setTimeout(() => setExpression('normal'), 1200);
+      }, 650);
     })();
   </script>
 </body>
