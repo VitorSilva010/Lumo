@@ -67,7 +67,7 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
     let entry = Entry::new("lumo-assistant", "gemini").map_err(|e| e.to_string())?;
     let api_key = entry
         .get_password()
-        .map_err(|_| "Configure sua chave Gemini nas configurações.".to_string())?;
+        .map_err(|_| "Configure sua chave Gemini na aba Config.".to_string())?;
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
@@ -100,7 +100,6 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
     Ok(reply)
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![

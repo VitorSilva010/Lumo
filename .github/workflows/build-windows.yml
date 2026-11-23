@@ -9,11 +9,33 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
         with:
-          releaseDraft: true
-          tagName: v0.1.0
-          releaseName: "Lumo v0.1.0"
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Instalar Tauri CLI, gerar icone e compilar .exe
+        shell: powershell
+        run: |
+          npm install -g @tauri-apps/cli@2
+          Add-Type -AssemblyName System.Drawing
+          $bmp = New-Object System.Drawing.Bitmap 512, 512
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.SmoothingMode = 'AntiAlias'
+          $g.Clear([System.Drawing.Color]::FromArgb(255, 14, 15, 20))
+          $brush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 246, 185, 116))
+          $g.FillEllipse($brush, 130, 175, 85, 150)
+          $g.FillEllipse($brush, 297, 175, 85, 150)
+          $bmp.Save("lumo-icon.png", [System.Drawing.Imaging.ImageFormat]::Png)
+          $g.Dispose()
+          $bmp.Dispose()
+          tauri icon lumo-icon.png
+          tauri build
+
+      - name: Disponibilizar instalador e .exe portátil
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lumo-Windows-Installer
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/lumo.exe
