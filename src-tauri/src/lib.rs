@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use sysinfo::System;
 use tauri::{Emitter, Manager, State};
+use tauri_plugin_updater::UpdaterExt;
 
 struct AppState {
     sys: Mutex<System>,
@@ -39,7 +40,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
         .unwrap_or(tauri::PhysicalPosition::new(0, 0));
     let size = window
         .outer_size()
-        .unwrap_or(tauri::PhysicalSize::new(310, 145));
+        .unwrap_or(tauri::PhysicalSize::new(310, 150));
     let screen_w = window
         .primary_monitor()
         .ok()
@@ -62,7 +63,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 #[tauri::command]
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
     let (w, h, align_right) = match mode.as_str() {
-        "expanded" => (440.0_f64, 600.0_f64, false),
+        "expanded" => (442.0_f64, 608.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
         _ => (310.0_f64, 150.0_f64, false),
     };
@@ -95,6 +96,29 @@ fn start_drag(window: tauri::WebviewWindow) {
 #[tauri::command]
 fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
+}
+
+#[tauri::command]
+async fn check_update(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    match updater.check().await {
+        Ok(Some(update)) => Ok(Some(update.version)),
+        Ok(None) => Ok(None),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    if let Some(update) = updater.check().await.map_err(|e| e.to_string())? {
+        update
+            .download_and_install(|_, _| {}, || {})
+            .await
+            .map_err(|e| e.to_string())?;
+        app.restart();
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -230,32 +254,6 @@ fn run_cancel_shutdown_cmd() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn open_external_url(url: String) -> Result<(), String> {
-    if !url.starts_with("https://") {
-        return Err("URL inválida.".to_string());
-    }
-    open_url_os(&url)
-}
-
-#[cfg(windows)]
-fn open_url_os(url: &str) -> Result<(), String> {
-    use std::os::windows::process::CommandExt;
-    use std::process::Command;
-
-    Command::new("cmd")
-        .args(["/C", "start", "", url])
-        .creation_flags(0x08000000)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-#[cfg(not(windows))]
-fn open_url_os(_url: &str) -> Result<(), String> {
-    Ok(())
-}
-
-#[tauri::command]
 fn get_autostart() -> bool {
     check_autostart_win()
 }
@@ -363,20 +361,30 @@ fn save_api_key(provider: String, api_key: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn ask_gemini(prompt: String) -> Result<String, String> {
+async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
     let entry = Entry::new("lumo-assistant", "gemini").map_err(|e| e.to_string())?;
     let api_key = entry
         .get_password()
-        .map_err(|_| "Configure sua chave Gemini nas Configurações (⚙️).".to_string())?;
+        .map_err(|_| "Configure sua chave Gemini nas Configurações.".to_string())?;
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
         api_key
     );
 
+    let name_ctx = match user_name {
+        Some(n) if !n.trim().is_empty() => format!(" O usuário se chama {}. Use o nome dele apenas quando soar natural.", n.trim()),
+        _ => String::new(),
+    };
+
+    let sys_prompt = format!(
+        "Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).",
+        name_ctx
+    );
+
     let body = serde_json::json!({
         "systemInstruction": {
-            "parts": [{ "text": "Você é o Lumo, um assistente de desktop curioso, simpático e leve. Responda em português de forma clara e curta (máximo 3 frases)." }]
+            "parts": [{ "text": sys_prompt }]
         },
         "contents": [{
             "parts": [{ "text": prompt }]
@@ -401,13 +409,13 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
 }
 
 pub fn run() {
-    // Trava de instância única (impede abrir 2 Lumos ao mesmo tempo)
     let lock = match TcpListener::bind("127.0.0.1:48291") {
         Ok(listener) => Some(listener),
         Err(_) => std::process::exit(0),
     };
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
             sys: Mutex::new(System::new()),
             _instance_lock: lock,
@@ -432,13 +440,14 @@ pub fn run() {
             set_window_mode,
             start_drag,
             quit_app,
+            check_update,
+            install_update,
             media_control,
             get_clipboard_text,
             set_clipboard_text,
             save_file_bytes,
             schedule_shutdown,
             cancel_shutdown,
-            open_external_url,
             get_autostart,
             set_autostart,
             save_api_key,

@@ -13,7 +13,7 @@
         "label": "main",
         "title": "Lumo",
         "width": 310,
-        "height": 145,
+        "height": 150,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
@@ -29,11 +29,22 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJEQTYzNUQ4MTJENDU5NzIKUldSeVdkUVMyRFdtdlRkTXdGYUpqakVQT05wVmFtVkNzVlk0RmZyeTRSVlJjM3FFSWh4ZVZYSXYK",
+      "endpoints": [
+        "https://github.com/VitorSilva010/Lumo/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

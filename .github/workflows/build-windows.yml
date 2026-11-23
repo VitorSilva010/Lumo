@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -14,8 +17,11 @@ jobs:
           node-version: 20
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Instalar Tauri CLI, gerar icone e compilar .exe
+      - name: Instalar Tauri CLI, gerar icone e compilar assinado
         shell: powershell
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           npm install -g @tauri-apps/cli@2
           Add-Type -AssemblyName System.Drawing
@@ -32,7 +38,44 @@ jobs:
           tauri icon lumo-icon.png
           tauri build
 
-      - name: Disponibilizar instalador e .exe portátil
+      - name: Gerar manifesto latest.json para Auto-Update
+        shell: powershell
+        run: |
+          $conf = Get-Content "src-tauri/tauri.conf.json" | ConvertFrom-Json
+          $ver = $conf.version
+          echo "APP_VERSION=$ver" >> $env:GITHUB_ENV
+          $exe = Get-ChildItem "src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          $sigFile = "$($exe.FullName).sig"
+          if (Test-Path $sigFile) {
+            $sig = (Get-Content $sigFile -Raw).Trim()
+            $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$ver/$($exe.Name)"
+            $manifest = @{
+              version = $ver
+              notes = "Atualização Lumo v$ver"
+              pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+              platforms = @{
+                "windows-x86_64" = @{
+                  signature = $sig
+                  url = $url
+                }
+              }
+            } | ConvertTo-Json -Depth 4
+            [System.IO.File]::WriteAllText("$PWD\latest.json", $manifest)
+          }
+
+      - name: Publicar Release oficial no GitHub (alimenta o Auto-Update)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Lumo v${{ env.APP_VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            latest.json
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.sig
+
+      - name: Disponibilizar tambem em Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Lumo-Windows-Installer
