@@ -362,50 +362,73 @@ fn save_api_key(provider: String, api_key: String) -> Result<(), String> {
 
 #[tauri::command]
 async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
-    let entry = Entry::new("lumo-assistant", "gemini").map_err(|e| e.to_string())?;
-    let api_key = entry
-        .get_password()
-        .map_err(|_| "Configure sua chave Gemini nas Configurações.".to_string())?;
-
-    let url = format!(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
-        api_key
-    );
-
-    let name_ctx = match user_name {
-        Some(n) if !n.trim().is_empty() => format!(" O usuário se chama {}. Use o nome dele apenas quando soar natural.", n.trim()),
-        _ => String::new(),
-    };
-
-    let sys_prompt = format!(
-        "Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).",
-        name_ctx
-    );
-
-    let body = serde_json::json!({
-        "systemInstruction": {
-            "parts": [{ "text": sys_prompt }]
-        },
-        "contents": [{
-            "parts": [{ "text": prompt }]
-        }]
-    });
-
     let client = reqwest::Client::new();
+
+    // 1. Se o usuario salvou chave propria (BYOK), chama o Google direto
+    let personal_key = Entry::new("lumo-assistant", "gemini")
+        .ok()
+        .and_then(|entry| entry.get_password().ok())
+        .map(|k| k.trim().to_string())
+        .filter(|k| !k.is_empty());
+
+    if let Some(api_key) = personal_key {
+        let url = format!(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
+            api_key
+        );
+        let name_ctx = match &user_name {
+            Some(n) if !n.trim().is_empty() => format!(" O usuário se chama {}. Use o nome dele apenas quando soar natural.", n.trim()),
+            _ => String::new(),
+        };
+        let sys_prompt = format!(
+            "Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).",
+            name_ctx
+        );
+        let body = serde_json::json!({
+            "systemInstruction": { "parts": [{ "text": sys_prompt }] },
+            "contents": [{ "parts": [{ "text": prompt }] }]
+        });
+
+        let res = client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| format!("Erro de conexão: {}", e))?;
+
+        let json: serde_json::Value = res.json().await.map_err(|e| e.to_string())?;
+        if let Some(reply) = json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
+            return Ok(reply.to_string());
+        }
+        return Err("Chave API inválida ou sem cota no Google AI Studio.".to_string());
+    }
+
+    // 2. Sem chave propria: usa a IA integrada pelo Cloudflare Worker do Lumo
     let res = client
-        .post(&url)
-        .json(&body)
+        .post("https://lumo-ai.sivavieiravitor.workers.dev/")
+        .header("X-Lumo-Client", "lumo-desktop-v1")
+        .json(&serde_json::json!({
+            "prompt": prompt,
+            "userName": user_name
+        }))
         .send()
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("Sem conexão com o servidor do Lumo: {}", e))?;
 
-    let json: serde_json::Value = res.json().await.map_err(|e| e.to_string())?;
-    let reply = json["candidates"][0]["content"]["parts"][0]["text"]
-        .as_str()
-        .unwrap_or("Não consegui processar essa resposta agora.")
-        .to_string();
+    let status = res.status();
+    let json: serde_json::Value = res
+        .json()
+        .await
+        .map_err(|_| format!("Resposta inválida do servidor (HTTP {}). Confira o Deploy do Worker.", status.as_u16()))?;
 
-    Ok(reply)
+    if let Some(reply) = json["reply"].as_str() {
+        return Ok(reply.to_string());
+    }
+    if let Some(err) = json["error"].as_str() {
+        return Err(err.to_string());
+    }
+
+    Err("Sem resposta da IA. Verifique se GEMINI_API_KEY está salva na Cloudflare.".to_string())
 }
 
 pub fn run() {
