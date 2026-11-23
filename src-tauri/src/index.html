@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumo</title>
+  <style>
+    :root {
+      --accent: #f6b974;
+      --accent-soft: rgba(246, 185, 116, 0.16);
+      --accent-glow: rgba(246, 185, 116, 0.34);
+      --bg-pill: rgba(14, 15, 20, 0.92);
+      --bg-panel: rgba(16, 17, 23, 0.94);
+      --border: rgba(255, 255, 255, 0.11);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --danger: #f87171;
+      --ok: #34d399;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    /* Container principal alinhado ao topo */
+    #app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 8px;
+      position: relative;
+    }
+
+    /* Filtro quente para uso prolongado (8h+) */
+    #app.comfort-warm {
+      filter: sepia(0.14) saturate(1.05);
+    }
+
+    /* Canto Mágico (quando oculto em jogos) */
+    #corner-sensor {
+      display: none;
+      position: fixed;
+      top: 6px;
+      right: 6px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(14, 15, 20, 0.85);
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 18px var(--accent-glow);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      animation: pulseCorner 2.2s infinite ease-in-out;
+    }
+
+    #corner-sensor .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    @keyframes pulseCorner {
+      0%, 100% { transform: scale(0.92); opacity: 0.7; }
+      50% { transform: scale(1.04); opacity: 1; }
+    }
+
+    /* Cápsula do Lumo */
+    #lumo-pill {
+      position: relative;
+      min-width: 146px;
+      height: 54px;
+      padding: 0 20px;
+      border-radius: 999px;
+      background: var(--bg-pill);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.55),
+        0 0 24px var(--accent-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+
+    #lumo-pill:hover {
+      transform: translateY(1px) scale(1.02);
+      box-shadow:
+        0 14px 36px rgba(0, 0, 0, 0.65),
+        0 0 30px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Rostinho e Olhos */
+    .face {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      width: 68px;
+      height: 32px;
+      transition: transform 0.12s ease-out;
+    }
+
+    .eye {
+      width: 13px;
+      height: 19px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+      position: relative;
+      transition:
+        height 0.14s ease,
+        width 0.14s ease,
+        border-radius 0.16s ease,
+        transform 0.14s ease,
+        background 0.3s ease;
+    }
+
+    .eye::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      transition: opacity 0.15s ease;
+    }
+
+    /* Piscada */
+    .face.blink .eye {
+      height: 3px;
+      border-radius: 4px;
+    }
+    .face.blink .eye::after { opacity: 0; }
+
+    /* Expressão Feliz / Carinho (^ ^) */
+    .face.happy .eye {
+      height: 11px;
+      width: 15px;
+      background: transparent;
+      box-shadow: none;
+      border-top: 3.5px solid var(--accent);
+      border-radius: 50% 50% 0 0;
+      transform: translateY(3px);
+    }
+    .face.happy .eye::after { opacity: 0; }
+
+    /* Bochechas coradas */
+    .blush {
+      position: absolute;
+      bottom: 3px;
+      width: 10px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(251, 113, 133, 0.55);
+      filter: blur(2px);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .blush.left { left: 2px; }
+    .blush.right { right: 2px; }
+    .face.happy .blush { opacity: 1; }
+
+    /* Expressão Entediado / Cansado */
+    .face.bored .eye, .face.tired .eye {
+      height: 9px;
+      border-radius: 4px 4px 10px 10px;
+      transform: translateY(2px);
+    }
+
+    /* Expressão Cochilando */
+    .face.sleepy .eye {
+      height: 4px;
+      width: 14px;
+      border-radius: 0 0 10px 10px;
+      opacity: 0.7;
+    }
+    .face.sleepy .eye::after { opacity: 0; }
+
+    /* Expressão Surpreso (acordando) */
+    .face.surprised .eye {
+      width: 16px;
+      height: 22px;
+    }
+
+    /* Expressão Ouvindo Voz */
+    .face.listening .eye {
+      animation: listenPulse 0.7s infinite alternate ease-in-out;
+    }
+    @keyframes listenPulse {
+      from { transform: scaleY(0.85); }
+      to { transform: scaleY(1.2); }
+    }
+
+    /* Mini badge na cápsula (Timer ou Zzz) */
+    #pill-badge {
+      display: none;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+    }
+    #pill-badge.show { display: inline-block; }
+
+    /* Balão de Fala */
+    #speech-bubble {
+      margin-top: 8px;
+      max-width: 260px;
+      padding: 7px 13px;
+      border-radius: 14px;
+      background: rgba(16, 17, 23, 0.92);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--text);
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #speech-bubble.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Painel Principal Expandido */
+    #panel {
+      display: none;
+      margin-top: 10px;
+      width: 396px;
+      height: 468px;
+      border-radius: 24px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.75),
+        0 0 32px var(--accent-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      flex-direction: column;
+      overflow: hidden;
+      animation: panelOpen 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #panel.open { display: flex; }
+
+    @keyframes panelOpen {
+      from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Barra de Navegação do Painel */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      gap: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 3px;
+      border-radius: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .icon-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .circle-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .circle-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .circle-btn.recording {
+      background: rgba(248, 113, 113, 0.2);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* Conteúdo das Abas */
+    .tab-content {
+      display: none;
+      flex: 1;
+      padding: 14px 16px;
+      overflow-y: auto;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tab-content.active { display: flex; }
+
+    .tab-content::-webkit-scrollbar { width: 4px; }
+    .tab-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 4px;
+    }
+
+    /* Cabeçalho do Resumo */
+    .summary-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .greeting h2 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .greeting p {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .ram-pill {
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      color: var(--ok);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    /* Card Destaque */
+    .card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    .card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .label-xs {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      width: 38px;
+      height: 20px;
+      display: inline-block;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    input:checked + .slider { background: var(--accent); }
+    input:checked + .slider::before {
+      transform: translateX(18px);
+      background: #111;
+    }
+
+    /* Lista de Tarefas */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 12.5px;
+    }
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .check-circle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    .task-item.done .check-circle {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #111;
+      font-weight: bold;
+    }
+    .task-item.done span {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 5px;
+    }
+    .del-btn:hover { color: var(--danger); }
+
+    .inline-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    input[type="text"], input[type="password"], input[type="time"] {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      padding: 8px 11px;
+      color: var(--text);
+      font-size: 12.5px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #111318;
+      border: none;
+      border-radius: 11px;
+      padding: 8px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Chat IA */
+    #chat-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .msg {
+      padding: 9px 12px;
+      border-radius: 14px;
+      font-size: 12.5px;
+      line-height: 1.42;
+      max-width: 88%;
+      user-select: text;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-glow);
+      color: var(--text);
+    }
+    .msg.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .copy-mini {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 10.5px;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Timer e Alarmes */
+    .timer-display {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--accent);
+      letter-spacing: 1px;
+      margin: 4px 0 8px;
+    }
+    .preset-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Temas */
+    .theme-dots {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .theme-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .theme-dot.active { border-color: #fff; transform: scale(1.1); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Sensor do Canto Mágico (aparece ao ocultar em jogo) -->
+    <div id="corner-sensor" title="Chamar o Lumo de volta" onclick="wakeFromGame()">
+      <div class="dot"></div>
+    </div>
+
+    <!-- Cápsula Flutuante -->
+    <div id="lumo-pill" title="Clique para abrir · Arraste para mover · 2 cliques para carinho">
+      <div class="face" id="lumo-face">
+        <div class="blush left"></div>
+        <div class="eye left" id="eye-left"></div>
+        <div class="eye right" id="eye-right"></div>
+        <div class="blush right"></div>
+      </div>
+      <span id="pill-badge">25:00</span>
+    </div>
+
+    <!-- Balão de Fala -->
+    <div id="speech-bubble">Oi! Tudo pronto por aqui.</div>
+
+    <!-- Painel Expansível -->
+    <div id="panel">
+      <div class="nav">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="resumo" onclick="switchTab('resumo')">Resumo</button>
+          <button class="tab-btn" data-tab="ia" onclick="switchTab('ia')">IA</button>
+          <button class="tab-btn" data-tab="foco" onclick="switchTab('foco')">Foco</button>
+          <button class="tab-btn" data-tab="config" onclick="switchTab('config')">Config</button>
+        </div>
+        <div class="icon-actions">
+          <button class="circle-btn" id="mic-btn" title="Comando de voz" onclick="toggleVoice()">🎙️</button>
+          <button class="circle-btn" title="Esconder no canto (Modo Jogo)" onclick="hideForGame('Modo jogo ativado. Me chame no canto superior direito!')">🎮</button>
+          <button class="circle-btn" title="Recolher" onclick="togglePanel(false)">—</button>
+        </div>
+      </div>
+
+      <!-- ABA 1: RESUMO -->
+      <div class="tab-content active" id="tab-resumo">
+        <div class="summary-top">
+          <div class="greeting">
+            <h2 id="greeting-text">Bom dia!</h2>
+            <p id="uptime-text">Ativo há 1m · Ambiente leve</p>
+          </div>
+          <div class="ram-pill" id="ram-stat">RAM: -- / -- GB</div>
+        </div>
+
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="label-xs">Próximo Alarme</div>
+              <div style="font-size: 13.5px; font-weight: 600;" id="next-alarm-label">07:30 · Acordar</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="next-alarm-toggle" checked onchange="toggleMainAlarm(this.checked)" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="label-xs">Tarefas de Hoje</div>
+          <div class="task-list" id="task-list"></div>
+          <form class="inline-form" onsubmit="addTask(event)">
+            <input type="text" id="new-task-input" placeholder="+ Nova tarefa..." />
+            <button type="submit" class="btn-primary">Add</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ABA 2: IA (GEMINI) -->
+      <div class="tab-content" id="tab-ia">
+        <div class="card-row">
+          <span class="label-xs" style="margin:0;">Gemini 2.5 Flash · Direto via Rust</span>
+          <button class="btn-ghost" onclick="switchTab('config')">Chave API</button>
+        </div>
+        <div id="chat-box">
+          <div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div>
+        </div>
+        <form class="inline-form" onsubmit="sendPrompt(event)">
+          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." />
+          <button type="submit" class="btn-primary" id="ai-send-btn">Enviar</button>
+        </form>
+      </div>
+
+      <!-- ABA 3: FOCO & ALARMES -->
+      <div class="tab-content" id="tab-foco">
+        <div class="card">
+          <div class="label-xs">Timer de Foco</div>
+          <div class="timer-display" id="timer-display">25:00</div>
+          <div class="preset-row">
+            <button class="btn-ghost" onclick="setTimer(25)">25m</button>
+            <button class="btn-ghost" onclick="setTimer(15)">15m</button>
+            <button class="btn-ghost" onclick="setTimer(5)">5m</button>
+            <button class="btn-primary" id="timer-toggle-btn" onclick="toggleTimer()">Iniciar</button>
+          </div>
+        </div>
+
+        <div class="card" style="flex: 1;">
+          <div class="label-xs">Alarmes Diários</div>
+          <div class="task-list" id="alarm-list"></div>
+          <form class="inline-form" onsubmit="addAlarm(event)">
+            <input type="time" id="alarm-time" required style="max-width: 105px;" />
+            <input type="text" id="alarm-name" placeholder="Nome do alarme" />
+            <button type="submit" class="btn-primary">+</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ABA 4: CONFIGURAÇÕES -->
+      <div class="tab-content" id="tab-config">
+        <div class="card">
+          <div class="label-xs">Chave API Gemini (Cofre do Windows)</div>
+          <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">
+            Salva com criptografia nativa no Gerenciador de Credenciais do Windows.
+          </p>
+          <form class="inline-form" onsubmit="saveGeminiKey(event)">
+            <input type="password" id="api-key-input" placeholder="Cole sua AIzaSy..." />
+            <button type="submit" class="btn-primary">Salvar</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">Tema Luminoso</div>
+          <div class="theme-dots">
+            <div class="theme-dot active" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente"></div>
+            <div class="theme-dot" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar"></div>
+            <div class="theme-dot" style="background:#67e8f9" onclick="setTheme('cyan', this)" title="Ciano Névoa"></div>
+            <div class="theme-dot" style="background:#c4b5fd" onclick="setTheme('lavender', this)" title="Lavanda Zen"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-row" style="margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 12.5px; font-weight: 600;">Auto-esconder em Jogos</div>
+              <div style="font-size: 11px; color: var(--muted);">Detecta jogos e vai para o canto</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autohide-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <input type="text" id="game-keywords" value="valorant, minecraft, cs2, roblox, fortnite, dead by daylight, five nights, outlast, r.e.p.o, elden ring, gta" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Integração Tauri v2 (com fallback seguro se abrir no navegador)
+    const isTauri = Boolean(window.__TAURI__);
+    const invoke = isTauri ? window.__TAURI__.core.invoke : null;
+    const tauriWindow = isTauri ? window.__TAURI__.window : null;
+    const appWindow = tauriWindow ? tauriWindow.getCurrentWindow() : null;
+
+    let screenLogicalW = window.innerWidth;
+    let scaleFactor = 1;
+    let isExpanded = false;
+    let isHiddenInGame = false;
+    let manualSummonUntil = 0;
+    let lastInteraction = Date.now();
+    let startTime = Date.now();
+
+    // Estado persistente
+    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Revisar metas do dia","done":false},{"text":"Beber água","done":true}]');
+    let alarms = JSON.parse(localStorage.getItem('lumo_alarms') || '[{"time":"07:30","label":"Acordar","enabled":true}]');
+
+    // Temas
+    const themes = {
+      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.16)', glow: 'rgba(246, 185, 116, 0.34)' },
+      lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.14)', glow: 'rgba(243, 244, 246, 0.28)' },
+      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.15)', glow: 'rgba(103, 232, 249, 0.32)' },
+      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.16)', glow: 'rgba(196, 181, 253, 0.34)' }
+    };
+
+    function setTheme(name, el) {
+      const t = themes[name] || themes.amber;
+      document.documentElement.style.setProperty('--accent', t.accent);
+      document.documentElement.style.setProperty('--accent-soft', t.soft);
+      document.documentElement.style.setProperty('--accent-glow', t.glow);
+      document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+      if (el) el.classList.add('active');
+      localStorage.setItem('lumo_theme', name);
+    }
+
+    // Som suave via Web Audio
+    function chime(freq = 580) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.35, ctx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (_) {}
+    }
+
+    // Fala do Lumo
+    let bubbleTimeout;
+    function say(text, duration = 4200) {
+      if (isHiddenInGame) return;
+      const bubble = document.getElementById('speech-bubble');
+      bubble.textContent = text;
+      bubble.classList.add('show');
+      clearTimeout(bubbleTimeout);
+      bubbleTimeout = setTimeout(() => bubble.classList.remove('show'), duration);
+    }
+
+    // Posicionamento e Redimensionamento da Janela no Windows
+    async function syncWindowGeometry() {
+      if (!appWindow) return;
+      try {
+        const monitor = await tauriWindow.primaryMonitor();
+        if (monitor) {
+          scaleFactor = monitor.scaleFactor || 1;
+          screenLogicalW = Math.round(monitor.size.width / scaleFactor);
+        }
+        const { LogicalSize, LogicalPosition } = tauriWindow;
+
+        if (isHiddenInGame) {
+          await appWindow.setSize(new LogicalSize(60, 60));
+          await appWindow.setPosition(new LogicalPosition(screenLogicalW - 60, 0));
+        } else if (isExpanded) {
+          await appWindow.setSize(new LogicalSize(420, 560));
+          await appWindow.setPosition(new LogicalPosition(Math.round((screenLogicalW - 420) / 2), 6));
+        } else {
+          await appWindow.setSize(new LogicalSize(290, 135));
+          await appWindow.setPosition(new LogicalPosition(Math.round((screenLogicalW - 290) / 2), 6));
+        }
+      } catch (e) {
+        console.error('Erro janela:', e);
+      }
+    }
+
+    async function togglePanel(forceState) {
+      lastInteraction = Date.now();
+      setExpression('normal');
+      isExpanded = typeof forceState === 'boolean' ? forceState : !isExpanded;
+      const panel = document.getElementById('panel');
+      panel.classList.toggle('open', isExpanded);
+      if (isExpanded) {
+        document.getElementById('speech-bubble').classList.remove('show');
+        chime(520);
+      }
+      await syncWindowGeometry();
+    }
+
+    // Clique vs Arrastar vs Carinho (2 cliques) na cápsula
+    const pill = document.getElementById('lumo-pill');
+    let downX = 0, downY = 0, clickTimer = null;
+
+    pill.addEventListener('pointerdown', (e) => {
+      downX = e.clientX;
+      downY = e.clientY;
+    });
+
+    pill.addEventListener('pointermove', async (e) => {
+      if (e.buttons === 1 && appWindow) {
+        const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
+        if (dist > 6) {
+          await appWindow.startDragging();
+        }
+      }
+    });
+
+    pill.addEventListener('click', (e) => {
+      const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
+      if (dist > 6) return;
+
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        // Duplo clique -> Carinho
+        lastInteraction = Date.now();
+        setExpression('happy');
+        chime(740);
+        say('Hehe, valeu pelo carinho!');
+        setTimeout(() => setExpression('normal'), 2400);
+      } else {
+        clickTimer = setTimeout(() => {
+          clickTimer = null;
+          togglePanel();
+        }, 220);
+      }
+    });
+
+    // Expressões e Piscadas
+    function setExpression(type) {
+      const face = document.getElementById('lumo-face');
+      face.className = 'face';
+      if (type !== 'normal') face.classList.add(type);
+    }
+
+    setInterval(() => {
+      const face = document.getElementById('lumo-face');
+      if (face.classList.contains('happy') || face.classList.contains('sleepy')) return;
+      face.classList.add('blink');
+      setTimeout(() => face.classList.remove('blink'), 140);
+    }, 3800);
+
+    // Loop de monitoramento real do Windows (Mouse, RAM, Jogos)
+    async function pollWindows() {
+      if (!invoke) return;
+      try {
+        const state = await invoke('get_desktop_state');
+
+        // Atualiza RAM real
+        const usedGb = (state.used_ram_mb / 1024).toFixed(1);
+        const totalGb = (state.total_ram_mb / 1024).toFixed(0);
+        document.getElementById('ram-stat').textContent = `RAM: ${usedGb} / ${totalGb} GB`;
+
+        const curX = state.cursor_x / scaleFactor;
+        const curY = state.cursor_y / scaleFactor;
+
+        // Se estiver oculto no canto e o mouse encostar no canto superior direito
+        if (isHiddenInGame) {
+          if (curX >= screenLogicalW - 18 && curY <= 18) {
+            wakeFromGame();
+          }
+          return;
+        }
+
+        // Olhos seguem o cursor real do Windows
+        const centerX = screenLogicalW / 2;
+        const dx = Math.max(-7, Math.min(7, (curX - centerX) / 65));
+        const dy = Math.max(-4, Math.min(5, (curY - 35) / 85));
+        document.getElementById('lumo-face').style.transform = `translate(${dx}px, ${dy}px)`;
+
+        // Detecção automática de jogo na janela ativa
+        const autoHide = document.getElementById('autohide-toggle').checked;
+        if (autoHide && Date.now() > manualSummonUntil && state.active_window) {
+          const title = state.active_window.toLowerCase();
+          const keywords = document.getElementById('game-keywords').value
+            .split(',')
+            .map(k => k.trim().toLowerCase())
+            .filter(Boolean);
+
+          const isGame = keywords.some(k => title.includes(k));
+          if (isGame) {
+            hideForGame(`Jogo detectado (${state.active_window.slice(0, 18)}). Fui pro canto!`);
+          }
+        }
+      } catch (_) {}
+    }
+    setInterval(pollWindows, 160);
+
+    async function hideForGame(msg) {
+      if (isHiddenInGame) return;
+      if (isExpanded) {
+        isExpanded = false;
+        document.getElementById('panel').classList.remove('open');
+      }
+      say(msg, 2200);
+      setTimeout(async () => {
+        isHiddenInGame = true;
+        document.getElementById('lumo-pill').style.display = 'none';
+        document.getElementById('speech-bubble').classList.remove('show');
+        document.getElementById('corner-sensor').style.display = 'flex';
+        await syncWindowGeometry();
+      }, 900);
+    }
+
+    async function wakeFromGame() {
+      if (!isHiddenInGame) return;
+      isHiddenInGame = false;
+      manualSummonUntil = Date.now() + 35000; // Fica visível por 35s mesmo se voltar ao jogo
+      document.getElementById('corner-sensor').style.display = 'none';
+      document.getElementById('lumo-pill').style.display = 'flex';
+      setExpression('surprised');
+      chime(660);
+      await syncWindowGeometry();
+      say('Voltei! Precisa de algo?');
+      setTimeout(() => setExpression('normal'), 1600);
+    }
+
+    // Ociosidade e Tempo Ligado
+    setInterval(() => {
+      const idleSec = (Date.now() - lastInteraction) / 1000;
+      const upMin = Math.floor((Date.now() - startTime) / 60000);
+      const hrs = Math.floor(upMin / 60);
+      const mins = upMin % 60;
+      document.getElementById('uptime-text').textContent =
+        `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m · ${isTauri ? 'Windows Nativo' : 'Modo Preview'}`;
+
+      if (hrs >= 8) {
+        document.getElementById('app').classList.add('comfort-warm');
+      }
+
+      if (!isExpanded && !isHiddenInGame) {
+        if (idleSec > 180) {
+          setExpression('sleepy');
+        } else if (idleSec > 75) {
+          setExpression('bored');
+        }
+      }
+    }, 5000);
+
+    // Abas
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+    }
+
+    // Tarefas
+    function renderTasks() {
+      const list = document.getElementById('task-list');
+      list.innerHTML = '';
+      tasks.forEach((t, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task-item' + (t.done ? ' done' : '');
+        div.innerHTML = `
+          <div class="task-left" onclick="toggleTask(${idx})">
+            <div class="check-circle">${t.done ? '✓' : ''}</div>
+            <span>${t.text}</span>
+          </div>
+          <button class="del-btn" onclick="deleteTask(${idx})">✕</button>
+        `;
+        list.appendChild(div);
+      });
+      localStorage.setItem('lumo_tasks', JSON.stringify(tasks));
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      tasks.push({ text: val, done: false });
+      input.value = '';
+      renderTasks();
+    }
+
+    function toggleTask(idx) {
+      tasks[idx].done = !tasks[idx].done;
+      if (tasks[idx].done) chime(700);
+      renderTasks();
+    }
+
+    function deleteTask(idx) {
+      tasks.splice(idx, 1);
+      renderTasks();
+    }
+
+    // Alarmes
+    function renderAlarms() {
+      const list = document.getElementById('alarm-list');
+      list.innerHTML = '';
+      alarms.forEach((a, idx) => {
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        div.innerHTML = `
+          <span><strong>${a.time}</strong> · ${a.label || 'Alarme'}</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" ${a.enabled ? 'checked' : ''} onchange="toggleAlarmItem(${idx}, this.checked)" />
+            <button class="del-btn" onclick="deleteAlarm(${idx})">✕</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+      if (alarms[0]) {
+        document.getElementById('next-alarm-label').textContent = `${alarms[0].time} · ${alarms[0].label || 'Alarme'}`;
+        document.getElementById('next-alarm-toggle').checked = alarms[0].enabled;
+      }
+      localStorage.setItem('lumo_alarms', JSON.stringify(alarms));
+    }
+
+    function addAlarm(e) {
+      e.preventDefault();
+      const time = document.getElementById('alarm-time').value;
+      const label = document.getElementById('alarm-name').value.trim() || 'Lembrete';
+      if (!time) return;
+      alarms.push({ time, label, enabled: true });
+      document.getElementById('alarm-name').value = '';
+      renderAlarms();
+    }
+
+    function toggleAlarmItem(idx, val) {
+      alarms[idx].enabled = val;
+      renderAlarms();
+    }
+
+    function toggleMainAlarm(val) {
+      if (alarms[0]) {
+        alarms[0].enabled = val;
+        renderAlarms();
+      }
+    }
+
+    function deleteAlarm(idx) {
+      alarms.splice(idx, 1);
+      renderAlarms();
+    }
+
+    // Checa alarmes a cada 15s
+    let lastTriggeredMin = '';
+    setInterval(() => {
+      const now = new Date();
+      const hhmm = now.toTimeString().slice(0, 5);
+      if (hhmm === lastTriggeredMin) return;
+      const hit = alarms.find(a => a.enabled && a.time === hhmm);
+      if (hit) {
+        lastTriggeredMin = hhmm;
+        if (isHiddenInGame) wakeFromGame();
+        chime(820);
+        say(`⏰ Alarme: ${hit.label} (${hit.time})!`, 8000);
+      }
+    }, 15000);
+
+    // Timer de Foco
+    let timerSeconds = 25 * 60;
+    let timerInterval = null;
+
+    function updateTimerUI() {
+      const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const s = String(timerSeconds % 60).padStart(2, '0');
+      const formatted = `${m}:${s}`;
+      document.getElementById('timer-display').textContent = formatted;
+      const badge = document.getElementById('pill-badge');
+      badge.textContent = formatted;
+      badge.classList.toggle('show', Boolean(timerInterval));
+    }
+
+    function setTimer(mins) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      document.getElementById('timer-toggle-btn').textContent = 'Iniciar';
+      timerSeconds = mins * 60;
+      updateTimerUI();
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timer-toggle-btn');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.textContent = 'Retomar';
+        updateTimerUI();
+      } else {
+        btn.textContent = 'Pausar';
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.textContent = 'Iniciar';
+            updateTimerUI();
+            setExpression('happy');
+            chime(880);
+            say('Sessão de foco concluída! Boa!');
+          }
+        }, 1000);
+        updateTimerUI();
+      }
+    }
+
+    // Cofre de Chave API + Chat Gemini Real
+    async function saveGeminiKey(e) {
+      e.preventDefault();
+      const input = document.getElementById('api-key-input');
+      const key = input.value.trim();
+      if (!key) return;
+      if (invoke) {
+        try {
+          await invoke('save_api_key', { provider: 'gemini', apiKey: key });
+          input.value = '';
+          chime(720);
+          say('Chave salva com segurança no Windows!');
+        } catch (err) {
+          say('Erro ao salvar chave: ' + err);
+        }
+      } else {
+        localStorage.setItem('lumo_preview_key', key);
+        input.value = '';
+        say('Chave salva (modo preview).');
+      }
+    }
+
+    function appendMsg(text, who) {
+      const box = document.getElementById('chat-box');
+      const div = document.createElement('div');
+      div.className = 'msg ' + who;
+      div.textContent = text;
+      if (who === 'ai') {
+        const copy = document.createElement('div');
+        copy.className = 'copy-mini';
+        copy.textContent = 'Copiar resposta';
+        copy.onclick = () => {
+          navigator.clipboard.writeText(text);
+          copy.textContent = 'Copiado ✓';
+        };
+        div.appendChild(copy);
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendPrompt(e) {
+      e.preventDefault();
+      const input = document.getElementById('ai-input');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+      input.value = '';
+      appendMsg(prompt, 'user');
+
+      const btn = document.getElementById('ai-send-btn');
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      if (invoke) {
+        try {
+          const reply = await invoke('ask_gemini', { prompt });
+          appendMsg(reply, 'ai');
+        } catch (err) {
+          appendMsg('⚠️ ' + err, 'ai');
+        }
+      } else {
+        setTimeout(() => {
+          appendMsg('No Windows compilado, eu respondo direto pela API do Gemini usando sua chave salva no cofre do sistema!', 'ai');
+        }, 400);
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Enviar';
+    }
+
+    // Comando de voz (PT-BR)
+    function toggleVoice() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        say('Reconhecimento de voz indisponível neste dispositivo.');
+        return;
+      }
+      const btn = document.getElementById('mic-btn');
+      const rec = new SpeechRec();
+      rec.lang = 'pt-BR';
+      btn.classList.add('recording');
+      setExpression('listening');
+      say('Estou ouvindo...');
+
+      rec.onresult = (ev) => {
+        const transcript = ev.results[0][0].transcript;
+        const lower = transcript.toLowerCase();
+        if (lower.includes('resumo')) {
+          switchTab('resumo');
+          say('Aqui está o seu resumo.');
+        } else if (lower.includes('foco') || lower.includes('timer')) {
+          switchTab('foco');
+          toggleTimer();
+        } else if (lower.includes('esconder') || lower.includes('jogo')) {
+          hideForGame('Indo pro canto!');
+        } else {
+          switchTab('ia');
+          document.getElementById('ai-input').value = transcript;
+          sendPrompt(new Event('submit'));
+        }
+      };
+
+      rec.onend = () => {
+        btn.classList.remove('recording');
+        setExpression('normal');
+      };
+
+      rec.start();
+    }
+
+    // Inicialização
+    (function init() {
+      const savedTheme = localStorage.getItem('lumo_theme');
+      if (savedTheme) setTheme(savedTheme);
+
+      const h = new Date().getHours();
+      document.getElementById('greeting-text').textContent =
+        h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!';
+
+      renderTasks();
+      renderAlarms();
+      syncWindowGeometry();
+      setTimeout(() => say('Oi! Clique em mim para abrir seu resumo.'), 700);
+    })();
+  </script>
+</body>
+</html>
