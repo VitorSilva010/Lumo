@@ -17,6 +17,7 @@
       --text: #f3f4f6;
       --muted: #9ca3af;
       --danger: #f87171;
+      --warn: #fbbf24;
       --ok: #34d399;
       --love: #fb7185;
     }
@@ -70,9 +71,9 @@
       50% { transform: scale(1.06); opacity: 1; }
     }
 
-    /* Cápsula Obsidian com aura reativa */
+    /* Cápsula Obsidian */
     #lumo-pill {
-      position: relative; flex-shrink: 0; min-width: 152px; height: 54px;
+      position: relative; flex-shrink: 0; min-width: 154px; height: 54px;
       padding: 0 20px; border-radius: 999px;
       background: var(--bg-pill); border: 1px solid var(--border);
       box-shadow:
@@ -112,6 +113,42 @@
       35% { transform: translateY(-7px) scale(1.07, 0.93); }
       70% { transform: translateY(2px) scale(0.97, 1.03); }
       100% { transform: scale(1); }
+    }
+
+    /* Partículas (carinho e confete) */
+    .fx-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 60;
+      font-size: 13px;
+      font-weight: 700;
+      animation: particleBurst 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes particleBurst {
+      0% { opacity: 1; transform: translate(0, 0) scale(0.6) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.25) rotate(var(--rot)); }
+    }
+
+    /* Gota de suor animada (PC pesado) */
+    #sweat-drop {
+      position: absolute;
+      top: 4px;
+      right: -6px;
+      width: 7px;
+      height: 10px;
+      border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.75);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .face.sweat #sweat-drop {
+      animation: sweatFall 1.3s infinite ease-in;
+    }
+    @keyframes sweatFall {
+      0% { opacity: 0; transform: translateY(-4px) scale(0.7); }
+      30% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(14px) scale(1); }
     }
 
     #float-emote {
@@ -167,6 +204,7 @@
     .blush.left { left: 1px; } .blush.right { right: 1px; }
     .face.happy .blush, .face.love .blush { opacity: 1; }
     .face.focused .eye { height: 11px; width: 15px; border-radius: 3px 3px 8px 8px; transform: translateY(1px); }
+    .face.sweat .eye { height: 12px; width: 14px; border-radius: 6px; transform: translateY(1px) scaleX(0.95); }
     .face.music .eye { animation: musicBob 0.55s infinite alternate cubic-bezier(0.22, 1, 0.36, 1); }
     .face.music .eye.right { animation-delay: 0.12s; }
     @keyframes musicBob { from { transform: translateY(2px) scaleY(0.92); } to { transform: translateY(-3px) scaleY(1.06); } }
@@ -201,7 +239,7 @@
     #speech-bubble {
       position: fixed; top: 68px; left: 50%;
       transform: translateX(-50%) translateY(-6px) scale(0.95);
-      width: max-content; max-width: 292px; padding: 7px 14px; border-radius: 14px;
+      width: max-content; max-width: 294px; padding: 7px 14px; border-radius: 14px;
       background: rgba(15, 16, 22, 0.96); border: 1px solid var(--border);
       box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); font-size: 12px; line-height: 1.35;
       color: var(--text); text-align: center; opacity: 0; pointer-events: none; z-index: 20;
@@ -212,6 +250,7 @@
 
     /* Painel Principal */
     #panel {
+      position: relative;
       display: none; margin-top: 10px; width: 418px; height: 526px;
       border-radius: 24px; background: var(--bg-panel); border: 1px solid var(--border);
       box-shadow: 0 26px 64px rgba(0, 0, 0, 0.78), 0 0 34px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.13);
@@ -267,7 +306,7 @@
     .circle-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(248,113,113,0.12); }
     .circle-btn.recording { background: rgba(248, 113, 113, 0.2); border-color: var(--danger); color: var(--danger); }
 
-    /* Views com transições suaves */
+    /* Views */
     .view {
       display: none; flex: 1; padding: 13px 15px; overflow-y: auto;
       flex-direction: column; gap: 10px;
@@ -280,12 +319,11 @@
       from { opacity: 0; transform: translateY(10px) scale(0.985); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .view::-webkit-scrollbar, .home-scroll::-webkit-scrollbar { width: 4px; }
-    .view::-webkit-scrollbar-thumb, .home-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.14); border-radius: 4px;
+    .view::-webkit-scrollbar, .home-scroll::-webkit-scrollbar, #chat-box::-webkit-scrollbar { width: 4px; }
+    .view::-webkit-scrollbar-thumb, .home-scroll::-webkit-scrollbar-thumb, #chat-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16); border-radius: 4px;
     }
 
-    /* Layout especial da Tela Início (Scroll + Chat Rápido fixo no rodapé) */
     #view-resumo { padding: 0; overflow: hidden; gap: 0; }
     .home-scroll {
       flex: 1; overflow-y: auto; padding: 13px 15px 12px;
@@ -293,22 +331,23 @@
     }
 
     .summary-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .greeting h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
-    .greeting p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .greeting h2 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.2px; }
+    .greeting p { font-size: 10.8px; color: var(--muted); margin-top: 2px; }
 
-    .ram-pill {
-      font-size: 10.5px; padding: 5px 9px; border-radius: 999px;
+    .sys-pill {
+      font-size: 10px; padding: 5px 9px; border-radius: 999px;
       background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25);
-      color: var(--ok); white-space: nowrap; font-weight: 500;
+      color: var(--ok); white-space: nowrap; font-weight: 600;
+      transition: color 0.3s, border-color 0.3s, background 0.3s;
     }
+    .sys-pill.warn { color: var(--warn); background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
+    .sys-pill.hot { color: var(--danger); background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35); }
 
-    /* Card de Resumo do Dia */
+    /* Card Resumo do Dia */
     .daily-card {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      border-radius: 16px;
-      padding: 11px 13px;
-      display: flex; flex-direction: column; gap: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 16px;
+      padding: 11px 13px; display: flex; flex-direction: column; gap: 7px;
       position: relative; overflow: hidden;
     }
     .daily-card::before {
@@ -318,16 +357,12 @@
     .daily-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .daily-date { font-size: 11.5px; font-weight: 600; color: var(--text); text-transform: capitalize; }
     .weather-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 10.5px; color: var(--accent);
+      display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent);
       background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; font-weight: 500;
     }
     .daily-note { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
     .progress-wrap { display: flex; align-items: center; gap: 8px; margin-top: 1px; }
-    .progress-track {
-      flex: 1; height: 5px; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08); overflow: hidden;
-    }
+    .progress-track { flex: 1; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
     .progress-fill {
       height: 100%; width: 0%; border-radius: 999px;
       background: linear-gradient(90deg, var(--accent), #fff3d6);
@@ -336,16 +371,14 @@
     }
     .progress-pct { font-size: 10.5px; font-weight: 600; color: var(--accent); min-width: 30px; text-align: right; }
 
-    /* Onboarding */
     #onboarding-card {
       display: none;
       background: linear-gradient(135deg, rgba(246, 185, 116, 0.12), rgba(255, 255, 255, 0.03));
-      border: 1px solid rgba(246, 185, 116, 0.32);
-      border-radius: 16px; padding: 11px 13px;
+      border: 1px solid rgba(246, 185, 116, 0.32); border-radius: 16px; padding: 11px 13px;
     }
     #onboarding-card.show { display: block; animation: viewEnter 0.3s ease; }
 
-    /* Grid de Botões com entrada em cascata */
+    /* Grid de Botões */
     .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .hub-tile {
       position: relative; display: flex; flex-direction: column;
@@ -367,10 +400,8 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .hub-tile:hover {
-      background: var(--surface-hover);
-      border-color: rgba(246, 185, 116, 0.45);
-      transform: translateY(-3px) scale(1.015);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+      background: var(--surface-hover); border-color: rgba(246, 185, 116, 0.45);
+      transform: translateY(-3px) scale(1.015); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
     }
     .hub-tile:active { transform: translateY(0) scale(0.96); }
     .hub-tile.active-tile { background: var(--accent-soft); border-color: var(--accent); }
@@ -385,40 +416,63 @@
     .tile-title { font-size: 11.5px; font-weight: 600; line-height: 1.15; }
     .tile-sub { font-size: 9.8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
-    /* Barra de Chat Rápido no Rodapé da Tela Início */
+    /* Barra de Comandos / Chat Rápido */
     .quick-ai-dock {
-      flex-shrink: 0;
-      padding: 9px 13px 11px;
+      flex-shrink: 0; padding: 9px 13px 11px;
       border-top: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(11, 12, 17, 0.92);
+      background: rgba(11, 12, 17, 0.94);
     }
     .quick-ai-form {
       display: flex; align-items: center; gap: 7px;
-      background: rgba(255, 255, 255, 0.045);
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 14px;
-      padding: 4px 5px 4px 11px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 14px; padding: 4px 5px 4px 11px;
       transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
     }
     .quick-ai-form:focus-within {
-      border-color: var(--accent);
-      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent); background: rgba(255, 255, 255, 0.06);
       box-shadow: 0 0 18px var(--accent-soft);
     }
     .sparkle-ic { color: var(--accent); animation: gentlePulse 2.8s infinite ease-in-out; }
     @keyframes gentlePulse { 0%, 100% { opacity: 0.75; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.06); } }
     .quick-ai-form input {
       flex: 1; background: transparent; border: none; padding: 6px 2px;
-      color: var(--text); font-size: 12px; outline: none;
+      color: var(--text); font-size: 11.8px; outline: none;
     }
     .quick-ai-send {
       width: 30px; height: 30px; border-radius: 10px;
       background: var(--accent); color: #111318; border: none;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: transform 0.18s ease, opacity 0.18s ease;
+      cursor: pointer; transition: transform 0.18s ease;
     }
     .quick-ai-send:hover { transform: scale(1.06); }
     .quick-ai-send:active { transform: scale(0.92); }
+
+    /* Kit Rápido (Cor, QR, Senha) */
+    .color-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .color-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 8px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.045); border: 1px solid var(--border);
+      font-size: 11px; cursor: pointer; transition: transform 0.18s, border-color 0.18s;
+    }
+    .color-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .swatch-dot { width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.28); }
+
+    .qr-preview {
+      display: none; margin-top: 10px; flex-direction: column; align-items: center; gap: 6px;
+      padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.04);
+      animation: msgPop 0.25s ease;
+    }
+    .qr-preview.show { display: flex; }
+    .qr-preview img { width: 136px; height: 136px; border-radius: 10px; background: #fff; padding: 6px; }
+
+    .pwd-box {
+      margin-top: 8px; padding: 8px 10px; border-radius: 10px;
+      background: rgba(0, 0, 0, 0.38); border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: Consolas, monospace; font-size: 12px; color: var(--accent);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      user-select: text;
+    }
 
     .pro-badge {
       font-size: 9px; padding: 2px 6px; border-radius: 999px;
@@ -444,7 +498,6 @@
     }
     #update-banner.show { display: flex; animation: viewEnter 0.25s ease; }
 
-    /* Drop Zone */
     .drop-zone {
       border: 1.5px dashed rgba(255, 255, 255, 0.18); border-radius: 15px;
       padding: 16px 12px; text-align: center; cursor: pointer;
@@ -466,7 +519,6 @@
     }
     .pocket-actions { display: flex; gap: 5px; flex-wrap: wrap; }
 
-    /* Mídia */
     .media-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 12px 0 8px; }
     .media-btn {
       width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
@@ -492,7 +544,6 @@
     .ambient-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.22); }
     .ambient-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
-    /* Switch */
     .switch { position: relative; width: 36px; height: 19px; display: inline-block; flex-shrink: 0; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.15); border-radius: 999px; cursor: pointer; transition: 0.22s; }
@@ -500,12 +551,11 @@
     input:checked + .slider { background: var(--accent); }
     input:checked + .slider::before { transform: translateX(17px); background: #111; }
 
-    /* Tarefas animadas */
     .task-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
     .task-item {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       padding: 6px 9px; border-radius: 10px; background: rgba(255, 255, 255, 0.025); font-size: 12px;
-      transition: background 0.18s ease, transform 0.18s ease;
+      transition: background 0.18s ease;
     }
     .task-item:hover { background: rgba(255, 255, 255, 0.05); }
     .task-left { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; overflow: hidden; }
@@ -550,10 +600,7 @@
     }
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* Chat & Typing Indicator */
     #chat-box { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; }
-    #chat-box::-webkit-scrollbar { width: 4px; }
-    #chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
     .msg {
       padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.42; max-width: 88%; user-select: text;
       animation: msgPop 0.25s cubic-bezier(0.22, 1, 0.36, 1);
@@ -598,6 +645,7 @@
         <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
       </div>
       <div class="face sleepy" id="lumo-face">
+        <div id="sweat-drop"></div>
         <div class="blush left"></div>
         <div class="eye left"></div>
         <div class="eye right"></div>
@@ -640,7 +688,7 @@
         </div>
       </div>
 
-      <!-- VIEW 1: INÍCIO (RESUMO DO DIA + HUB + TAREFAS + CHAT RÁPIDO FIXO) -->
+      <!-- VIEW 1: INÍCIO -->
       <div class="view active" id="view-resumo">
         <div class="home-scroll">
           <div id="update-banner">
@@ -662,14 +710,14 @@
               <h2 id="greeting-text">Bom dia!</h2>
               <p id="uptime-text">Ativo há 0m · Alt+Espaço</p>
             </div>
-            <div class="ram-pill" id="ram-stat">RAM: -- / -- GB</div>
+            <div class="sys-pill" id="sys-stat">CPU --% · RAM --G</div>
           </div>
 
-          <!-- CARD RESUMO DO DIA -->
+          <!-- RESUMO DO DIA -->
           <div class="daily-card">
             <div class="daily-head">
               <span class="daily-date" id="daily-date">Hoje</span>
-              <span class="weather-chip" id="weather-pill">
+              <span class="weather-chip">
                 <svg class="ic ic-sm" style="width:12px;height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
                 <span id="weather-text">Carregando...</span>
               </span>
@@ -683,7 +731,7 @@
             </div>
           </div>
 
-          <!-- GRADE DE BOTÕES RÁPIDOS -->
+          <!-- HUB 6 BOTÕES -->
           <div class="hub-grid">
             <button class="hub-tile" id="tile-midia" onclick="openView('midia')">
               <div class="tile-icon">
@@ -715,23 +763,23 @@
               </div>
             </button>
 
+            <button class="hub-tile" id="tile-kit" onclick="openView('kit')">
+              <div class="tile-icon">
+                <svg class="ic" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+              </div>
+              <div>
+                <div class="tile-title">Kit Rápido</div>
+                <div class="tile-sub">Cor · QR · Senha</div>
+              </div>
+            </button>
+
             <button class="hub-tile" id="tile-util" onclick="openView('util')">
               <div class="tile-icon">
                 <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
               </div>
               <div>
-                <div class="tile-title">Foco & Util</div>
-                <div class="tile-sub" id="sub-util">25:00 · Notas</div>
-              </div>
-            </button>
-
-            <button class="hub-tile" id="tile-soneca" onclick="openView('util')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Soneca PC</div>
-                <div class="tile-sub" id="sub-soneca">Desligar auto</div>
+                <div class="tile-title">Foco & PC</div>
+                <div class="tile-sub" id="sub-util">25:00 · Soneca</div>
               </div>
             </button>
 
@@ -746,7 +794,7 @@
             </button>
           </div>
 
-          <!-- TAREFAS DE HOJE -->
+          <!-- TAREFAS -->
           <div class="card">
             <div class="label-xs">
               <span>Tarefas de Hoje</span>
@@ -760,19 +808,67 @@
           </div>
         </div>
 
-        <!-- BARRA DE CHAT RÁPIDO FIXA NO RODAPÉ -->
+        <!-- BARRA INTELIGENTE (IA + COMANDOS /g, /yt, /cor, /qr, =conta) -->
         <div class="quick-ai-dock">
-          <form class="quick-ai-form" onsubmit="quickAskAI(event)">
+          <form class="quick-ai-form" onsubmit="quickCommand(event)">
             <svg class="ic ic-sm sparkle-ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-            <input type="text" id="quick-ai-input" placeholder="Pergunte algo rápido ao Lumo..." />
-            <button type="submit" class="quick-ai-send" title="Enviar para a IA">
+            <input type="text" id="quick-ai-input" placeholder="IA ou /g, /yt, /cor, /qr, /senha, /d20, =2+2..." oninput="onUserTyping()" onblur="stopTypingLook()" />
+            <button type="submit" class="quick-ai-send" title="Executar ou enviar para IA">
               <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </form>
         </div>
       </div>
 
-      <!-- VIEW 2: MÍDIA & AMBIENTE -->
+      <!-- VIEW 2: KIT RÁPIDO (CONTA-GOTAS + QR CODE + SENHA FORTE) -->
+      <div class="view" id="view-kit">
+        <div class="card">
+          <div class="label-xs">
+            <span>Conta-Gotas de Tela</span>
+            <span style="color:var(--muted); font-weight:400;">#HEX em 1 clique</span>
+          </div>
+          <div class="card-row">
+            <span style="font-size:11.5px; color:var(--muted);">Capture a cor de qualquer pixel do Windows.</span>
+            <button class="btn-primary" onclick="pickScreenColor()">
+              <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+              Capturar
+            </button>
+          </div>
+          <div class="color-row" id="color-history"></div>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">
+            <span>QR Code (PC → Celular)</span>
+            <button class="btn-ghost" style="padding:2px 7px; font-size:10px;" onclick="qrFromClipboard()">Usar Ctrl+C</button>
+          </div>
+          <form class="inline-form" style="margin-top:4px;" onsubmit="generateQR(event)">
+            <input type="text" id="qr-input" placeholder="Cole um link ou texto para ler no celular..." />
+            <button type="submit" class="btn-primary">Gerar</button>
+          </form>
+          <div class="qr-preview" id="qr-preview">
+            <img id="qr-img" alt="QR Code" />
+            <span style="font-size:10.5px; color:var(--muted);">Aponte a câmera do celular para abrir na hora.</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">
+            <span>Gerador de Senha Segura</span>
+            <select id="pwd-len" style="flex:0; padding:2px 6px; font-size:10.5px;">
+              <option value="12">12 chars</option>
+              <option value="16" selected>16 chars</option>
+              <option value="24">24 chars</option>
+            </select>
+          </div>
+          <div class="pwd-box">
+            <span id="pwd-output" style="overflow:hidden; text-overflow:ellipsis;">Clique em gerar...</span>
+            <button class="btn-primary" style="padding:4px 9px; font-size:11px;" onclick="generatePassword()">Gerar & Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: MÍDIA & AMBIENTE -->
       <div class="view" id="view-midia">
         <div class="card">
           <div class="label-xs">
@@ -830,7 +926,7 @@
         </div>
       </div>
 
-      <!-- VIEW 3: BOLSO -->
+      <!-- VIEW 4: BOLSO -->
       <div class="view" id="view-bolso">
         <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-picker').click()">
           <svg class="ic ic-lg" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
@@ -853,7 +949,7 @@
         </div>
       </div>
 
-      <!-- VIEW 4: IA -->
+      <!-- VIEW 5: IA -->
       <div class="view" id="view-ia">
         <div class="card-row">
           <span class="label-xs" style="margin:0;">Lumo AI · Integrada</span>
@@ -863,12 +959,12 @@
           <div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div>
         </div>
         <form class="inline-form" onsubmit="sendPrompt(event)">
-          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." />
+          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." oninput="onUserTyping()" onblur="stopTypingLook()" />
           <button type="submit" class="btn-primary" id="ai-send-btn">Enviar</button>
         </form>
       </div>
 
-      <!-- VIEW 5: FOCO & UTIL -->
+      <!-- VIEW 6: FOCO & PC -->
       <div class="view" id="view-util">
         <div class="card">
           <div class="label-xs">Timer Pomodoro</div>
@@ -911,7 +1007,7 @@
         </div>
       </div>
 
-      <!-- VIEW 6: CONFIGURAÇÕES -->
+      <!-- VIEW 7: CONFIGURAÇÕES -->
       <div class="view" id="view-config">
         <div class="card">
           <div class="label-xs">Como devo te chamar?</div>
@@ -923,7 +1019,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.0.4</span>
+            <span>Plano · Lumo v1.1.0</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -996,7 +1092,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.0.4</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.1.0</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1015,24 +1111,28 @@
     let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
     let stealthManual = false, stealthAuto = false;
     let isExpanded = false, isHiddenInGame = false, isShuttingDown = false, isThinking = false;
+    let isTypingLook = false, pcUnderLoad = false;
     let manualSummonUntil = 0, lastInteraction = Date.now(), startTime = Date.now();
     let petCombo = 0, lastPetTime = 0, activeAmbient = null;
     let bubbleCopyPayload = null;
     let usdRate = 5.80, eurRate = 6.25;
+    let celebratedTasks = false;
 
-    let targetEyeX = 0, targetEyeY = 0, currentEyeX = 0, currentEyeY = 0;
+    let targetEyeX = 0, targetEyeY = 0, currentEyeX = 0, currentEyeY = 0, eyeRafId = null;
     let lastCursorX = 0, lastDir = 0, shakeCount = 0, lastShakeReset = Date.now();
 
-    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Explorar o Lumo v1.0","done":false},{"text":"Beber água","done":true}]');
+    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Testar o Kit Rápido do Lumo","done":false},{"text":"Beber água","done":true}]');
     let clipHistory = JSON.parse(localStorage.getItem('lumo_clips') || '[]');
+    let colorHistory = JSON.parse(localStorage.getItem('lumo_colors') || '["#F6B974","#34D399","#67E8F9"]');
     let pocketFiles = [];
 
     const viewTitles = {
       resumo: 'Lumo',
+      kit: 'Kit Rápido',
       midia: 'Mídia & Ambiente',
       bolso: 'Bandeja Mágica',
       ia: 'IA Lumo',
-      util: 'Foco & Utilidades',
+      util: 'Foco & PC',
       config: 'Configurações'
     };
 
@@ -1062,6 +1162,84 @@
       { keys: ['prison architect'], name: 'Prison Architect', tips: ['Coloque detectores de metal na saída da cantina e da oficina.', 'Separe segurança máxima dos demais logo cedo.'] }
     ];
 
+    // --- Partículas Criativas (Carinho + Confete) ---
+    function spawnParticles(x, y, symbols, colors, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('span');
+        el.className = 'fx-particle';
+        el.textContent = symbols[i % symbols.length];
+        el.style.color = colors[i % colors.length];
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+        const dist = 34 + Math.random() * 44;
+        el.style.setProperty('--tx', `${(Math.cos(angle) * dist).toFixed(1)}px`);
+        el.style.setProperty('--ty', `${(Math.sin(angle) * dist - 14).toFixed(1)}px`);
+        el.style.setProperty('--rot', `${Math.round((Math.random() - 0.5) * 90)}deg`);
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 920);
+      }
+    }
+
+    function burstPillLove(intense = false) {
+      const rect = document.getElementById('lumo-pill').getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      spawnParticles(
+        cx, cy,
+        intense ? ['♥', '✦', '♥', '★'] : ['✦', '♥', '·'],
+        ['#fb7185', '#f6b974', '#fff3d6', '#c4b5fd'],
+        intense ? 12 : 7
+      );
+    }
+
+    function burstTaskConfetti() {
+      const panel = document.getElementById('panel');
+      if (!panel.classList.contains('open')) return;
+      const rect = panel.getBoundingClientRect();
+      spawnParticles(
+        rect.left + rect.width / 2,
+        rect.top + 170,
+        ['●', '■', '✦', '★'],
+        ['#f6b974', '#34d399', '#67e8f9', '#fb7185', '#c4b5fd'],
+        16
+      );
+    }
+
+    // --- Olhos 60 FPS Sob Demanda (Otimização Real) ---
+    function setEyeTarget(x, y) {
+      targetEyeX = x;
+      targetEyeY = y;
+      if (!eyeRafId && !isHiddenInGame) {
+        eyeRafId = requestAnimationFrame(stepEyes);
+      }
+    }
+
+    function stepEyes() {
+      if (isHiddenInGame) { eyeRafId = null; return; }
+      const dx = targetEyeX - currentEyeX;
+      const dy = targetEyeY - currentEyeY;
+      currentEyeX += dx * 0.18;
+      currentEyeY += dy * 0.18;
+      document.getElementById('lumo-face').style.transform =
+        `translate(${currentEyeX.toFixed(2)}px, ${currentEyeY.toFixed(2)}px)`;
+
+      if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) {
+        eyeRafId = requestAnimationFrame(stepEyes);
+      } else {
+        eyeRafId = null;
+      }
+    }
+
+    let typingTimer = null;
+    function onUserTyping() {
+      isTypingLook = true;
+      setEyeTarget((Math.random() - 0.5) * 4, 5.2);
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(stopTypingLook, 1200);
+    }
+    function stopTypingLook() { isTypingLook = false; }
+
     // --- Navegação ---
     function openView(viewName) {
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + viewName));
@@ -1072,6 +1250,158 @@
         const box = document.getElementById('chat-box');
         box.scrollTop = box.scrollHeight;
       }
+    }
+
+    // --- Barra Inteligente (Comandos estilo Raycast + IA) ---
+    async function quickCommand(e) {
+      e.preventDefault();
+      stopTypingLook();
+      const input = document.getElementById('quick-ai-input');
+      const raw = input.value.trim();
+      if (!raw) return;
+      input.value = '';
+
+      const lower = raw.toLowerCase();
+
+      // 1. Calculadora instantânea (=25*4)
+      if (raw.startsWith('=')) {
+        const expr = raw.slice(1).trim().replace(/,/g, '.');
+        if (/^[\d\s+\-*/().%]+$/.test(expr)) {
+          try {
+            const res = Function('"use strict"; return (' + expr + ')')();
+            if (typeof res === 'number' && Number.isFinite(res)) {
+              const out = Number.isInteger(res) ? String(res) : res.toFixed(2).replace('.', ',');
+              if (invoke) await invoke('set_clipboard_text', { text: out });
+              hopPill(); playChirp(620, 880, 0.16);
+              say(`Resultado: ${out} (já copiado!)`, 3600, true);
+              return;
+            }
+          } catch (_) {}
+        }
+      }
+
+      // 2. Busca Google (/g) ou YouTube (/yt)
+      if (lower.startsWith('/g ') || lower.startsWith('/google ')) {
+        const q = raw.replace(/^\/(g|google)\s+/i, '').trim();
+        if (q && invoke) {
+          await invoke('open_external_url', { url: `https://www.google.com/search?q=${encodeURIComponent(q)}` });
+          hopPill(); playChirp(520, 740, 0.14);
+          return;
+        }
+      }
+      if (lower.startsWith('/yt ')) {
+        const q = raw.slice(4).trim();
+        if (q && invoke) {
+          await invoke('open_external_url', { url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` });
+          hopPill(); playChirp(520, 740, 0.14);
+          return;
+        }
+      }
+
+      // 3. Ferramentas rápidas
+      if (lower === '/cor') { openView('kit'); pickScreenColor(); return; }
+      if (lower === '/senha') { openView('kit'); generatePassword(); return; }
+      if (lower.startsWith('/qr ')) {
+        const txt = raw.slice(4).trim();
+        openView('kit');
+        document.getElementById('qr-input').value = txt;
+        generateQR(new Event('submit'));
+        return;
+      }
+
+      // 4. Comandos divertidos (/moeda e /d20 /dado)
+      if (lower === '/moeda') {
+        const face = Math.random() < 0.5 ? 'Cara' : 'Coroa';
+        hopPill(); playChirp(580, 920, 0.2);
+        say(`Moeda lançada: deu ${face}!`, 3500, true, null, true);
+        return;
+      }
+      if (lower === '/dado' || /^\/d(\d+)$/.test(lower)) {
+        const m = lower.match(/^\/d(\d+)$/);
+        const sides = m ? Math.min(100, Math.max(2, parseInt(m[1], 10))) : 20;
+        const roll = Math.floor(Math.random() * sides) + 1;
+        hopPill(); playChirp(roll === sides ? 700 : 480, roll === sides ? 1100 : 720, 0.22);
+        if (roll === sides) burstPillLove(true);
+        say(`D${sides} rolado: caiu ${roll}${roll === sides ? ' (CRÍTICO!)' : ''}!`, 3800, true, null, true);
+        return;
+      }
+
+      // 5. Qualquer outra coisa vai para a IA integrada
+      openView('ia');
+      await executePrompt(raw);
+    }
+
+    // --- Kit Rápido: Conta-gotas, QR Code e Senha Forte ---
+    function renderColorHistory() {
+      const box = document.getElementById('color-history');
+      box.innerHTML = '';
+      colorHistory.forEach(hex => {
+        const btn = document.createElement('button');
+        btn.className = 'color-chip';
+        btn.innerHTML = `<span class="swatch-dot" style="background:${hex}"></span><span>${hex}</span>`;
+        btn.onclick = async () => {
+          if (invoke) await invoke('set_clipboard_text', { text: hex });
+          else navigator.clipboard?.writeText(hex);
+          playChirp(620, 860, 0.14); hopPill();
+          say(`Cor ${hex} copiada!`, 2200, true);
+        };
+        box.appendChild(btn);
+      });
+    }
+
+    async function pickScreenColor() {
+      if (!('EyeDropper' in window)) {
+        say('Conta-gotas indisponível neste PC.', 2600, true);
+        return;
+      }
+      try {
+        const dropper = new EyeDropper();
+        const result = await dropper.open();
+        if (result?.sRGBHex) {
+          const hex = result.sRGBHex.toUpperCase();
+          colorHistory = [hex, ...colorHistory.filter(c => c !== hex)].slice(0, 6);
+          localStorage.setItem('lumo_colors', JSON.stringify(colorHistory));
+          renderColorHistory();
+          if (invoke) await invoke('set_clipboard_text', { text: hex });
+          hopPill(); playChirp(640, 960, 0.18);
+          say(`Cor ${hex} copiada!`, 2600, true);
+        }
+      } catch (_) {}
+    }
+
+    function generateQR(e) {
+      e.preventDefault();
+      const val = document.getElementById('qr-input').value.trim();
+      if (!val) return;
+      const img = document.getElementById('qr-img');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=6&data=${encodeURIComponent(val)}`;
+      document.getElementById('qr-preview').classList.add('show');
+      hopPill(); playChirp(540, 820, 0.16);
+    }
+
+    async function qrFromClipboard() {
+      if (!invoke) return;
+      const txt = await invoke('get_clipboard_text');
+      if (txt) {
+        document.getElementById('qr-input').value = txt;
+        generateQR(new Event('submit'));
+      } else {
+        say('Nenhum texto no Ctrl+C.', 2000, true);
+      }
+    }
+
+    async function generatePassword() {
+      const len = parseInt(document.getElementById('pwd-len').value, 10) || 16;
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-';
+      const arr = new Uint32Array(len);
+      crypto.getRandomValues(arr);
+      let pwd = '';
+      for (let i = 0; i < len; i++) pwd += chars[arr[i] % chars.length];
+      document.getElementById('pwd-output').textContent = pwd;
+      if (invoke) await invoke('set_clipboard_text', { text: pwd });
+      else navigator.clipboard?.writeText(pwd);
+      hopPill(); playChirp(600, 920, 0.16);
+      say('Senha forte gerada e copiada!', 2400, true);
     }
 
     // --- Resumo do Dia + Clima ---
@@ -1088,15 +1418,24 @@
       document.getElementById('summary-progress').style.width = `${pct}%`;
       document.getElementById('summary-pct').textContent = `${pct}%`;
 
-      let note = 'Adicione suas primeiras tarefas para organizar o dia.';
       if (total > 0 && left === 0) {
-        note = `Todas as ${total} tarefas concluídas! Dia zerado com sucesso.`;
-      } else if (left === 1) {
-        note = `Você já completou ${done} de ${total}. Falta só 1 tarefa para fechar o dia!`;
-      } else if (total > 0) {
-        note = `${done} de ${total} concluídas · Restam ${left} tarefas pendentes hoje.`;
+        document.getElementById('daily-note').textContent = `Todas as ${total} tarefas concluídas! Dia zerado com sucesso.`;
+        if (!celebratedTasks) {
+          celebratedTasks = true;
+          burstTaskConfetti();
+          setExpression('happy');
+          setTimeout(() => restoreIdleExpression(), 2200);
+        }
+      } else {
+        celebratedTasks = false;
+        if (total === 0) {
+          document.getElementById('daily-note').textContent = 'Adicione suas tarefas para acompanhar o progresso do dia.';
+        } else if (left === 1) {
+          document.getElementById('daily-note').textContent = `${done} de ${total} concluídas · Falta só 1 tarefa para fechar o dia!`;
+        } else {
+          document.getElementById('daily-note').textContent = `${done} de ${total} concluídas · Restam ${left} pendentes hoje.`;
+        }
       }
-      document.getElementById('daily-note').textContent = note;
     }
 
     function weatherCodeToPt(code) {
@@ -1128,19 +1467,17 @@
       const h = new Date().getHours();
       return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
     }
-
     function updateGreetingUI() {
       const base = getGreetingBase();
       document.getElementById('greeting-text').textContent = userName ? `${base}, ${userName}!` : `${base}!`;
       document.getElementById('onboarding-card').classList.toggle('show', !userName);
       document.getElementById('cfg-name-input').value = userName;
     }
-
     function saveUserName(e, inputId) {
       e.preventDefault();
       userName = document.getElementById(inputId).value.trim();
       localStorage.setItem('lumo_username', userName);
-      updateGreetingUI(); hopPill(); setExpression('happy'); playChirp(580, 900, 0.22);
+      updateGreetingUI(); hopPill(); setExpression('happy'); burstPillLove(false); playChirp(580, 900, 0.22);
       if (userName) say(`Prazer, ${userName}! Tô sempre por aqui.`, 3400, true, null, true);
       setTimeout(() => restoreIdleExpression(), 2000);
     }
@@ -1154,9 +1491,7 @@
           document.getElementById('update-text').textContent = `Lumo v${newVer} pronto para instalar!`;
           document.getElementById('update-banner').classList.add('show');
           document.getElementById('update-cfg-status').textContent = `Nova versão v${newVer} encontrada`;
-          if (personality !== 'zen') {
-            say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
-          }
+          if (personality !== 'zen') say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
         } else if (!silent) {
           document.getElementById('update-cfg-status').textContent = 'Você já está na versão mais recente!';
         }
@@ -1164,21 +1499,16 @@
         if (!silent) document.getElementById('update-cfg-status').textContent = 'Nenhuma atualização nova encontrada.';
       }
     }
-
     async function manualCheckUpdate() {
       document.getElementById('update-cfg-status').textContent = 'Verificando...';
       await checkForUpdates(false);
     }
-
     async function installRealUpdate() {
       if (!invoke) return;
       const btn = document.getElementById('update-btn');
       btn.disabled = true; btn.textContent = 'Baixando...';
       try { await invoke('install_update'); }
-      catch (e) {
-        btn.disabled = false; btn.textContent = 'Tentar de novo';
-        say('Erro ao atualizar: ' + e, 3600, true);
-      }
+      catch (e) { btn.disabled = false; btn.textContent = 'Tentar de novo'; say('Erro ao atualizar: ' + e, 3600, true); }
     }
 
     // --- Modo Furtivo & Áudio ---
@@ -1259,10 +1589,11 @@
       if (isThinking) setExpression('thinking');
       else if (activeAmbient) setExpression('music');
       else if (timerInterval) setExpression('focused');
+      else if (pcUnderLoad) setExpression('sweat');
       else setExpression('normal');
     }
 
-    // --- Som Ambiente Offline ---
+    // --- Som Ambiente ---
     let ambientNodes = [], ambientGain = null, lofiTimer = null;
     function stopAmbient() {
       clearInterval(lofiTimer); lofiTimer = null;
@@ -1464,8 +1795,8 @@
         await invoke('schedule_shutdown', { minutes: mins });
         document.getElementById('sleep-status').textContent = `Desliga em ${mins}m`;
         document.getElementById('sleep-status').style.color = 'var(--accent)';
-        document.getElementById('sub-soneca').textContent = `Em ${mins} min`;
-        document.getElementById('tile-soneca').classList.add('active-tile');
+        document.getElementById('sub-util').textContent = `Soneca ${mins}m`;
+        document.getElementById('tile-util').classList.add('active-tile');
         setExpression('sleepy'); playChirp(480, 340, 0.24);
         say(`Modo Soneca ativo${userName ? ', ' + userName : ''}: desligo o PC em ${mins} min.`, 3200, true);
       } catch (e) { say('Erro: ' + e, 2800, true); }
@@ -1477,8 +1808,7 @@
         await invoke('cancel_shutdown');
         document.getElementById('sleep-status').textContent = 'Cancelado';
         document.getElementById('sleep-status').style.color = 'var(--muted)';
-        document.getElementById('sub-soneca').textContent = 'Desligar auto';
-        document.getElementById('tile-soneca').classList.remove('active-tile');
+        updateTimerUI();
         restoreIdleExpression(); playChirp(520, 680, 0.16);
       } catch (_) {}
     }
@@ -1507,7 +1837,7 @@
       if (code === 'LUMO-PRO-2026' || code.startsWith('LUMO-')) {
         isPro = true; localStorage.setItem('lumo_pro', 'true');
         document.getElementById('license-input').value = '';
-        applyPlanUI(); setExpression('love'); playChirp(600, 980, 0.3);
+        applyPlanUI(); setExpression('love'); burstPillLove(true); playChirp(600, 980, 0.3);
         say(`Lumo Pro ativado${userName ? ', ' + userName : ''}! Tudo liberado.`, 3500, true);
         setTimeout(() => restoreIdleExpression(), 2600);
       } else if (code === 'FREE') {
@@ -1575,20 +1905,11 @@
       playChirp(680, 920, 0.16); say('Copiado!', 1500, true);
     }
 
-    function animateEyes() {
-      currentEyeX += (targetEyeX - currentEyeX) * 0.18;
-      currentEyeY += (targetEyeY - currentEyeY) * 0.18;
-      document.getElementById('lumo-face').style.transform =
-        `translate(${currentEyeX.toFixed(2)}px, ${currentEyeY.toFixed(2)}px)`;
-      requestAnimationFrame(animateEyes);
-    }
-    requestAnimationFrame(animateEyes);
-
     function scheduleBlink() {
       setTimeout(() => {
         const face = document.getElementById('lumo-face');
         const locked = ['happy', 'sleepy', 'goodbye', 'dizzy', 'love', 'thinking'].some(c => face.classList.contains(c));
-        if (!locked && !isShuttingDown) {
+        if (!locked && !isShuttingDown && !isHiddenInGame) {
           face.classList.add('blink'); setTimeout(() => face.classList.remove('blink'), 130);
         }
         scheduleBlink();
@@ -1651,10 +1972,10 @@
         petCombo = (Date.now() - lastPetTime < 4500) ? petCombo + 1 : 1;
         lastPetTime = Date.now();
         if (petCombo >= 2) {
-          setExpression('love'); playChirp(680, 1040, 0.25);
+          setExpression('love'); burstPillLove(true); playChirp(680, 1040, 0.25);
           say(`Aí eu fico mal acostumado${userName ? ', ' + userName : ''}!`, 2600, false, null, true);
         } else {
-          setExpression('happy'); playChirp(620, 860, 0.2);
+          setExpression('happy'); burstPillLove(false); playChirp(620, 860, 0.2);
           say('Hehe, valeu pelo carinho!', 2400, false, null, true);
         }
         setTimeout(() => restoreIdleExpression(), 2600);
@@ -1663,59 +1984,76 @@
       }
     });
 
-    // --- Monitoramento Windows ---
+    // --- Monitoramento Adaptativo do Windows (Otimizado) ---
     let activeGamePendingHide = false;
-    async function pollWindows() {
-      if (!invoke || isShuttingDown) return;
-      try {
-        const state = await invoke('get_desktop_state');
-        document.getElementById('ram-stat').textContent =
-          `RAM: ${(state.used_ram_mb / 1024).toFixed(1)} / ${(state.total_ram_mb / 1024).toFixed(0)} GB`;
+    async function pollWindowsLoop() {
+      if (isShuttingDown) return;
+      if (invoke) {
+        try {
+          const state = await invoke('get_desktop_state');
+          const usedGb = (state.used_ram_mb / 1024).toFixed(1);
+          const totalGb = (state.total_ram_mb / 1024).toFixed(0);
+          const ramPct = state.total_ram_mb > 0 ? Math.round((state.used_ram_mb / state.total_ram_mb) * 100) : 0;
+          const cpu = state.cpu_percent || 0;
 
-        const title = (state.active_window || '').toLowerCase();
-        stealthAuto = ['obs ', 'google meet', 'zoom meeting', 'microsoft teams'].some(k => title.includes(k));
-        document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
+          const sysEl = document.getElementById('sys-stat');
+          sysEl.textContent = `CPU ${cpu}% · RAM ${usedGb}/${totalGb}G`;
+          sysEl.classList.toggle('hot', cpu >= 88 || ramPct >= 90);
+          sysEl.classList.toggle('warn', (cpu >= 70 || ramPct >= 80) && !(cpu >= 88 || ramPct >= 90));
 
-        if (isHiddenInGame) {
-          if (state.cursor_x >= state.screen_w - 25 && state.cursor_y <= 25) wakeFromGame();
-          return;
-        }
-
-        targetEyeX = Math.max(-8, Math.min(8, (state.cursor_x - state.win_center_x) / 55));
-        targetEyeY = Math.max(-4.5, Math.min(5.5, (state.cursor_y - (state.win_y + 35)) / 65));
-
-        const dxMouse = state.cursor_x - lastCursorX;
-        const nearLumo = Math.abs(state.cursor_x - state.win_center_x) < 220 && state.cursor_y < 180;
-        if (nearLumo && Math.abs(dxMouse) > 45) {
-          const dir = Math.sign(dxMouse);
-          if (dir !== 0 && dir !== lastDir) { shakeCount++; lastDir = dir; }
-        }
-        lastCursorX = state.cursor_x;
-        if (Date.now() - lastShakeReset > 1300) { shakeCount = 0; lastShakeReset = Date.now(); }
-        if (shakeCount >= 5 && personality !== 'zen') {
-          shakeCount = 0; setExpression('dizzy'); playChirp(420, 290, 0.35);
-          say('Eitaa, calma que eu fico tonto!', 2800, false, null, true);
-          setTimeout(() => restoreIdleExpression(), 2600);
-        }
-
-        const ignoredWin = ['sobreposição', 'ferramenta de captura', 'captura de tela', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
-        const autoHide = document.getElementById('autohide-toggle').checked;
-        if (autoHide && !ignoredWin && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-          const norm = (s) => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
-          const normTitle = norm(title);
-          const game = gameTipsDB.find(g => g.keys.some(k => normTitle.includes(norm(k))));
-          if (game) {
-            activeGamePendingHide = true;
-            const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
-            setExpression('focused'); hopPill();
-            if (isExpanded) await togglePanel(false);
-            say(`${game.name}: ${tip}`, 5200, true, null, true);
-            setTimeout(() => { activeGamePendingHide = false; hideForGame('', 150); }, 5200);
+          const prevLoad = pcUnderLoad;
+          pcUnderLoad = cpu >= 85 || ramPct >= 90;
+          if (pcUnderLoad !== prevLoad && !isExpanded && !isHiddenInGame && !isThinking && !activeAmbient && !timerInterval) {
+            restoreIdleExpression();
           }
-        }
-      } catch (_) {}
+
+          const title = (state.active_window || '').toLowerCase();
+          stealthAuto = ['obs ', 'google meet', 'zoom meeting', 'microsoft teams'].some(k => title.includes(k));
+          document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
+
+          if (isHiddenInGame) {
+            if (state.cursor_x >= state.screen_w - 25 && state.cursor_y <= 25) wakeFromGame();
+          } else {
+            if (!isTypingLook) {
+              const tx = Math.max(-8, Math.min(8, (state.cursor_x - state.win_center_x) / 55));
+              const ty = Math.max(-4.5, Math.min(5.5, (state.cursor_y - (state.win_y + 35)) / 65));
+              setEyeTarget(tx, ty);
+            }
+
+            const dxMouse = state.cursor_x - lastCursorX;
+            const nearLumo = Math.abs(state.cursor_x - state.win_center_x) < 220 && state.cursor_y < 180;
+            if (nearLumo && Math.abs(dxMouse) > 45) {
+              const dir = Math.sign(dxMouse);
+              if (dir !== 0 && dir !== lastDir) { shakeCount++; lastDir = dir; }
+            }
+            lastCursorX = state.cursor_x;
+            if (Date.now() - lastShakeReset > 1300) { shakeCount = 0; lastShakeReset = Date.now(); }
+            if (shakeCount >= 5 && personality !== 'zen') {
+              shakeCount = 0; setExpression('dizzy'); playChirp(420, 290, 0.35);
+              say('Eitaa, calma que eu fico tonto!', 2800, false, null, true);
+              setTimeout(() => restoreIdleExpression(), 2600);
+            }
+
+            const ignoredWin = ['sobreposição', 'ferramenta de captura', 'captura de tela', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
+            const autoHide = document.getElementById('autohide-toggle').checked;
+            if (autoHide && !ignoredWin && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
+              const norm = (s) => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+              const normTitle = norm(title);
+              const game = gameTipsDB.find(g => g.keys.some(k => normTitle.includes(norm(k))));
+              if (game) {
+                activeGamePendingHide = true;
+                const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
+                setExpression('focused'); hopPill();
+                if (isExpanded) await togglePanel(false);
+                say(`${game.name}: ${tip}`, 5200, true, null, true);
+                setTimeout(() => { activeGamePendingHide = false; hideForGame('', 150); }, 5200);
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      setTimeout(pollWindowsLoop, isHiddenInGame ? 320 : 120);
     }
-    setInterval(pollWindows, 120);
 
     // --- Clipboard + Micro-ajuda ---
     let lastClipSeen = '';
@@ -1752,7 +2090,7 @@
     }
 
     async function pollClipboard() {
-      if (!invoke) return;
+      if (!invoke || isShuttingDown) return;
       try {
         const text = await invoke('get_clipboard_text');
         if (text && text !== lastClipSeen) {
@@ -1767,7 +2105,7 @@
         }
       } catch (_) {}
     }
-    setInterval(pollClipboard, 1500);
+    setInterval(pollClipboard, 1800);
 
     function renderClipboard() {
       const list = document.getElementById('clipboard-list');
@@ -1838,7 +2176,7 @@
 
       if (hrs >= 8) document.getElementById('app').classList.add('comfort-warm');
 
-      if (!isExpanded && !isHiddenInGame && !activeAmbient && !timerInterval && !isThinking) {
+      if (!isExpanded && !isHiddenInGame && !activeAmbient && !timerInterval && !isThinking && !pcUnderLoad) {
         if (idleSec > 180) setExpression('sleepy');
         else if (idleSec > 75) {
           setExpression('bored');
@@ -1846,7 +2184,7 @@
             const who = userName ? `, ${userName}` : '';
             const lines = [
               `Já bebeu água hoje${who}?`,
-              'Tudo calmo por aqui...',
+              'Dica: digite /cor ou /qr na barra rápida!',
               'Arraste uma imagem em mim pra converter rápido!',
               'Aperte Alt + Espaço pra me chamar de qualquer tela.'
             ];
@@ -1906,7 +2244,7 @@
     function updateTimerUI() {
       const formatted = `${String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:${String(timerSeconds % 60).padStart(2, '0')}`;
       document.getElementById('timer-display').textContent = formatted;
-      document.getElementById('sub-util').textContent = timerInterval ? `Foco ${formatted}` : `${formatted} · Notas`;
+      document.getElementById('sub-util').textContent = timerInterval ? `Foco ${formatted}` : `${formatted} · Soneca`;
       document.getElementById('tile-util').classList.toggle('active-tile', Boolean(timerInterval));
       const badge = document.getElementById('pill-badge');
       badge.textContent = formatted; badge.classList.toggle('show', Boolean(timerInterval));
@@ -1931,7 +2269,7 @@
           else {
             clearInterval(timerInterval); timerInterval = null;
             btn.textContent = 'Iniciar'; updateTimerUI();
-            setExpression('happy'); hopPill(); playChirp(680, 1020, 0.3);
+            setExpression('happy'); hopPill(); burstPillLove(true); playChirp(680, 1020, 0.3);
             say(`Sessão de foco concluída${userName ? ', ' + userName : ''}! Mandou bem!`, 5000, true, null, true);
           }
         }, 1000);
@@ -1939,7 +2277,7 @@
       }
     }
 
-    // --- IA Lumo + Chat Rápido ---
+    // --- IA Lumo ---
     async function saveGeminiKey(e) {
       e.preventDefault();
       const input = document.getElementById('api-key-input');
@@ -1957,7 +2295,7 @@
       try {
         await invoke('delete_api_key', { provider: 'gemini' });
         playChirp(480, 360, 0.16);
-        say('Chave própria removida! Voltando para a IA integrada.', 3000, true);
+        say('Chave própria removida! Usando IA integrada.', 3000, true);
       } catch (_) {}
     }
 
@@ -1976,7 +2314,7 @@
         copy.className = 'copy-mini'; copy.textContent = 'Copiar resposta';
         copy.onclick = () => {
           if (invoke) invoke('set_clipboard_text', { text });
-          else navigator.clipboard.writeText(text);
+          else navigator.clipboard?.writeText(text);
           copy.textContent = 'Copiado ✓';
         };
         div.appendChild(copy);
@@ -1987,30 +2325,15 @@
     function showTypingBubble() {
       const box = document.getElementById('chat-box');
       const div = document.createElement('div');
-      div.id = 'typing-bubble';
-      div.className = 'msg ai';
+      div.id = 'typing-bubble'; div.className = 'msg ai';
       div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
+      box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
-
-    function removeTypingBubble() {
-      const el = document.getElementById('typing-bubble');
-      if (el) el.remove();
-    }
-
-    async function quickAskAI(e) {
-      e.preventDefault();
-      const qInput = document.getElementById('quick-ai-input');
-      const prompt = qInput.value.trim();
-      if (!prompt) return;
-      qInput.value = '';
-      openView('ia');
-      await executePrompt(prompt);
-    }
+    function removeTypingBubble() { const el = document.getElementById('typing-bubble'); if (el) el.remove(); }
 
     async function sendPrompt(e) {
       e.preventDefault();
+      stopTypingLook();
       const input = document.getElementById('ai-input');
       const prompt = input.value.trim();
       if (!prompt) return;
@@ -2038,11 +2361,6 @@
           removeTypingBubble();
           appendMsg(String(err), 'ai');
         }
-      } else {
-        setTimeout(() => {
-          removeTypingBubble();
-          appendMsg('Preview sem Rust ativo.', 'ai');
-        }, 600);
       }
 
       isThinking = false;
@@ -2073,8 +2391,7 @@
         } else if (lower.includes('tchau') || lower.includes('dormir')) {
           gracefulShutdown();
         } else {
-          openView('ia');
-          executePrompt(transcript);
+          openView('ia'); executePrompt(transcript);
         }
       };
       rec.onend = () => { btn.classList.remove('recording'); restoreIdleExpression(); };
@@ -2106,11 +2423,13 @@
       if (listen) listen('toggle-lumo', () => togglePanel());
 
       setupDragAndDrop();
+      renderColorHistory();
       renderTasks();
       applyPlanUI();
       syncWindowMode('pill');
       fetchRates();
       fetchWeather();
+      pollWindowsLoop();
       setTimeout(() => checkForUpdates(true), 4000);
 
       setTimeout(() => {

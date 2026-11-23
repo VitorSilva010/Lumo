@@ -4,12 +4,21 @@ use std::fs;
 use std::net::TcpListener;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use sysinfo::System;
 use tauri::{Emitter, Manager, State};
 use tauri_plugin_updater::UpdaterExt;
 
+struct TelemetryCache {
+    sys: System,
+    last_refresh: Instant,
+    used_ram_mb: u64,
+    total_ram_mb: u64,
+    cpu_percent: u8,
+}
+
 struct AppState {
-    sys: Mutex<System>,
+    telemetry: Mutex<TelemetryCache>,
     _instance_lock: Option<TcpListener>,
 }
 
@@ -20,6 +29,7 @@ pub struct DesktopState {
     pub active_window: String,
     pub used_ram_mb: u64,
     pub total_ram_mb: u64,
+    pub cpu_percent: u8,
     pub win_center_x: i32,
     pub win_y: i32,
     pub screen_w: i32,
@@ -27,11 +37,18 @@ pub struct DesktopState {
 
 #[tauri::command]
 fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -> DesktopState {
-    let (used_ram_mb, total_ram_mb) = if let Ok(mut sys) = state.sys.lock() {
-        sys.refresh_memory();
-        (sys.used_memory() / 1024 / 1024, sys.total_memory() / 1024 / 1024)
+    let (used_ram_mb, total_ram_mb, cpu_percent) = if let Ok(mut cache) = state.telemetry.lock() {
+        if cache.last_refresh.elapsed() >= Duration::from_millis(2000) {
+            cache.sys.refresh_memory();
+            cache.sys.refresh_cpu_usage();
+            cache.used_ram_mb = cache.sys.used_memory() / 1024 / 1024;
+            cache.total_ram_mb = cache.sys.total_memory() / 1024 / 1024;
+            cache.cpu_percent = cache.sys.global_cpu_usage().round().clamp(0.0, 100.0) as u8;
+            cache.last_refresh = Instant::now();
+        }
+        (cache.used_ram_mb, cache.total_ram_mb, cache.cpu_percent)
     } else {
-        (0, 0)
+        (0, 0, 0)
     };
 
     let (cursor_x, cursor_y, active_window) = get_windows_context();
@@ -54,6 +71,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
         active_window,
         used_ram_mb,
         total_ram_mb,
+        cpu_percent,
         win_center_x: pos.x + (size.width as i32) / 2,
         win_y: pos.y,
         screen_w,
@@ -118,6 +136,32 @@ async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
         app.restart();
     }
+    Ok(())
+}
+
+#[tauri::command]
+fn open_external_url(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") && !url.starts_with("http://") {
+        return Err("URL inválida.".to_string());
+    }
+    open_url_os(&url)
+}
+
+#[cfg(windows)]
+fn open_url_os(url: &str) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+
+    Command::new("rundll32")
+        .args(["url.dll,FileProtocolHandler", url])
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn open_url_os(_url: &str) -> Result<(), String> {
     Ok(())
 }
 
@@ -318,7 +362,7 @@ fn watch_hotkey(app: tauri::AppHandle) {
             let _ = app.emit("toggle-lumo", ());
         }
         was_down = is_down;
-        std::thread::sleep(std::time::Duration::from_millis(45));
+        std::thread::sleep(std::time::Duration::from_millis(50));
     }
 }
 
@@ -371,7 +415,6 @@ fn delete_api_key(provider: String) -> Result<(), String> {
 async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
     let client = reqwest::Client::new();
 
-    // 1. Se o usuario salvou chave propria (BYOK), chama o Google direto
     let personal_key = Entry::new("lumo-assistant", "gemini")
         .ok()
         .and_then(|entry| entry.get_password().ok())
@@ -387,12 +430,10 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
             Some(n) if !n.trim().is_empty() => format!(" O usuário se chama {}. Use o nome dele apenas quando soar natural.", n.trim()),
             _ => String::new(),
         };
-        let sys_prompt = format!(
-            "Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).",
-            name_ctx
-        );
         let body = serde_json::json!({
-            "systemInstruction": { "parts": [{ "text": sys_prompt }] },
+            "systemInstruction": {
+                "parts": [{ "text": format!("Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).", name_ctx) }]
+            },
             "contents": [{ "parts": [{ "text": prompt }] }]
         });
 
@@ -407,10 +448,9 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
         if let Some(reply) = json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
             return Ok(reply.to_string());
         }
-        return Err("Chave API inválida ou sem cota no Google AI Studio.".to_string());
+        return Err("Chave API própria inválida ou sem cota no Google AI Studio.".to_string());
     }
 
-    // 2. Sem chave propria: usa a IA integrada pelo Cloudflare Worker do Lumo
     let res = client
         .post("https://lumo-ai.sivavieiravitor.workers.dev/")
         .header("X-Lumo-Client", "lumo-desktop-v1")
@@ -426,7 +466,7 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
     let json: serde_json::Value = res
         .json()
         .await
-        .map_err(|_| format!("Resposta inválida do servidor (HTTP {}). Confira o Deploy do Worker.", status.as_u16()))?;
+        .map_err(|_| format!("Resposta inválida do servidor (HTTP {}).", status.as_u16()))?;
 
     if let Some(reply) = json["reply"].as_str() {
         return Ok(reply.to_string());
@@ -435,7 +475,7 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
         return Err(err.to_string());
     }
 
-    Err("Sem resposta da IA. Verifique se GEMINI_API_KEY está salva na Cloudflare.".to_string())
+    Err("Sem resposta da IA no momento. Tente novamente.".to_string())
 }
 
 pub fn run() {
@@ -444,10 +484,20 @@ pub fn run() {
         Err(_) => std::process::exit(0),
     };
 
+    let mut sys = System::new();
+    sys.refresh_memory();
+    sys.refresh_cpu_usage();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
-            sys: Mutex::new(System::new()),
+            telemetry: Mutex::new(TelemetryCache {
+                sys,
+                last_refresh: Instant::now() - Duration::from_secs(5),
+                used_ram_mb: 0,
+                total_ram_mb: 0,
+                cpu_percent: 0,
+            }),
             _instance_lock: lock,
         })
         .setup(|app| {
@@ -472,6 +522,7 @@ pub fn run() {
             quit_app,
             check_update,
             install_update,
+            open_external_url,
             media_control,
             get_clipboard_text,
             set_clipboard_text,
