@@ -1,6 +1,7 @@
 use keyring::Entry;
 use serde::Serialize;
 use sysinfo::System;
+use tauri::Manager;
 
 #[derive(Serialize)]
 pub struct DesktopState {
@@ -9,14 +10,29 @@ pub struct DesktopState {
     pub active_window: String,
     pub used_ram_mb: u64,
     pub total_ram_mb: u64,
+    pub win_center_x: i32,
+    pub win_y: i32,
+    pub screen_w: i32,
 }
 
 #[tauri::command]
-fn get_desktop_state() -> DesktopState {
+fn get_desktop_state(window: tauri::WebviewWindow) -> DesktopState {
     let mut sys = System::new();
     sys.refresh_memory();
 
     let (cursor_x, cursor_y, active_window) = get_windows_context();
+    let pos = window
+        .outer_position()
+        .unwrap_or(tauri::PhysicalPosition::new(0, 0));
+    let size = window
+        .outer_size()
+        .unwrap_or(tauri::PhysicalSize::new(290, 140));
+    let screen_w = window
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .map(|m| m.size().width as i32)
+        .unwrap_or(1920);
 
     DesktopState {
         cursor_x,
@@ -24,7 +40,48 @@ fn get_desktop_state() -> DesktopState {
         active_window,
         used_ram_mb: sys.used_memory() / 1024 / 1024,
         total_ram_mb: sys.total_memory() / 1024 / 1024,
+        win_center_x: pos.x + (size.width as i32) / 2,
+        win_y: pos.y,
+        screen_w,
     }
+}
+
+#[tauri::command]
+fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
+    let (w, h, align_right) = match mode.as_str() {
+        "expanded" => (420.0_f64, 570.0_f64, false),
+        "hidden" => (64.0_f64, 64.0_f64, true),
+        _ => (290.0_f64, 140.0_f64, false),
+    };
+
+    window
+        .set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, h)))
+        .map_err(|e| e.to_string())?;
+
+    if let Ok(Some(monitor)) = window.primary_monitor() {
+        let scale = monitor.scale_factor();
+        let screen_w = monitor.size().width as f64 / scale;
+        let x = if align_right {
+            (screen_w - w - 8.0).max(0.0)
+        } else {
+            ((screen_w - w) / 2.0).max(0.0)
+        };
+        let _ = window.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(
+            x, 8.0,
+        )));
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+fn start_drag(window: tauri::WebviewWindow) {
+    let _ = window.start_dragging();
+}
+
+#[tauri::command]
+fn quit_app(app: tauri::AppHandle) {
+    app.exit(0);
 }
 
 #[cfg(windows)]
@@ -102,8 +159,24 @@ async fn ask_gemini(prompt: String) -> Result<String, String> {
 
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                if let Ok(Some(monitor)) = window.primary_monitor() {
+                    let scale = monitor.scale_factor();
+                    let screen_w = monitor.size().width as f64 / scale;
+                    let x = ((screen_w - 290.0) / 2.0).max(0.0);
+                    let _ = window.set_position(tauri::Position::Logical(
+                        tauri::LogicalPosition::new(x, 8.0),
+                    ));
+                }
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_desktop_state,
+            set_window_mode,
+            start_drag,
+            quit_app,
             save_api_key,
             ask_gemini
         ])
