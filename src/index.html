@@ -923,7 +923,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.0.3</span>
+            <span>Plano · Lumo v1.0.4</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -996,7 +996,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.0.3</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.0.4</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1701,12 +1701,9 @@
         const ignoredWin = ['sobreposição', 'ferramenta de captura', 'captura de tela', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
         const autoHide = document.getElementById('autohide-toggle').checked;
         if (autoHide && !ignoredWin && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-          const game = gameTipsDB.find(g => g.keys.some(k => {
-            const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\const autoHide = document.getElementById('autohide-toggle').checked;
-        if (autoHide && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-          const game = gameTipsDB.find(g => g.keys.some(k => title.includes(k)));');
-            return new RegExp('(^|[^a-z0-9])' + esc + '([^a-z0-9]|$)', 'i').test(title);
-          }));
+          const norm = (s) => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+          const normTitle = norm(title);
+          const game = gameTipsDB.find(g => g.keys.some(k => normTitle.includes(norm(k))));
           if (game) {
             activeGamePendingHide = true;
             const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
