@@ -1,6 +1,6 @@
 [package]
 name = "lumo"
-version = "1.0.2"
+version = "1.0.3"
 description = "Lumo Desktop Companion"
 authors = ["Vitor"]
 edition = "2021"

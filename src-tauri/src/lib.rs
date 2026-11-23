@@ -361,6 +361,13 @@ fn save_api_key(provider: String, api_key: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn delete_api_key(provider: String) -> Result<(), String> {
+    let entry = Entry::new("lumo-assistant", &provider).map_err(|e| e.to_string())?;
+    let _ = entry.delete_credential();
+    Ok(())
+}
+
+#[tauri::command]
 async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
     let client = reqwest::Client::new();
 
@@ -373,7 +380,7 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
 
     if let Some(api_key) = personal_key {
         let url = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={}",
             api_key
         );
         let name_ctx = match &user_name {
@@ -474,6 +481,7 @@ pub fn run() {
             get_autostart,
             set_autostart,
             save_api_key,
+            delete_api_key,
             ask_gemini
         ])
         .run(tauri::generate_context!())

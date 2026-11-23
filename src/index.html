@@ -551,7 +551,9 @@
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
     /* Chat & Typing Indicator */
-    #chat-box { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
+    #chat-box { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; }
+    #chat-box::-webkit-scrollbar { width: 4px; }
+    #chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
     .msg {
       padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.42; max-width: 88%; user-select: text;
       animation: msgPop 0.25s cubic-bezier(0.22, 1, 0.36, 1);
@@ -562,7 +564,7 @@
     }
     .msg.user { align-self: flex-end; background: var(--accent-soft); border: 1px solid var(--accent-glow); }
     .msg.ai { align-self: flex-start; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .copy-mini { display: inline-block; margin-top: 4px; font-size: 10px; color: var(--accent); cursor: pointer; }
+    .copy-mini { display: block; margin-top: 6px; font-size: 10px; color: var(--accent); cursor: pointer; opacity: 0.85; }
 
     .typing-dots { display: inline-flex; align-items: center; gap: 4px; padding: 4px 2px; }
     .typing-dots span {
@@ -921,7 +923,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.0.2</span>
+            <span>Plano · Lumo v1.0.3</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -986,6 +988,7 @@
           <form class="inline-form" onsubmit="saveGeminiKey(event)">
             <input type="password" id="api-key-input" placeholder="Opcional: AIzaSy..." />
             <button type="submit" class="btn-primary">Salvar</button>
+            <button type="button" class="btn-ghost" onclick="removeGeminiKey()">Limpar</button>
           </form>
         </div>
 
@@ -993,7 +996,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.0.2</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.0.3</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1051,7 +1054,7 @@
       { keys: ['roblox'], name: 'Roblox', tips: ['Shift Lock facilita muito parkour e câmera em jogos de ação.', 'Boa jogatina! Se precisar de algo, aperte Alt+Espaço.'] },
       { keys: ['five nights', 'fnaf'], name: 'FNAF', tips: ['Ouça bem os passos nos fones — o som entrega antes das câmeras!', 'Economize energia e decore as rotas mais rápidas.'] },
       { keys: ['outlast'], name: 'Outlast', tips: ['Desligue a visão noturna onde há luz para poupar bateria.', 'Feche portas atrás de você durante perseguições!'] },
-      { keys: ['r.e.p.o', 'repo'], name: 'R.E.P.O.', tips: ['Cuidado com itens frágeis nas curvas — bater reduz o valor!', 'Combine rotas silenciosas com o time antes de extrair.'] },
+      { keys: ['r.e.p.o'], name: 'R.E.P.O.', tips: ['Cuidado com itens frágeis nas curvas — bater reduz o valor!', 'Combine rotas silenciosas com o time antes de extrair.'] },
       { keys: ['elden ring'], name: 'Elden Ring', tips: ['Se um chefe parecer impossível, explore outra área e volte mais forte.', 'Role para dentro dos golpes largos em vez de recuar!'] },
       { keys: ['fortnite'], name: 'Fortnite', tips: ['Mantenha sempre um item de mobilidade pro final da safe.', 'Recarregue todas as armas assim que vencer uma trocação.'] },
       { keys: ['grand theft auto', 'gta'], name: 'GTA', tips: ['Use o menu rápido para comer snacks em cobertura.', 'Boa sessão! Tô no canto se precisar.'] },
@@ -1695,9 +1698,15 @@
           setTimeout(() => restoreIdleExpression(), 2600);
         }
 
+        const ignoredWin = ['sobreposição', 'ferramenta de captura', 'captura de tela', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
         const autoHide = document.getElementById('autohide-toggle').checked;
+        if (autoHide && !ignoredWin && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
+          const game = gameTipsDB.find(g => g.keys.some(k => {
+            const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\const autoHide = document.getElementById('autohide-toggle').checked;
         if (autoHide && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-          const game = gameTipsDB.find(g => g.keys.some(k => title.includes(k)));
+          const game = gameTipsDB.find(g => g.keys.some(k => title.includes(k)));');
+            return new RegExp('(^|[^a-z0-9])' + esc + '([^a-z0-9]|$)', 'i').test(title);
+          }));
           if (game) {
             activeGamePendingHide = true;
             const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
@@ -1944,6 +1953,15 @@
         input.value = ''; playChirp(620, 880, 0.2);
         appendMsg('Chave própria salva no cofre do Windows!', 'ai');
       } catch (err) { appendMsg('Erro: ' + err, 'ai'); }
+    }
+
+    async function removeGeminiKey() {
+      if (!invoke) return;
+      try {
+        await invoke('delete_api_key', { provider: 'gemini' });
+        playChirp(480, 360, 0.16);
+        say('Chave própria removida! Voltando para a IA integrada.', 3000, true);
+      } catch (_) {}
     }
 
     function clearChat() {
