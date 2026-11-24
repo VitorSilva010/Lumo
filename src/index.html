@@ -688,6 +688,38 @@
     .theme-dot { width: 23px; height: 23px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s ease, border-color 0.2s ease; }
     .theme-dot:hover { transform: scale(1.12); }
     .theme-dot.active { border-color: #fff; transform: scale(1.15); }
+  
+    /* Acessórios Reativos na Pílula */
+    .acc-svg {
+      position: absolute; pointer-events: none; opacity: 0;
+      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      color: var(--accent); filter: drop-shadow(0 0 6px var(--accent-glow));
+    }
+    #acc-headphones { top: -11px; left: 50%; width: 76px; height: 42px; transform: translateX(-50%) scale(0.85); }
+    .face.music #acc-headphones { opacity: 0.95; transform: translateX(-50%) scale(1); }
+
+    #acc-glasses { top: 4px; left: 50%; width: 64px; height: 24px; transform: translateX(-50%) scale(0.85); }
+    .face.focused #acc-glasses { opacity: 0.95; transform: translateX(-50%) scale(1); }
+
+    /* Modo Respiração na Pílula */
+    #lumo-pill.breathing-in {
+      transform: scale(1.16) !important;
+      border-color: var(--accent);
+      box-shadow: 0 0 42px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.28) !important;
+      transition: transform 4s ease-in-out, box-shadow 4s ease-in-out !important;
+    }
+    #lumo-pill.breathing-hold {
+      transform: scale(1.16) !important;
+      border-color: var(--accent);
+      box-shadow: 0 0 38px var(--accent-glow) !important;
+      transition: transform 0.3s ease !important;
+    }
+    #lumo-pill.breathing-out {
+      transform: scale(0.95) !important;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.55), 0 0 14px var(--accent-soft) !important;
+      transition: transform 4s ease-in-out, box-shadow 4s ease-in-out !important;
+    }
+
   </style>
 </head>
 <body>
@@ -703,6 +735,16 @@
       </div>
       <div class="face sleepy" id="lumo-face">
         <div id="sweat-drop"></div>
+        <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <path d="M12 26 A28 24 0 0 1 68 26" />
+          <rect x="6" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
+          <rect x="67" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
+        </svg>
+        <svg id="acc-glasses" class="acc-svg" viewBox="0 0 68 26" fill="none" stroke="currentColor" stroke-width="2.4">
+          <rect x="7" y="4" width="21" height="16" rx="5" />
+          <rect x="40" y="4" width="21" height="16" rx="5" />
+          <line x1="28" y1="11" x2="40" y2="11" />
+        </svg>
         <div class="blush left"></div>
         <div class="eye left"></div>
         <div class="eye right"></div>
@@ -928,6 +970,8 @@
             <button class="cmd-chip" type="button" onclick="fillCmd('/qr ')">/qr</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/senha')">/senha</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/d20')">/d20</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/cafe')">/cafe</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/respirar')">/respirar</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('=')">=Calc</button>
           </div>
           <form class="quick-ai-form" onsubmit="quickCommand(event)">
@@ -1112,6 +1156,30 @@
           </div>
         </div>
 
+
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div style="font-size:12px; font-weight:600;">Modo Café (Manter PC Acordado)</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="cafe-status">Impede tela de apagar e hibernação</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="cafe-toggle" onchange="toggleKeepAwake(this.checked)" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div style="font-size:12px; font-weight:600;">Pausa Respiração (1 min)</div>
+              <div style="font-size:10.5px; color:var(--muted);">Guia visual 4-4-4 direto na pílula</div>
+            </div>
+            <button class="btn-primary" id="breath-btn" onclick="startBreathing()">Iniciar</button>
+          </div>
+        </div>
+
         <div class="card">
           <div class="label-xs">
             <span>Modo Soneca (Desligar PC)</span>
@@ -1154,7 +1222,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.2.2</span>
+            <span>Plano · Lumo v1.3.0</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1237,7 +1305,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.2.2</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.3.0</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1492,6 +1560,8 @@
         return;
       }
 
+      if (lower === '/cafe' || lower === '/café') { toggleKeepAwake(!keepAwakeActive); return; }
+      if (lower === '/respirar') { startBreathing(); return; }
       if (lower === '/moeda') {
         const face = Math.random() < 0.5 ? 'Cara' : 'Coroa';
         hopPill(); playChirp(580, 920, 0.2);
@@ -2033,6 +2103,7 @@
               <button class="btn-ghost" onclick="convertImage(${idx}, 'image/webp', 'webp')">→ WebP</button>
               <button class="btn-ghost" onclick="convertImage(${idx}, 'image/jpeg', 'jpg')">→ JPG</button>
               <button class="btn-ghost" onclick="convertImage(${idx}, 'image/png', 'png')">→ PNG</button>
+              <button class="btn-ghost" onclick="convertImageToPdf(${idx})">→ PDF</button>
             ` : `<button class="btn-ghost" onclick="saveRawPocket(${idx})">Salvar na pasta Lumo</button>`}
           </div>
         `;
@@ -2075,6 +2146,137 @@
             say(`Convertido (${formatSize(blob.size)}) em Desktop\\Lumo_Arquivos!`, 3500, true);
           } catch (e) { say('Erro ao salvar: ' + e, 3000, true); }
         }, mime, quality);
+      };
+      img.src = f.dataUrl;
+    }
+
+    
+    // --- Modo Café (Manter PC Acordado) ---
+    let keepAwakeActive = false;
+    async function toggleKeepAwake(val) {
+      keepAwakeActive = Boolean(val);
+      const chk = document.getElementById('cafe-toggle');
+      if (chk) chk.checked = keepAwakeActive;
+      document.getElementById('cafe-status').textContent = keepAwakeActive ? 'Ativo · PC não vai dormir' : 'Impede tela de apagar e hibernação';
+      document.getElementById('cafe-status').style.color = keepAwakeActive ? 'var(--accent)' : 'var(--muted)';
+      if (invoke) { try { await invoke('set_keep_awake', { enabled: keepAwakeActive }); } catch (_) {} }
+      playChirp(keepAwakeActive ? 600 : 440, keepAwakeActive ? 880 : 320, 0.16);
+      hopPill();
+      if (keepAwakeActive) {
+        setEmote('☕');
+        say('Modo Café ligado! Vou manter o PC acordado.', 3000, true);
+      } else {
+        setEmote('');
+        say('Modo Café desligado.', 2000, true);
+      }
+    }
+
+    // --- Modo Respiração na Pílula (1 min · 4-4-4) ---
+    let breathingTimer = null;
+    async function startBreathing() {
+      if (breathingTimer) {
+        clearInterval(breathingTimer);
+        breathingTimer = null;
+        const p = document.getElementById('lumo-pill');
+        p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
+        document.getElementById('breath-btn').textContent = 'Iniciar';
+        restoreIdleExpression();
+        return;
+      }
+      if (isExpanded) await togglePanel(false);
+      document.getElementById('breath-btn').textContent = 'Parar';
+      const phases = [
+        { cls: 'breathing-in', msg: 'Inspire devagar... (4s)', f1: 360, f2: 520 },
+        { cls: 'breathing-hold', msg: 'Segure o ar... (4s)', f1: 520, f2: 520 },
+        { cls: 'breathing-out', msg: 'Solte suavemente... (4s)', f1: 520, f2: 340 }
+      ];
+      let step = 0;
+      const runPhase = () => {
+        const p = document.getElementById('lumo-pill');
+        p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
+        if (step >= 15) {
+          clearInterval(breathingTimer);
+          breathingTimer = null;
+          document.getElementById('breath-btn').textContent = 'Iniciar';
+          setExpression('happy'); hopPill();
+          say('Pausa concluída! Mente mais leve.', 3500, true);
+          setTimeout(() => restoreIdleExpression(), 2200);
+          return;
+        }
+        const cur = phases[step % 3];
+        p.classList.add(cur.cls);
+        setExpression(step % 3 === 1 ? 'sleepy' : 'normal');
+        playChirp(cur.f1, cur.f2, 0.35);
+        say(cur.msg, 3800, true);
+        step++;
+      };
+      runPhase();
+      breathingTimer = setInterval(runPhase, 4000);
+    }
+
+    // --- Imagem -> PDF 100% Offline (PDF 1.4 Nativo) ---
+    async function convertImageToPdf(idx) {
+      const f = pocketFiles[idx];
+      if (!f || !invoke) return;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const jpgBytes = new Uint8Array(await blob.arrayBuffer());
+          const w = canvas.width, h = canvas.height;
+          const pageW = 595.28, pageH = 841.89;
+          const scale = Math.min((pageW - 40) / w, (pageH - 40) / h);
+          const dw = (w * scale).toFixed(2), dh = (h * scale).toFixed(2);
+          const dx = ((pageW - dw) / 2).toFixed(2), dy = ((pageH - dh) / 2).toFixed(2);
+
+          const enc = new TextEncoder();
+          const chunks = [];
+          let offset = 0;
+          const pushStr = (s) => { const b = enc.encode(s); chunks.push(b); offset += b.length; };
+          const pushBytes = (b) => { chunks.push(b); offset += b.length; };
+
+          pushStr('%PDF-1.4\n');
+          const offsets = [0];
+          const addObj = (id, bodyStr, binData = null, tailStr = '') => {
+            offsets[id] = offset;
+            pushStr(id + ' 0 obj\n' + bodyStr);
+            if (binData) pushBytes(binData);
+            pushStr(tailStr + '\nendobj\n');
+          };
+
+          addObj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+          addObj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+          addObj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+          addObj(4, '<< /Type /XObject /Subtype /Image /Width ' + w + ' /Height ' + h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpgBytes.length + ' >>\nstream\n', jpgBytes, '\nendstream');
+          const content = 'q ' + dw + ' 0 0 ' + dh + ' ' + dx + ' ' + dy + ' cm /Im0 Do Q';
+          addObj(5, '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream');
+
+          const xrefStart = offset;
+          pushStr('xref\n0 6\n0000000000 65535 f \n');
+          for (let i = 1; i <= 5; i++) {
+            pushStr(String(offsets[i]).padStart(10, '0') + ' 00000 n \n');
+          }
+          pushStr('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF');
+
+          const totalLen = chunks.reduce((a, b) => a + b.length, 0);
+          const pdfBytes = new Uint8Array(totalLen);
+          let pos = 0;
+          for (const c of chunks) { pdfBytes.set(c, pos); pos += c.length; }
+
+          const outName = f.name.replace(/\.[^.]+$/, '') + '_lumo.pdf';
+          try {
+            await invoke('save_file_bytes', { filename: outName, bytes: Array.from(pdfBytes) });
+            playChirp(640, 960, 0.22); hopPill();
+            say('PDF salvo em Área de Trabalho\\Lumo_Arquivos!', 3500, true);
+          } catch (e) { say('Erro ao gerar PDF: ' + e, 3000, true); }
+        }, 'image/jpeg', 0.9);
       };
       img.src = f.dataUrl;
     }
@@ -2377,6 +2579,19 @@
     let lastClipSeen = '';
     function analyzeClipboardMicroHelp(text) {
       if (isExpanded || isHiddenInGame) return;
+      if (/^https?:\/\//i.test(text)) {
+        try {
+          const u = new URL(text);
+          const trackKeys = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','igshid','igsh','si','ref','feature'];
+          let removed = false;
+          trackKeys.forEach(k => { if (u.searchParams.has(k)) { u.searchParams.delete(k); removed = true; } });
+          if (removed) {
+            const cleanUrl = u.toString();
+            say('Link com rastreadores! Clique p/ copiar limpo.', 5200, false, cleanUrl);
+            return;
+          }
+        } catch (_) {}
+      }
       const curMatch = text.match(/^(?:US\$|\$|USD)\s*(\d+(?:[.,]\d{1,2})?)$/i)
         || text.match(/^(\d+(?:[.,]\d{1,2})?)\s*(?:USD|dólares|dolares)$/i);
       if (curMatch) {
@@ -2492,7 +2707,8 @@
       document.getElementById('uptime-text').textContent =
         isStealth() ? 'Modo Furtivo' : `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
 
-      if (hrs >= 8) document.getElementById('app').classList.add('comfort-warm');
+      const nowHr = new Date().getHours();
+      if (hrs >= 8 || nowHr < 5) document.getElementById('app').classList.add('comfort-warm');
 
       if (!isExpanded && !isHiddenInGame && !activeAmbient && !timerInterval && !isThinking && !pcUnderLoad) {
         if (idleSec > 180) setExpression('sleepy');

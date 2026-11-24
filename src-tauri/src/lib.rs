@@ -248,6 +248,30 @@ fn save_file_bytes(filename: String, bytes: Vec<u8>) -> Result<String, String> {
     Ok(target.to_string_lossy().to_string())
 }
 
+
+#[tauri::command]
+fn set_keep_awake(enabled: bool) -> Result<bool, String> {
+    apply_keep_awake(enabled);
+    Ok(enabled)
+}
+
+#[cfg(windows)]
+fn apply_keep_awake(enabled: bool) {
+    use windows::Win32::System::Power::{
+        SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
+    };
+    unsafe {
+        if enabled {
+            let _ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+        } else {
+            let _ = SetThreadExecutionState(ES_CONTINUOUS);
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn apply_keep_awake(_enabled: bool) {}
+
 #[tauri::command]
 fn schedule_shutdown(minutes: u32) -> Result<String, String> {
     run_shutdown_cmd(minutes)
@@ -538,6 +562,7 @@ pub fn run() {
             save_file_bytes,
             schedule_shutdown,
             cancel_shutdown,
+            set_keep_awake,
             get_autostart,
             set_autostart,
             save_api_key,
