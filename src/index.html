@@ -684,7 +684,15 @@
 
     .timer-display { font-size: 28px; font-weight: 700; text-align: center; color: var(--accent); letter-spacing: 1px; margin: 2px 0 6px; }
     .preset-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-    .theme-dots { display: flex; gap: 10px; margin-top: 6px; }
+    .theme-dots { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 7px; align-items: center; }
+    .theme-dot.custom-dot {
+      background: conic-gradient(#fb7185, #fb923c, #facc15, #34d399, #67e8f9, #a78bfa, #f472b6, #fb7185);
+      display: flex; align-items: center; justify-content: center;
+      color: #111318; font-size: 13px; font-weight: 800; position: relative;
+    }
+    .theme-dot.custom-dot::after {
+      content: '+'; line-height: 1; text-shadow: 0 0 4px rgba(255,255,255,0.6);
+    }
     .theme-dot { width: 23px; height: 23px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s ease, border-color 0.2s ease; }
     .theme-dot:hover { transform: scale(1.12); }
     .theme-dot.active { border-color: #fff; transform: scale(1.15); }
@@ -721,7 +729,7 @@
     }
 
   
-    /* === LUMO v1.4.0 — VISUAL & ANIMAÇÕES === */
+    /* === LUMO v1.4.1 — VISUAL & ANIMAÇÕES === */
     #lumo-pill:hover {
       transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
       border-color: rgba(255, 255, 255, 0.22);
@@ -1319,7 +1327,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.4.0</span>
+            <span>Plano · Lumo v1.4.1</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1379,14 +1387,27 @@
         </div>
 
         <div class="card">
-          <div class="label-xs">Tema Luminoso</div>
-          <div class="theme-dots">
-            <div class="theme-dot active" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente"></div>
-            <div class="theme-dot" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar"></div>
-            <div class="theme-dot" style="background:#67e8f9" onclick="setTheme('cyan', this, true)" title="Ciano Névoa (Pro)"></div>
-            <div class="theme-dot" style="background:#c4b5fd" onclick="setTheme('lavender', this, true)" title="Lavanda Zen (Pro)"></div>
-            <div class="theme-dot" style="background:#34d399" onclick="setTheme('emerald', this, true)" title="Esmeralda (Pro)"></div>
+          <div class="label-xs">
+            <span>Tema Luminoso</span>
+            <span class="pro-badge" id="theme-pro-badge">+10 PRO</span>
           </div>
+          <div class="theme-dots">
+            <div class="theme-dot active" data-theme="amber" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente (Grátis)"></div>
+            <div class="theme-dot" data-theme="lunar" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar (Grátis)"></div>
+            <div class="theme-dot" data-theme="cyan" style="background:#67e8f9" onclick="setTheme('cyan', this, true)" title="Ciano Névoa (Pro)"></div>
+            <div class="theme-dot" data-theme="cobalt" style="background:#60a5fa" onclick="setTheme('cobalt', this, true)" title="Azul Elétrico (Pro)"></div>
+            <div class="theme-dot" data-theme="lavender" style="background:#c4b5fd" onclick="setTheme('lavender', this, true)" title="Lavanda Zen (Pro)"></div>
+            <div class="theme-dot" data-theme="violet" style="background:#a78bfa" onclick="setTheme('violet', this, true)" title="Violeta Neon (Pro)"></div>
+            <div class="theme-dot" data-theme="sakura" style="background:#f472b6" onclick="setTheme('sakura', this, true)" title="Rosa Sakura (Pro)"></div>
+            <div class="theme-dot" data-theme="crimson" style="background:#fb7185" onclick="setTheme('crimson', this, true)" title="Carmesim (Pro)"></div>
+            <div class="theme-dot" data-theme="sunset" style="background:#fb923c" onclick="setTheme('sunset', this, true)" title="Pôr do Sol (Pro)"></div>
+            <div class="theme-dot" data-theme="gold" style="background:#facc15" onclick="setTheme('gold', this, true)" title="Ouro Solar (Pro)"></div>
+            <div class="theme-dot" data-theme="emerald" style="background:#34d399" onclick="setTheme('emerald', this, true)" title="Esmeralda (Pro)"></div>
+            <div class="theme-dot" data-theme="lime" style="background:#a3e635" onclick="setTheme('lime', this, true)" title="Lima Acid (Pro)"></div>
+            <div class="theme-dot custom-dot" data-theme="custom" onclick="openCustomColorPicker()" title="Escolher qualquer cor (Pro)"></div>
+            <input type="color" id="custom-theme-input" value="#f6b974" style="display:none;" oninput="applyCustomHex(this.value, false)" onchange="applyCustomHex(this.value, true)" />
+          </div>
+        </div>
         </div>
 
         <div class="card">
@@ -1402,7 +1423,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.4.0</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.4.1</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1459,8 +1480,15 @@
       amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.14)', glow: 'rgba(246, 185, 116, 0.34)' },
       lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.13)', glow: 'rgba(243, 244, 246, 0.28)' },
       cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.14)', glow: 'rgba(103, 232, 249, 0.35)' },
+      cobalt: { accent: '#60a5fa', soft: 'rgba(96, 165, 250, 0.15)', glow: 'rgba(96, 165, 250, 0.38)' },
       lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.14)', glow: 'rgba(196, 181, 253, 0.35)' },
-      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)', glow: 'rgba(52, 211, 153, 0.35)' }
+      violet: { accent: '#a78bfa', soft: 'rgba(167, 139, 250, 0.15)', glow: 'rgba(167, 139, 250, 0.38)' },
+      sakura: { accent: '#f472b6', soft: 'rgba(244, 114, 182, 0.15)', glow: 'rgba(244, 114, 182, 0.38)' },
+      crimson: { accent: '#fb7185', soft: 'rgba(251, 113, 133, 0.15)', glow: 'rgba(251, 113, 133, 0.38)' },
+      sunset: { accent: '#fb923c', soft: 'rgba(251, 146, 60, 0.15)', glow: 'rgba(251, 146, 60, 0.38)' },
+      gold: { accent: '#facc15', soft: 'rgba(250, 204, 21, 0.14)', glow: 'rgba(250, 204, 21, 0.36)' },
+      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)', glow: 'rgba(52, 211, 153, 0.35)' },
+      lime: { accent: '#a3e635', soft: 'rgba(163, 230, 53, 0.14)', glow: 'rgba(163, 230, 53, 0.36)' }
     };
 
     const gameTipsDB = [
@@ -2409,6 +2437,8 @@
       document.getElementById('ambient-pro-badge').style.display = isPro ? 'none' : 'inline-block';
       document.getElementById('notes-pro-badge').style.display = isPro ? 'none' : 'inline-block';
       document.getElementById('clip-pro-badge').style.display = isPro ? 'none' : 'inline-block';
+      const tpb = document.getElementById('theme-pro-badge');
+      if (tpb) tpb.style.display = isPro ? 'none' : 'inline-block';
 
       const notes = document.getElementById('quick-notes');
       notes.disabled = !isPro;
@@ -2467,14 +2497,59 @@
       speakText(`Oi${userName ? ', ' + userName : ''}! Agora estou falando assim.`);
     }
 
+    function applyCustomHex(hex, finished = false) {
+      if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+      const num = parseInt(hex.slice(1), 16);
+      const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+      document.documentElement.style.setProperty('--accent', hex);
+      document.documentElement.style.setProperty('--accent-soft', `rgba(${r}, ${g}, ${b}, 0.15)`);
+      document.documentElement.style.setProperty('--accent-glow', `rgba(${r}, ${g}, ${b}, 0.38)`);
+      document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.theme === 'custom'));
+      const inp = document.getElementById('custom-theme-input');
+      if (inp) inp.value = hex;
+      localStorage.setItem('lumo_theme', 'custom');
+      localStorage.setItem('lumo_custom_hex', hex);
+      if (finished) {
+        setTimeout(() => { suppressBlur = false; }, 350);
+        hopPill();
+        playChirp(600, 900, 0.16);
+      }
+    }
+
+    function openCustomColorPicker() {
+      if (!isPro) {
+        playChirp(300, 220, 0.18);
+        say('Cor personalizada é exclusiva do Lumo Pro!', 2600, true);
+        return;
+      }
+      suppressBlur = true;
+      const inp = document.getElementById('custom-theme-input');
+      if (inp) inp.click();
+      window.addEventListener('focus', () => {
+        setTimeout(() => { suppressBlur = false; }, 450);
+      }, { once: true });
+    }
+
     function setTheme(name, el, proOnly = false) {
-      if (proOnly && !isPro) { playChirp(300, 220, 0.18); return; }
+      if (proOnly && !isPro) {
+        playChirp(300, 220, 0.18);
+        say('Temas extras são exclusivos do Lumo Pro!', 2500, true);
+        return;
+      }
+      if (name === 'custom') {
+        const savedHex = localStorage.getItem('lumo_custom_hex') || '#f6b974';
+        applyCustomHex(savedHex, false);
+        return;
+      }
       const t = themes[name] || themes.amber;
       document.documentElement.style.setProperty('--accent', t.accent);
       document.documentElement.style.setProperty('--accent-soft', t.soft);
       document.documentElement.style.setProperty('--accent-glow', t.glow);
-      document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
-      if (el) el.classList.add('active');
+      document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.theme === name));
+      if (el) {
+        hopPill();
+        playChirp(560, 820, 0.14);
+      }
       localStorage.setItem('lumo_theme', name);
     }
 
@@ -3114,7 +3189,7 @@
       }, 650);
     })();
   
-    // === UPGRADE VISUAL & ANIMAÇÕES (v1.4.0) ===
+    // === UPGRADE VISUAL & ANIMAÇÕES (v1.4.1) ===
     function setEyeStyle(style, btnEl) {
       const face = document.getElementById('lumo-face');
       if (!face) return;
