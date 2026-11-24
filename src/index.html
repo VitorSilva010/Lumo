@@ -720,6 +720,103 @@
       transition: transform 4s ease-in-out, box-shadow 4s ease-in-out !important;
     }
 
+  
+    /* === LUMO v1.4.0 — VISUAL & ANIMAÇÕES === */
+    #lumo-pill:hover {
+      transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Aura pulsante quando está tocando música/ambiente */
+    #lumo-pill:has(.face.music) {
+      border-color: rgba(246, 185, 116, 0.45);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 34px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    /* Reflexo secundário dos olhos + Piscadinha (wink) */
+    .eye::before {
+      content: ''; position: absolute; bottom: 4px; right: 3px;
+      width: 2.5px; height: 2.5px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6); opacity: 0;
+      transition: opacity 0.16s ease;
+    }
+    .face.wink .eye.right {
+      height: 3.5px !important; border-radius: 4px !important; transform: translateY(1px);
+    }
+    .face.wink .eye.right::after, .face.wink .eye.right::before { opacity: 0 !important; }
+
+    /* Estilo Fofo (Kawaii) */
+    .face.style-kawaii .eye {
+      width: 15px; height: 18px; border-radius: 50%;
+    }
+    .face.style-kawaii .eye::after { width: 5px; height: 5px; top: 3px; left: 3px; }
+    .face.style-kawaii .eye::before { opacity: 0.9; }
+    .face.style-kawaii .blush { opacity: 0.48; }
+    .face.style-kawaii.happy .blush, .face.style-kawaii.love .blush { opacity: 1; }
+    .face.style-kawaii.blink .eye::before,
+    .face.style-kawaii.sleepy .eye::before,
+    .face.style-kawaii.goodbye .eye::before,
+    .face.style-kawaii.happy .eye::before { opacity: 0; }
+
+    /* Estilo Cyber (Visor) */
+    .face.style-cyber .eye {
+      width: 17px; height: 11px; border-radius: 3px;
+      box-shadow: 0 0 18px var(--accent-glow), inset 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+    .face.style-cyber .eye::after { width: 6px; height: 2.5px; border-radius: 2px; top: 2px; left: 3px; }
+    .face.style-cyber.surprised .eye { width: 18px; height: 16px; border-radius: 4px; }
+
+    /* Efeito Spotlight seguindo o cursor nos cards e botões */
+    .hub-tile, .hero-bento, .mini-media-strip, .card {
+      position: relative;
+      overflow: hidden;
+    }
+    .hub-tile::after, .hero-bento::after, .mini-media-strip::after, .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(155px circle at var(--mx, -200px) var(--my, -200px), var(--accent-soft), transparent 72%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+    .hub-tile:hover::after, .hero-bento:hover::after, .mini-media-strip:hover::after, .card:hover::after {
+      opacity: 1;
+    }
+
+    /* Cascata suave ao abrir o painel */
+    .cascade-in {
+      animation: cascadeFade 0.34s cubic-bezier(0.22, 1, 0.36, 1) var(--cdelay, 0ms) backwards;
+    }
+    @keyframes cascadeFade {
+      from { opacity: 0; transform: translateY(10px) scale(0.965); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Brilho deslizante (shimmer) na barra de progresso e Hero */
+    .progress-fill {
+      background: linear-gradient(90deg, var(--accent), #fff3d6, var(--accent));
+      background-size: 200% 100%;
+      animation: shimmerSlide 3s linear infinite;
+    }
+    @keyframes shimmerSlide {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+
+    .eye-style-row { display: flex; gap: 6px; margin-top: 6px; }
+    .eye-style-btn {
+      flex: 1; padding: 7px 6px; border-radius: 10px;
+      border: 1px solid var(--border); background: rgba(255, 255, 255, 0.035);
+      color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .eye-style-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); }
+    .eye-style-btn.active-btn {
+      background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
+    }
+
   </style>
 </head>
 <body>
@@ -1222,7 +1319,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.3.1</span>
+            <span>Plano · Lumo v1.4.0</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1305,7 +1402,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.3.1</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.4.0</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -3016,6 +3113,88 @@
         setTimeout(() => restoreIdleExpression(), 1200);
       }, 650);
     })();
+  
+    // === UPGRADE VISUAL & ANIMAÇÕES (v1.4.0) ===
+    function setEyeStyle(style, btnEl) {
+      const face = document.getElementById('lumo-face');
+      if (!face) return;
+      face.classList.remove('style-classic', 'style-kawaii', 'style-cyber');
+      face.classList.add('style-' + style);
+      document.querySelectorAll('.eye-style-btn').forEach(b => {
+        b.classList.toggle('active-btn', b.dataset.style === style);
+      });
+      localStorage.setItem('lumo_eyestyle', style);
+      if (btnEl) {
+        hopPill();
+        playChirp(560, 840, 0.16);
+      }
+    }
+
+    (function initVisualUpgrade() {
+      const savedStyle = localStorage.getItem('lumo_eyestyle') || 'classic';
+      setEyeStyle(savedStyle);
+
+      // Garante que o estilo dos olhos continue ativo quando mudar a expressão
+      const origSetExpr = window.setExpression;
+      if (typeof origSetExpr === 'function') {
+        window.setExpression = function(type) {
+          origSetExpr(type);
+          const cur = localStorage.getItem('lumo_eyestyle') || 'classic';
+          const f = document.getElementById('lumo-face');
+          if (f) f.classList.add('style-' + cur);
+        };
+      }
+
+      // Spotlight reativo ao cursor + Cascata ao abrir o painel
+      const panelEl = document.getElementById('panel');
+      if (panelEl) {
+        panelEl.addEventListener('pointermove', (e) => {
+          const target = e.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card');
+          if (!target) return;
+          const r = target.getBoundingClientRect();
+          target.style.setProperty('--mx', (e.clientX - r.left).toFixed(1) + 'px');
+          target.style.setProperty('--my', (e.clientY - r.top).toFixed(1) + 'px');
+        });
+
+        const obs = new MutationObserver(() => {
+          if (panelEl.classList.contains('open')) {
+            const items = panelEl.querySelectorAll('#view-resumo .hero-bento, #view-resumo .mini-media-strip, #view-resumo .hub-tile, #view-resumo .card');
+            items.forEach((el, idx) => {
+              el.classList.remove('cascade-in');
+              void el.offsetWidth;
+              el.style.setProperty('--cdelay', (idx * 30) + 'ms');
+              el.classList.add('cascade-in');
+            });
+          }
+        });
+        obs.observe(panelEl, { attributes: true, attributeFilter: ['class'] });
+      }
+
+      // Inclinação curiosa da pílula seguindo o mouse
+      const pillEl = document.getElementById('lumo-pill');
+      if (pillEl) {
+        pillEl.addEventListener('pointermove', (e) => {
+          const r = pillEl.getBoundingClientRect();
+          const normX = ((e.clientX - r.left) / r.width - 0.5) * 2;
+          pillEl.style.setProperty('--tilt', (normX * 4.5).toFixed(2) + 'deg');
+        });
+        pillEl.addEventListener('pointerleave', () => {
+          pillEl.style.setProperty('--tilt', '0deg');
+        });
+      }
+
+      // Piscadinha marota (wink) aleatória quando ocioso
+      setInterval(() => {
+        const f = document.getElementById('lumo-face');
+        if (!f || isShuttingDown || isHiddenInGame) return;
+        const locked = ['blink', 'happy', 'sleepy', 'goodbye', 'dizzy', 'love', 'thinking'].some(c => f.classList.contains(c));
+        if (!locked && Math.random() < 0.35) {
+          f.classList.add('wink');
+          setTimeout(() => f.classList.remove('wink'), 260);
+        }
+      }, 9500);
+    })();
+
   </script>
 </body>
 </html>
