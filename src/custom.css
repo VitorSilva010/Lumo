@@ -276,3 +276,39 @@ body.pos-bottom #speech-bubble.show {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* === v2.0.1 — RESPONSIVIDADE & CONTRASTE MODO CLARO === */
+#panel {
+  max-height: calc(100vh - 86px);
+}
+body.surface-light .msg-act-btn {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+}
+body.surface-light .msg-act-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+body.surface-light #doc-ctx-bar {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: var(--accent);
+  color: #0f172a;
+}
+body.surface-light .pocket-item {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+body.surface-light .cmd-chip {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #334155;
+}
+body.surface-light .msg.user {
+  color: #0f172a;
+}
+body.surface-light .news-src,
+body.surface-light .label-xs,
+body.surface-light .motd-head {
+  filter: brightness(0.76) saturate(1.2);
+}

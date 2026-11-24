@@ -39,19 +39,26 @@ pub struct DesktopState {
 
 #[tauri::command]
 fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -> DesktopState {
-    let (used_ram_mb, total_ram_mb, cpu_percent) = if let Ok(mut cache) = state.telemetry.lock() {
-        if cache.last_refresh.elapsed() >= Duration::from_millis(1200) {
-            cache.sys.refresh_memory();
-            cache.sys.refresh_cpu_usage();
-            cache.used_ram_mb = cache.sys.used_memory() / 1024 / 1024;
-            cache.total_ram_mb = cache.sys.total_memory() / 1024 / 1024;
-            cache.cpu_percent = cache.sys.global_cpu_usage().round().clamp(0.0, 100.0) as u8;
-            cache.last_refresh = Instant::now();
-        }
-        (cache.used_ram_mb, cache.total_ram_mb, cache.cpu_percent)
-    } else {
-        (0, 0, 0)
-    };
+    let (used_ram_mb, total_ram_mb, cpu_percent, screen_w) =
+        if let Ok(mut cache) = state.telemetry.lock() {
+            if cache.last_refresh.elapsed() >= Duration::from_millis(1200) || cache.screen_w == 0 {
+                cache.sys.refresh_memory();
+                cache.sys.refresh_cpu_usage();
+                cache.used_ram_mb = cache.sys.used_memory() / 1024 / 1024;
+                cache.total_ram_mb = cache.sys.total_memory() / 1024 / 1024;
+                cache.cpu_percent = cache.sys.global_cpu_usage().round().clamp(0.0, 100.0) as u8;
+                cache.screen_w = window
+                    .primary_monitor()
+                    .ok()
+                    .flatten()
+                    .map(|m| m.size().width as i32)
+                    .unwrap_or(1920);
+                cache.last_refresh = Instant::now();
+            }
+            (cache.used_ram_mb, cache.total_ram_mb, cache.cpu_percent, cache.screen_w)
+        } else {
+            (0, 0, 0, 1920)
+        };
 
     let (cursor_x, cursor_y, active_window) = get_windows_context();
     let pos = window
@@ -60,12 +67,6 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
     let size = window
         .outer_size()
         .unwrap_or(tauri::PhysicalSize::new(310, 150));
-    let screen_w = window
-        .primary_monitor()
-        .ok()
-        .flatten()
-        .map(|m| m.size().width as i32)
-        .unwrap_or(1920);
 
     DesktopState {
         cursor_x,
@@ -92,8 +93,18 @@ fn set_window_mode(
     }
     let _ = window.show();
 
+    let monitor_dims = window.primary_monitor().ok().flatten().map(|m| {
+        let scale = m.scale_factor();
+        (m.size().width as f64 / scale, m.size().height as f64 / scale)
+    });
+
     let (w, h, force_top_right) = match mode.as_str() {
-        "expanded" => (452.0_f64, 650.0_f64, false),
+        "expanded" => {
+            let max_h = monitor_dims
+                .map(|(_, sh)| (sh - 64.0).min(650.0).max(460.0))
+                .unwrap_or(650.0);
+            (452.0_f64, max_h, false)
+        }
         "cinema" => (480.0_f64, 340.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
         _ => (310.0_f64, 150.0_f64, false),
@@ -103,10 +114,7 @@ fn set_window_mode(
         .set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, h)))
         .map_err(|e| e.to_string())?;
 
-    if let Ok(Some(monitor)) = window.primary_monitor() {
-        let scale = monitor.scale_factor();
-        let screen_w = monitor.size().width as f64 / scale;
-        let screen_h = monitor.size().height as f64 / scale;
+    if let Some((screen_w, screen_h)) = monitor_dims {
         let pos_key = if force_top_right {
             "top-right"
         } else if mode == "cinema" {

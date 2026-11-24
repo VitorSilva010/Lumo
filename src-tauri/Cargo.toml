@@ -1,6 +1,6 @@
 [package]
 name = "lumo"
-version = "2.0.0"
+version = "2.0.1"
 description = "Lumo Desktop Companion"
 authors = ["Vitor"]
 edition = "2021"
@@ -32,3 +32,9 @@ windows = { version = "0.58", features = [
   "Win32_UI_Input_KeyboardAndMouse",
   "Win32_System_Power"
 ] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

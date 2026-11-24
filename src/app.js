@@ -72,24 +72,42 @@ function isStealth() { return stealthManual || stealthAuto; }
 function getGreetingBase() { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; }
 
 // === OLHOS REATIVOS (Interpolação contínua via GPU — sem travar fora de foco) ===
-let eyeTargetX = 0, eyeTargetY = 0, eyeCurX = 0, eyeCurY = 0, lastPointerEyeMs = 0;
+let eyeTargetX = 0, eyeTargetY = 0, eyeCurX = 0, eyeCurY = 0, lastPointerEyeMs = 0, eyeAnimTimer = null;
 
-function setEyeTarget(x, y) {
-  if (isHiddenInGame) return;
-  eyeTargetX = Math.max(-10, Math.min(10, Number(x) || 0));
-  eyeTargetY = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
+function ensureEyeLoop() {
+  if (eyeAnimTimer) return;
+  eyeAnimTimer = setInterval(() => {
+    if (isHiddenInGame || isShuttingDown || window.cinemaPlaying || (trayOnlyMode && !isExpanded)) {
+      clearInterval(eyeAnimTimer);
+      eyeAnimTimer = null;
+      return;
+    }
+    const dx = eyeTargetX - eyeCurX;
+    const dy = eyeTargetY - eyeCurY;
+    if (Math.abs(dx) < 0.04 && Math.abs(dy) < 0.04) {
+      eyeCurX = eyeTargetX;
+      eyeCurY = eyeTargetY;
+      const face = document.getElementById('lumo-face');
+      if (face) face.style.transform = `translate3d(${eyeCurX.toFixed(2)}px, ${eyeCurY.toFixed(2)}px, 0)`;
+      clearInterval(eyeAnimTimer);
+      eyeAnimTimer = null;
+      return;
+    }
+    eyeCurX += dx * 0.24;
+    eyeCurY += dy * 0.24;
+    const face = document.getElementById('lumo-face');
+    if (face) face.style.transform = `translate3d(${eyeCurX.toFixed(2)}px, ${eyeCurY.toFixed(2)}px, 0)`;
+  }, 20);
 }
 
-setInterval(() => {
-  if (isHiddenInGame || isShuttingDown || window.cinemaPlaying || (trayOnlyMode && !isExpanded)) return;
-  const dx = eyeTargetX - eyeCurX;
-  const dy = eyeTargetY - eyeCurY;
-  if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) return;
-  eyeCurX += dx * 0.24;
-  eyeCurY += dy * 0.24;
-  const face = document.getElementById('lumo-face');
-  if (face) face.style.transform = `translate3d(${eyeCurX.toFixed(2)}px, ${eyeCurY.toFixed(2)}px, 0)`;
-}, 22);
+function setEyeTarget(x, y) {
+  if (isHiddenInGame || (trayOnlyMode && !isExpanded)) return;
+  eyeTargetX = Math.max(-10, Math.min(10, Number(x) || 0));
+  eyeTargetY = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
+  if (Math.abs(eyeTargetX - eyeCurX) >= 0.05 || Math.abs(eyeTargetY - eyeCurY) >= 0.05) {
+    ensureEyeLoop();
+  }
+}
 
 let typingTimer = null;
 function onUserTyping() {
@@ -384,6 +402,10 @@ function applyMetricColor(valEl, barEl, pct) {
 async function pollWindowsLoop() {
   if (isShuttingDown) return;
   if (window.cinemaPlaying) { setTimeout(pollWindowsLoop, 220); return; }
+  if (trayOnlyMode && !isExpanded) {
+    setTimeout(pollWindowsLoop, 600);
+    return;
+  }
   if (invoke) {
     try {
       const st = await invoke('get_desktop_state');
@@ -992,7 +1014,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.0.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.0.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
