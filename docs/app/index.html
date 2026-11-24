@@ -3,628 +3,776 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#090a0f" />
+  <meta name="theme-color" content="#0b0c12" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Lumo Mobile</title>
   <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
   <style>
     :root {
-      --accent: #f6b974;
-      --accent-soft: rgba(246, 185, 116, 0.14);
-      --accent-glow: rgba(246, 185, 116, 0.36);
-      --bg: #090a0f;
-      --surface: rgba(255, 255, 255, 0.042);
+      --bg: #07080d;
+      --panel: #10121a;
+      --surface: rgba(255, 255, 255, 0.045);
+      --surface-2: rgba(255, 255, 255, 0.08);
       --border: rgba(255, 255, 255, 0.1);
       --text: #f3f4f6;
       --muted: #94a3b8;
+      --accent: #f6b974;
+      --accent-soft: rgba(246, 185, 116, 0.15);
+      --accent-glow: rgba(246, 185, 116, 0.36);
       --ok: #34d399;
       --danger: #f87171;
-      --love: #fb7185;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      height: 100%; background: var(--bg); color: var(--text);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      overscroll-behavior: none;
+    body.surface-oled {
+      --bg: #000000;
+      --panel: #050507;
+      --surface: rgba(255, 255, 255, 0.035);
+      --border: rgba(255, 255, 255, 0.13);
     }
 
-    body {
+    body.surface-light {
+      --bg: #eef1f7;
+      --panel: #ffffff;
+      --surface: rgba(15, 23, 42, 0.045);
+      --surface-2: rgba(15, 23, 42, 0.08);
+      --border: rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --muted: #475569;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
+
+    .app-shell {
+      height: 100dvh; max-width: 520px; margin: 0 auto;
       display: flex; flex-direction: column;
-      background-image: radial-gradient(ellipse 90% 35% at 50% 0%, var(--accent-soft), transparent 65%);
+      background: radial-gradient(ellipse 90% 28% at 50% -4%, var(--accent-soft), transparent 72%), var(--bg);
     }
 
-    /* Cabeçalho com Cápsula Lumo */
-    .mobile-header {
-      padding: calc(14px + env(safe-area-inset-top)) 16px 12px;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      flex-shrink: 0;
+    /* HEADER */
+    .hdr {
+      flex-shrink: 0; padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border-bottom: 1px solid var(--border);
     }
-    .pill {
-      width: 146px; height: 50px; border-radius: 999px;
-      background: #10121a; border: 1px solid var(--border);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 26px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.16);
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    #m-pill {
+      display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 999px;
+      background: var(--panel); border: 1px solid var(--border);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28), 0 0 18px var(--accent-soft);
+      cursor: pointer; transition: transform 0.18s ease;
     }
-    .pill:active { transform: scale(0.94, 1.05); }
-    .face { display: flex; gap: 18px; align-items: center; }
-    .eye {
-      width: 12px; height: 18px; border-radius: 99px;
-      background: var(--accent); box-shadow: 0 0 14px var(--accent-glow);
-      position: relative; transition: all 0.14s ease;
+    #m-pill:active { transform: scale(0.95); }
+    #m-face { display: flex; align-items: center; gap: 9px; }
+    .m-eye {
+      width: 8px; height: 12px; border-radius: 999px; background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow); transition: all 0.14s ease;
     }
-    .eye::after {
-      content: ''; position: absolute; top: 3px; left: 3px;
-      width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.9);
+    #m-face.happy .m-eye {
+      height: 7px; width: 10px; background: transparent; box-shadow: none;
+      border-top: 2.5px solid var(--accent); border-radius: 50% 50% 0 0; transform: translateY(2px);
     }
-    .face.blink .eye { height: 3px; border-radius: 4px; }
-    .face.blink .eye::after { opacity: 0; }
-    .face.love .eye { background: var(--love); box-shadow: 0 0 16px rgba(251,113,133,0.7); width: 15px; height: 15px; }
-    .face.thinking .eye { animation: thinkPulse 0.8s infinite alternate; }
-    @keyframes thinkPulse { from { transform: scaleY(0.75); opacity: 0.7; } to { transform: scaleY(1.1); opacity: 1; } }
+    #m-face.thinking .m-eye { animation: mPulse 0.7s infinite alternate ease-in-out; }
+    @keyframes mPulse { from { opacity: 0.5; transform: scaleY(0.75); } to { opacity: 1; transform: scaleY(1.15); } }
+    .hdr-title { font-size: 13.5px; font-weight: 700; }
 
-    .status-row {
-      display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--muted);
+    .pair-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border); font-size: 11.5px; font-weight: 600; color: var(--muted);
+      cursor: pointer;
     }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .status-dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+    #pair-dot { width: 7.5px; height: 7.5px; border-radius: 50%; background: var(--muted); }
+    #pair-dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
 
-    /* Toast flutuante */
-    #toast {
-      position: fixed; top: calc(74px + env(safe-area-inset-top)); left: 50%;
-      transform: translateX(-50%) translateY(-8px);
-      background: #141622; border: 1px solid var(--accent); color: var(--text);
-      padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 500;
-      opacity: 0; pointer-events: none; z-index: 80;
-      transition: all 0.22s ease; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+    /* TABS */
+    .main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+    .tab {
+      display: none; height: 100%; overflow-y: auto; padding: 14px 15px 22px;
+      flex-direction: column; gap: 12px;
     }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Conteúdo Principal */
-    main {
-      flex: 1; overflow-y: auto; padding: 6px 15px 18px;
-      max-width: 540px; width: 100%; margin: 0 auto;
-    }
-    .tab-view { display: none; flex-direction: column; gap: 12px; height: 100%; }
-    .tab-view.active { display: flex; animation: fadeUp 0.22s ease; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .tab.active { display: flex; }
+    #tab-ia { padding-bottom: 10px; overflow: hidden; }
 
     .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 18px;
+      padding: 13px 14px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
     }
-    .label-xs {
-      font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px;
-      color: var(--accent); font-weight: 700; display: flex; justify-content: space-between; align-items: center;
+    .card-hd {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--accent);
     }
 
-    /* Botões Remotos */
-    .media-row { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 6px 0; }
-    .m-btn {
-      width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05); color: var(--text); font-size: 18px;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: transform 0.14s ease, border-color 0.14s ease;
+    /* BUTTONS & INPUTS */
+    .btn {
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      border-radius: 12px; padding: 10px 13px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      transition: transform 0.14s ease, border-color 0.15s ease, background 0.15s ease;
     }
-    .m-btn:active { transform: scale(0.9); border-color: var(--accent); }
-    .m-btn.play {
-      width: 64px; height: 64px; background: var(--accent); color: #111318; border: none;
-      box-shadow: 0 0 26px var(--accent-glow); font-size: 22px;
+    .btn:active { transform: scale(0.95); }
+    .btn-primary { background: var(--accent); color: #111318; border-color: var(--accent); }
+    .btn-danger { color: var(--danger); border-color: rgba(248, 113, 113, 0.35); }
+    .btn-sm { padding: 7px 11px; font-size: 12px; border-radius: 10px; }
+
+    input[type="text"], textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; color: var(--text); font-size: 13.5px; outline: none;
     }
+    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: none; min-height: 112px; line-height: 1.45; }
+
+    .row { display: flex; gap: 8px; align-items: center; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 
-    .btn-pill {
-      padding: 11px 10px; border-radius: 13px; border: 1px solid var(--border);
-      background: rgba(255,255,255,0.045); color: var(--text); font-size: 12.5px; font-weight: 600;
-      cursor: pointer; text-align: center; transition: all 0.16s ease;
+    /* MEDIA */
+    .media-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 0; }
+    .m-ctrl {
+      width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 17px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn-pill:active { transform: scale(0.96); border-color: var(--accent); background: var(--accent-soft); }
-    .btn-primary {
-      background: var(--accent); color: #111318; border: none; border-radius: 12px;
-      padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
-    }
-    .btn-primary:active { transform: scale(0.96); }
+    .m-ctrl:active { transform: scale(0.92); }
+    .m-ctrl.play { width: 62px; height: 62px; background: var(--accent); color: #111318; border: none; font-size: 21px; box-shadow: 0 0 22px var(--accent-glow); }
 
-    .inline-form { display: flex; gap: 8px; }
-    input[type="text"], textarea {
-      flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 12px; padding: 10px 12px; color: var(--text); font-size: 13.5px; outline: none;
+    /* PC CLIPBOARD */
+    #pc-clip-wrap {
+      display: none; padding: 10px 12px; border-radius: 12px;
+      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.35);
+      flex-direction: column; gap: 7px;
     }
-    textarea { width: 100%; min-height: 92px; resize: vertical; line-height: 1.45; }
-    input:focus, textarea:focus { border-color: var(--accent); }
+    #pc-clip-wrap.show { display: flex; }
+    #pc-clip-text { font-size: 12.5px; word-break: break-word; max-height: 82px; overflow: hidden; }
 
-    .pc-clip-box {
-      background: rgba(0,0,0,0.34); border: 1px dashed rgba(255,255,255,0.16);
-      border-radius: 12px; padding: 10px 12px; font-size: 12.5px; color: #cbd5e1;
-      word-break: break-word; cursor: pointer;
-    }
-
-    /* Tarefas */
+    /* TASKS */
     .task-list { display: flex; flex-direction: column; gap: 7px; }
     .task-item {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 9px 11px; border-radius: 12px; background: rgba(255,255,255,0.035); font-size: 13.5px;
+      padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
     }
-    .task-left { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+    .task-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: pointer; font-size: 13.5px; }
+    .task-left span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chk {
-      width: 18px; height: 18px; border-radius: 50%; border: 1.8px solid var(--muted);
-      display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
+      width: 19px; height: 19px; border-radius: 50%; border: 1.8px solid var(--muted); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 11px;
     }
-    .task-item.done .chk { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 700; }
+    .task-item.done .chk { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 800; }
     .task-item.done span { text-decoration: line-through; color: var(--muted); }
-    .del { background: none; border: none; color: var(--muted); font-size: 16px; padding: 2px 6px; cursor: pointer; }
+    .del { background: none; border: none; color: var(--muted); font-size: 19px; padding: 0 4px; cursor: pointer; }
 
-    /* Chat IA */
-    #chat-box { flex: 1; min-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 2px; }
-    .msg { padding: 10px 13px; border-radius: 15px; font-size: 13.5px; line-height: 1.45; max-width: 86%; }
+    /* IA TAB */
+    .ia-tools { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+    .tool-chip {
+      flex: 1; min-width: 110px; padding: 8px 10px; border-radius: 11px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--text);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .tool-chip:active { transform: scale(0.96); }
+    .tool-chip.accent { border-color: rgba(246, 185, 116, 0.4); color: var(--accent); background: var(--accent-soft); }
+
+    #link-bar { display: none; gap: 7px; flex-shrink: 0; }
+    #link-bar.show { display: flex; }
+
+    #chat-box {
+      flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 9px;
+      padding: 4px 2px;
+    }
+    .msg {
+      padding: 10px 13px; border-radius: 15px; font-size: 13.5px; line-height: 1.45;
+      max-width: 90%; white-space: pre-wrap; word-break: break-word;
+    }
     .msg.user { align-self: flex-end; background: var(--accent-soft); border: 1px solid var(--accent-glow); }
-    .msg.ai { align-self: flex-start; background: rgba(255,255,255,0.055); border: 1px solid var(--border); }
+    .msg.ai { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); }
+    .msg-copy {
+      display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 600;
+      color: var(--accent); background: var(--accent-soft); border: none;
+      padding: 3px 9px; border-radius: 7px; cursor: pointer;
+    }
+    .chat-form { flex-shrink: 0; display: flex; gap: 7px; padding-top: 6px; }
 
-    /* Temas */
-    .theme-dots { display: flex; flex-wrap: wrap; gap: 11px; }
-    .tdot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-    .tdot.active { border-color: #fff; transform: scale(1.12); }
+    /* CONFIG */
+    .dots { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dot {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+    }
+    .dot.active { border-color: var(--text); transform: scale(1.12); }
+    .surf-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .surf-btn {
+      padding: 9px 6px; border-radius: 11px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .surf-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
-    /* Navegação Inferior */
-    .bottom-nav {
+    /* BOTTOM NAV */
+    .bnav {
       flex-shrink: 0; display: grid; grid-template-columns: repeat(4, 1fr);
-      background: rgba(12, 13, 19, 0.96); border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+      background: var(--panel); border-top: 1px solid var(--border); gap: 6px;
     }
     .nav-btn {
-      background: none; border: none; color: var(--muted); cursor: pointer;
+      background: none; border: none; color: var(--muted); padding: 7px 4px; border-radius: 12px;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
-      font-size: 10.5px; font-weight: 600; padding: 4px; transition: color 0.16s ease;
+      font-size: 11px; font-weight: 600; cursor: pointer;
     }
-    .nav-btn.active { color: var(--accent); }
-    .nav-btn span.ic { font-size: 18px; line-height: 1; }
+    .nav-btn .ni { font-size: 17px; line-height: 1; }
+    .nav-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+    /* TOAST */
+    #toast {
+      position: fixed; top: calc(68px + env(safe-area-inset-top)); left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--panel); border: 1px solid var(--accent); color: var(--text);
+      padding: 8px 15px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; z-index: 80;
+      transition: opacity 0.2s ease, transform 0.2s ease; max-width: 90vw; text-align: center;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
-  <div id="toast">Pronto!</div>
+  <div id="toast"></div>
 
-  <header class="mobile-header">
-    <div class="pill" id="m-pill" onclick="petLumo()">
-      <div class="face" id="m-face">
-        <div class="eye"></div>
-        <div class="eye"></div>
+  <div class="app-shell">
+    <header class="hdr">
+      <div id="m-pill" onclick="petLumo()">
+        <div id="m-face"><div class="m-eye"></div><div class="m-eye"></div></div>
+        <span class="hdr-title">Lumo</span>
       </div>
-    </div>
-    <div class="status-row">
-      <span class="status-dot" id="pair-dot"></span>
-      <span id="pair-status">Não pareado com o PC</span>
-    </div>
-  </header>
+      <button type="button" class="pair-badge" onclick="switchTab('cfg')">
+        <span id="pair-dot"></span>
+        <span id="pair-status">Sem PC</span>
+      </button>
+    </header>
 
-  <main>
-    <!-- ABA 1: CONTROLE REMOTO + PONTE CTRL+C -->
-    <section class="tab-view active" id="tab-remote">
-      <div class="card">
-        <div class="label-xs">
-          <span>Controle de Mídia do PC</span>
-          <span style="color:var(--muted); font-weight:500;">Spotify · YouTube</span>
+    <main class="main">
+      <!-- TAB 1: REMOTO -->
+      <section class="tab active" id="tab-remote">
+        <div class="card">
+          <div class="card-hd"><span>Controle de Mídia</span><span>Spotify · YouTube</span></div>
+          <div class="media-row">
+            <button class="m-ctrl" type="button" onclick="sendCmd('media','prev')">⏮</button>
+            <button class="m-ctrl play" type="button" onclick="sendCmd('media','play_pause')">⏯</button>
+            <button class="m-ctrl" type="button" onclick="sendCmd('media','next')">⏭</button>
+          </div>
+          <div class="grid-3">
+            <button class="btn btn-sm" type="button" onclick="sendCmd('media','vol_down')">🔉 Vol −</button>
+            <button class="btn btn-sm" type="button" onclick="sendCmd('media','mute')">🔇 Mudo</button>
+            <button class="btn btn-sm" type="button" onclick="sendCmd('media','vol_up')">🔊 Vol +</button>
+          </div>
         </div>
-        <div class="media-row">
-          <button class="m-btn" onclick="sendCmd('media', 'prev')">⏮</button>
-          <button class="m-btn play" onclick="sendCmd('media', 'play_pause')">⏯</button>
-          <button class="m-btn" onclick="sendCmd('media', 'next')">⏭</button>
-        </div>
-        <div class="grid-3">
-          <button class="btn-pill" onclick="sendCmd('media', 'vol_down')">🔉 Vol -</button>
-          <button class="btn-pill" onclick="sendCmd('media', 'mute')">🔇 Mudo</button>
-          <button class="btn-pill" onclick="sendCmd('media', 'vol_up')">🔊 Vol +</button>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="label-xs"><span>Ponte de Ctrl+C & Links → PC</span></div>
-        <form class="inline-form" onsubmit="sendClipToPc(event)">
-          <input type="text" id="clip-input" placeholder="Cole link, texto ou senha pro PC..." />
-          <button type="submit" class="btn-primary">Enviar</button>
+        <div class="card">
+          <div class="card-hd"><span>Ponte de Texto & Links</span><span>PC ⇄ Celular</span></div>
+          <input type="text" id="clip-input" placeholder="Cole um texto ou link para enviar ao PC..." />
+          <div class="grid-2">
+            <button class="btn btn-primary btn-sm" type="button" onclick="sendTextToPc(false)">Enviar pro Ctrl+C</button>
+            <button class="btn btn-sm" type="button" onclick="sendTextToPc(true)">Abrir Link no PC</button>
+          </div>
+          <div id="pc-clip-wrap">
+            <div style="font-size:10.5px; font-weight:700; color:var(--accent);">RECEBIDO DO PC</div>
+            <div id="pc-clip-text"></div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="copyPcClip()">Copiar no Celular</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span>Energia do PC</span><span>Remoto</span></div>
+          <div class="grid-2">
+            <button class="btn btn-sm" type="button" onclick="sendCmd('keep_awake', true)">☕ Alternar Modo Café</button>
+            <button class="btn btn-sm" type="button" onclick="sendCmd('sleep_pc', 30)">🌙 Desligar em 30m</button>
+            <button class="btn btn-sm" type="button" onclick="sendCmd('sleep_pc', 60)">🌙 Desligar em 1h</button>
+            <button class="btn btn-sm btn-danger" type="button" onclick="sendCmd('cancel_sleep', true)">✕ Cancelar Soneca</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: TAREFAS & NOTAS -->
+      <section class="tab" id="tab-tasks">
+        <div class="card">
+          <div class="card-hd"><span>Tarefas de Hoje</span><span id="task-count">0/0</span></div>
+          <div class="task-list" id="task-list"></div>
+          <form class="row" onsubmit="addTask(event)">
+            <input type="text" id="new-task" placeholder="+ Nova tarefa sincronizada..." />
+            <button class="btn btn-primary btn-sm" type="submit">Add</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span>Bloco de Notas</span><span id="notes-saved" style="color:var(--muted); font-weight:500;">Sincronizado</span></div>
+          <textarea id="notes-input" placeholder="Suas anotações aparecem no PC também..." oninput="onNotesInput(this.value)"></textarea>
+        </div>
+      </section>
+
+      <!-- TAB 3: IA, RESUMIR LINKS & TRANSCREVER ÁUDIOS -->
+      <section class="tab" id="tab-ia">
+        <div class="ia-tools">
+          <button type="button" class="tool-chip accent" onclick="toggleLinkBar()">🔗 Resumir Link</button>
+          <button type="button" class="tool-chip accent" onclick="document.getElementById('audio-picker').click()">🎙️ Transcrever Áudio</button>
+          <button type="button" class="tool-chip" style="flex:0; min-width:auto;" onclick="clearChat()">Limpar</button>
+          <input type="file" id="audio-picker" accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a" style="display:none;" onchange="handleMobileAudio(this)" />
+        </div>
+
+        <form id="link-bar" onsubmit="submitMobileLink(event)">
+          <input type="text" id="link-url-input" placeholder="Cole o link da notícia ou página..." />
+          <button type="submit" class="btn btn-primary btn-sm">Resumir</button>
         </form>
-        <div class="grid-2">
-          <button class="btn-pill" onclick="openLinkOnPc()">🌐 Abrir Link no PC</button>
-          <button class="btn-pill" onclick="pullSync(true)">🔄 Buscar do PC</button>
-        </div>
-        <div id="pc-clip-wrap" style="display:none;">
-          <div style="font-size:11px; color:var(--muted); margin-bottom:5px;">Último texto enviado pelo PC (toque para copiar):</div>
-          <div class="pc-clip-box" id="pc-clip-text" onclick="copyPcClip()"></div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="label-xs"><span>Energia & Soneca do PC</span></div>
-        <div class="grid-2">
-          <button class="btn-pill" onclick="sendCmd('sleep_pc', 30)">🌙 Desligar 30m</button>
-          <button class="btn-pill" onclick="sendCmd('sleep_pc', 60)">🌙 Desligar 1h</button>
-          <button class="btn-pill" onclick="sendCmd('keep_awake', true)">☕ Modo Café</button>
-          <button class="btn-pill" style="color:var(--danger);" onclick="sendCmd('cancel_sleep', null)">✕ Cancelar Soneca</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ABA 2: TAREFAS & NOTAS SINCRONIZADAS -->
-    <section class="tab-view" id="tab-tasks">
-      <div class="card">
-        <div class="label-xs">
-          <span>Tarefas Sincronizadas</span>
-          <span id="task-count" style="color:var(--muted);">0/0</span>
-        </div>
-        <div class="task-list" id="task-list"></div>
-        <form class="inline-form" onsubmit="addTask(event)">
-          <input type="text" id="new-task" placeholder="+ Nova tarefa..." />
-          <button type="submit" class="btn-primary">Add</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="label-xs">
-          <span>Bloco de Notas (PC ↔ Celular)</span>
-          <span id="notes-saved" style="color:var(--ok); font-weight:500;"></span>
-        </div>
-        <textarea id="notes-input" placeholder="Anote ideias na rua que já aparecem no Lumo do PC..." oninput="onNotesInput()"></textarea>
-      </div>
-    </section>
-
-    <!-- ABA 3: IA LUMO -->
-    <section class="tab-view" id="tab-ia" style="flex:1;">
-      <div class="card" style="flex:1; min-height:0;">
-        <div class="label-xs">
-          <span>IA Lumo no Bolso</span>
-          <button class="del" style="font-size:11.5px; color:var(--accent);" onclick="clearChat()">Limpar</button>
-        </div>
         <div id="chat-box">
-          <div class="msg ai">Oi! Pergunte qualquer coisa — uso a mesma IA integrada do seu Lumo no PC.</div>
+          <div class="msg ai">Oi! Pergunte qualquer coisa, cole um link com <strong>/resumir</strong> ou envie um áudio do WhatsApp para transcrever.</div>
         </div>
-        <form class="inline-form" onsubmit="sendPrompt(event)">
-          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." />
-          <button type="submit" class="btn-primary" id="ai-btn">Enviar</button>
+
+        <form class="chat-form" onsubmit="sendAiPrompt(event)">
+          <input type="text" id="ai-input" placeholder="Pergunte ou digite /resumir URL..." />
+          <button type="submit" class="btn btn-primary btn-sm" id="ai-btn">Enviar</button>
         </form>
-      </div>
-    </section>
+      </section>
 
-    <!-- ABA 4: PAREAMENTO & APARÊNCIA -->
-    <section class="tab-view" id="tab-cfg">
-      <div class="card">
-        <div class="label-xs"><span>Parear com o PC</span></div>
-        <p style="font-size:12.5px; color:var(--muted);">
-          No Lumo do Windows, clique no ícone de <strong>Celular</strong> no topo e escaneie o QR Code — ou digite o código abaixo:
-        </p>
-        <form class="inline-form" onsubmit="savePairToken(event)">
-          <input type="text" id="pair-input" placeholder="Ex: LUMO-AB12CD" style="text-transform:uppercase;" />
-          <button type="submit" class="btn-primary">Parear</button>
-        </form>
-        <button class="btn-pill" id="unpair-btn" style="display:none; color:var(--danger);" onclick="unpair()">Desconectar este PC</button>
-      </div>
+      <!-- TAB 4: CONFIGURAÇÕES -->
+      <section class="tab" id="tab-cfg">
+        <div class="card">
+          <div class="card-hd"><span>Parear com Lumo PC</span><span>v2.0</span></div>
+          <p style="font-size:12px; color:var(--muted);">No Lumo PC, clique no ícone de celular, ative <strong>Sincronizar com celular</strong> e escaneie o QR ou digite o código abaixo.</p>
+          <div class="row">
+            <input type="text" id="pair-input" placeholder="Ex: LUMO-AB12CD" autocapitalize="characters" />
+            <button class="btn btn-primary btn-sm" type="button" onclick="savePairCode()">Conectar</button>
+          </div>
+          <button class="btn btn-sm btn-danger" id="unpair-btn" type="button" style="display:none;" onclick="unpairPc()">Desconectar PC</button>
+        </div>
 
-      <div class="card">
-        <div class="label-xs"><span>Seu Nome</span></div>
-        <form class="inline-form" onsubmit="saveName(event)">
-          <input type="text" id="name-input" placeholder="Como devo te chamar?" maxlength="24" />
-          <button type="submit" class="btn-primary">Salvar</button>
-        </form>
-      </div>
+        <div class="card">
+          <div class="card-hd"><span>Seu Nome</span></div>
+          <div class="row">
+            <input type="text" id="name-input" placeholder="Como devo te chamar?" maxlength="24" />
+            <button class="btn btn-primary btn-sm" type="button" onclick="saveName()">Salvar</button>
+          </div>
+        </div>
 
-      <div class="card">
-        <div class="label-xs"><span>Cor do Lumo</span></div>
-        <div class="theme-dots" id="theme-dots"></div>
-      </div>
+        <div class="card">
+          <div class="card-hd"><span>Aparência</span></div>
+          <div class="surf-row">
+            <button type="button" class="surf-btn" data-s="obsidian" onclick="setSurface('obsidian')">Obsidian</button>
+            <button type="button" class="surf-btn" data-s="oled" onclick="setSurface('oled')">OLED</button>
+            <button type="button" class="surf-btn" data-s="light" onclick="setSurface('light')">Modo Claro</button>
+          </div>
+          <div class="dots" id="theme-dots"></div>
+        </div>
 
-      <div class="card" id="install-card" style="display:none;">
-        <div class="label-xs"><span>Instalar na Tela Inicial</span></div>
-        <p style="font-size:12.5px; color:var(--muted);">Instale como aplicativo para abrir em tela cheia direto do ícone.</p>
-        <button class="btn-primary" onclick="installPwa()">Instalar Lumo Mobile</button>
-      </div>
-    </section>
-  </main>
+        <div class="card" id="install-card" style="display:none;">
+          <div class="card-hd"><span>Instalar como App</span></div>
+          <p style="font-size:12px; color:var(--muted);">Adicione o Lumo na tela inicial do celular para abrir em tela cheia.</p>
+          <button class="btn btn-primary btn-sm" type="button" onclick="triggerInstall()">Instalar Lumo Mobile</button>
+        </div>
+      </section>
+    </main>
 
-  <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('remote', this)"><span class="ic">🎛️</span>Remoto</button>
-    <button class="nav-btn" onclick="switchTab('tasks', this)"><span class="ic">✓</span>Tarefas</button>
-    <button class="nav-btn" onclick="switchTab('ia', this)"><span class="ic">✦</span>IA Lumo</button>
-    <button class="nav-btn" onclick="switchTab('cfg', this)"><span class="ic">⚙️</span>Parear</button>
-  </nav>
+    <nav class="bnav">
+      <button type="button" class="nav-btn active" data-t="remote" onclick="switchTab('remote')"><span class="ni">🎛️</span>Remoto</button>
+      <button type="button" class="nav-btn" data-t="tasks" onclick="switchTab('tasks')"><span class="ni">✓</span>Tarefas</button>
+      <button type="button" class="nav-btn" data-t="ia" onclick="switchTab('ia')"><span class="ni">✦</span>IA & Docs</button>
+      <button type="button" class="nav-btn" data-t="cfg" onclick="switchTab('cfg')"><span class="ni">⚙️</span>Ajustes</button>
+    </nav>
+  </div>
 
   <script>
-    const API = 'https://lumo-ai.sivavieiravitor.workers.dev';
-    let pairToken = localStorage.getItem('lumo_pair_token') || '';
-    let userName = localStorage.getItem('lumo_m_name') || '';
-    let tasks = JSON.parse(localStorage.getItem('lumo_m_tasks') || '[]');
-    let lastTasksTs = 0, lastNotesTs = 0, lastPcClipText = '';
-    let notesDebounce = null;
-    let deferredPrompt = null;
-
-    const palette = [
-      { id: 'amber', hex: '#f6b974' }, { id: 'lunar', hex: '#f3f4f6' },
-      { id: 'cyan', hex: '#67e8f9' }, { id: 'cobalt', hex: '#60a5fa' },
-      { id: 'lavender', hex: '#c4b5fd' }, { id: 'sakura', hex: '#f472b6' },
-      { id: 'crimson', hex: '#fb7185' }, { id: 'emerald', hex: '#34d399' }
+    const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
+    const ACCENTS = [
+      { id: 'amber', hex: '#f6b974', soft: 'rgba(246,185,116,0.16)', glow: 'rgba(246,185,116,0.36)' },
+      { id: 'cyan', hex: '#67e8f9', soft: 'rgba(103,232,249,0.16)', glow: 'rgba(103,232,249,0.36)' },
+      { id: 'violet', hex: '#a78bfa', soft: 'rgba(167,139,250,0.16)', glow: 'rgba(167,139,250,0.36)' },
+      { id: 'sakura', hex: '#f472b6', soft: 'rgba(244,114,182,0.16)', glow: 'rgba(244,114,182,0.36)' },
+      { id: 'emerald', hex: '#34d399', soft: 'rgba(52,211,153,0.16)', glow: 'rgba(52,211,153,0.36)' },
+      { id: 'cobalt', hex: '#60a5fa', soft: 'rgba(96,165,250,0.16)', glow: 'rgba(96,165,250,0.36)' }
     ];
 
+    let pairToken = localStorage.getItem('lm_token') || '';
+    let userName = localStorage.getItem('lm_name') || '';
+    let tasks = JSON.parse(localStorage.getItem('lm_tasks') || '[]');
+    let lastTasksTs = 0, lastNotesTs = 0, lastClipTs = 0;
+    let notesTimer = null, deferredInstall = null;
+
+    let toastTimer;
     function toast(msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.add('show');
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => el.classList.remove('show'), 2600);
-    }
-
-    function switchTab(id, btn) {
-      document.querySelectorAll('.tab-view').forEach(v => v.classList.toggle('active', v.id === 'tab-' + id));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      if (id === 'tasks' || id === 'remote') pullSync(false);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
     }
 
     function petLumo() {
       const f = document.getElementById('m-face');
-      f.classList.add('love');
-      toast(userName ? `Oi, ${userName}! ♥` : 'Hehe, valeu pelo carinho! ♥');
-      setTimeout(() => f.classList.remove('love'), 1600);
+      f.classList.add('happy');
+      toast(userName ? `Oi, ${userName}! Tudo certo por aqui.` : 'Oi! Estou conectado e pronto.');
+      setTimeout(() => f.classList.remove('happy'), 1200);
     }
 
-    setInterval(() => {
-      const f = document.getElementById('m-face');
-      if (!f.classList.contains('love') && !f.classList.contains('thinking')) {
-        f.classList.add('blink');
-        setTimeout(() => f.classList.remove('blink'), 130);
+    function switchTab(id) {
+      document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + id));
+      document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.t === id));
+      if (id === 'ia') {
+        const box = document.getElementById('chat-box');
+        box.scrollTop = box.scrollHeight;
       }
-    }, 3400);
-
-    function applyColor(hex) {
-      const n = parseInt(hex.slice(1), 16);
-      const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-      document.documentElement.style.setProperty('--accent', hex);
-      document.documentElement.style.setProperty('--accent-soft', `rgba(${r},${g},${b},0.14)`);
-      document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.36)`);
-      localStorage.setItem('lumo_m_color', hex);
-      document.querySelectorAll('.tdot').forEach(d => d.classList.toggle('active', d.dataset.hex === hex));
     }
 
+    // === TEMAS ===
+    function setSurface(s) {
+      document.body.classList.remove('surface-obsidian', 'surface-oled', 'surface-light');
+      document.body.classList.add('surface-' + s);
+      localStorage.setItem('lm_surface', s);
+      document.querySelectorAll('.surf-btn').forEach((b) => b.classList.toggle('active', b.dataset.s === s));
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', s === 'light' ? '#eef1f7' : s === 'oled' ? '#000000' : '#0b0c12');
+    }
+
+    function setAccent(id) {
+      const t = ACCENTS.find((a) => a.id === id) || ACCENTS[0];
+      document.documentElement.style.setProperty('--accent', t.hex);
+      document.documentElement.style.setProperty('--accent-soft', t.soft);
+      document.documentElement.style.setProperty('--accent-glow', t.glow);
+      localStorage.setItem('lm_accent', t.id);
+      document.querySelectorAll('#theme-dots .dot').forEach((d) => d.classList.toggle('active', d.dataset.id === t.id));
+    }
+
+    function buildAccentDots() {
+      const box = document.getElementById('theme-dots');
+      box.innerHTML = '';
+      ACCENTS.forEach((a) => {
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'dot';
+        d.dataset.id = a.id;
+        d.style.background = a.hex;
+        d.onclick = () => setAccent(a.id);
+        box.appendChild(d);
+      });
+    }
+
+    // === PAREAMENTO & SYNC ===
     function updatePairUI() {
-      const paired = Boolean(pairToken);
-      document.getElementById('pair-dot').classList.toggle('on', paired);
-      document.getElementById('pair-status').textContent = paired ? `Pareado · ${pairToken}` : 'Não pareado com o PC';
-      document.getElementById('pair-input').value = pairToken;
-      document.getElementById('unpair-btn').style.display = paired ? 'block' : 'none';
+      const dot = document.getElementById('pair-dot');
+      const st = document.getElementById('pair-status');
+      const inp = document.getElementById('pair-input');
+      const unp = document.getElementById('unpair-btn');
+      const ok = Boolean(pairToken);
+      dot.classList.toggle('on', ok);
+      st.textContent = ok ? pairToken : 'Sem PC';
+      inp.value = pairToken;
+      unp.style.display = ok ? 'inline-flex' : 'none';
     }
 
-    function savePairToken(e) {
-      e.preventDefault();
+    function savePairCode() {
       const val = document.getElementById('pair-input').value.trim().toUpperCase();
-      if (val.length < 6) { toast('Código muito curto.'); return; }
+      if (val.length < 6) { toast('Digite um código LUMO válido.'); return; }
       pairToken = val;
-      localStorage.setItem('lumo_pair_token', pairToken);
+      localStorage.setItem('lm_token', pairToken);
       updatePairUI();
-      toast('Pareado com o PC!');
-      pullSync(true);
+      pollSync();
+      toast('Conectado ao código ' + pairToken);
     }
 
-    function unpair() {
+    function unpairPc() {
       pairToken = '';
-      localStorage.removeItem('lumo_pair_token');
+      localStorage.removeItem('lm_token');
       updatePairUI();
-      toast('Desconectado do PC.');
+      toast('PC desconectado.');
     }
 
-    function saveName(e) {
-      e.preventDefault();
+    function saveName() {
       userName = document.getElementById('name-input').value.trim();
-      localStorage.setItem('lumo_m_name', userName);
-      toast(userName ? `Prazer, ${userName}!` : 'Nome limpo.');
+      localStorage.setItem('lm_name', userName);
+      toast('Nome salvo!');
     }
 
-    async function pushSync(payload) {
-      if (!pairToken) { toast('Pareie com o PC primeiro (aba Parear).'); return false; }
+    async function postSync(payload) {
+      if (!pairToken) { toast('Pareie com o PC primeiro em Ajustes.'); return false; }
       try {
-        const res = await fetch(`${API}/sync`, {
+        const res = await fetch(`${API_BASE}/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
           body: JSON.stringify({ token: pairToken, source: 'mobile', ...payload })
         });
         return res.ok;
       } catch (_) {
-        toast('Sem conexão com o Lumo Cloud.');
+        toast('Sem conexão com o servidor.');
         return false;
       }
     }
 
-    async function pullSync(showFeedback = false) {
-      if (!pairToken) return;
-      try {
-        const res = await fetch(`${API}/sync?token=${encodeURIComponent(pairToken)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-
-        if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastTasksTs) {
-          lastTasksTs = data.tasksUpdatedAt || Date.now();
-          tasks = data.tasks;
-          localStorage.setItem('lumo_m_tasks', JSON.stringify(tasks));
-          renderTasks();
-        }
-        if (typeof data.notes === 'string' && (data.notesUpdatedAt || 0) > lastNotesTs) {
-          lastNotesTs = data.notesUpdatedAt || Date.now();
-          document.getElementById('notes-input').value = data.notes;
-          localStorage.setItem('lumo_m_notes', data.notes);
-        }
-        if (data.pcClip?.text) {
-          lastPcClipText = data.pcClip.text;
-          document.getElementById('pc-clip-text').textContent = lastPcClipText;
-          document.getElementById('pc-clip-wrap').style.display = 'block';
-        }
-        if (showFeedback) toast('Sincronizado com o PC ✓');
-      } catch (_) {}
-    }
-
     async function sendCmd(action, value) {
-      const ok = await pushSync({ cmd: { action, value } });
-      if (ok) toast('Comando enviado pro PC ✓');
+      const ok = await postSync({ cmd: { action, value } });
+      if (ok) toast('Comando enviado ao PC ✓');
     }
 
-    async function sendClipToPc(e) {
-      e.preventDefault();
+    async function sendTextToPc(asUrl) {
       const inp = document.getElementById('clip-input');
-      const txt = inp.value.trim();
-      if (!txt) return;
-      const ok = await pushSync({ clip: txt, cmd: { action: 'set_clip', value: txt } });
-      if (ok) { inp.value = ''; toast('Enviado para o Ctrl+C do PC ✓'); }
-    }
-
-    async function openLinkOnPc() {
-      const inp = document.getElementById('clip-input');
-      let url = inp.value.trim();
-      if (!url) { toast('Cole um link no campo acima.'); return; }
-      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-      const ok = await pushSync({ cmd: { action: 'open_url', value: url } });
-      if (ok) { inp.value = ''; toast('Abrindo no navegador do PC ✓'); }
+      const val = inp.value.trim();
+      if (!val) return;
+      const action = asUrl ? 'open_url' : 'set_clip';
+      const target = asUrl && !/^https?:\/\//i.test(val) ? 'https://' + val : val;
+      const ok = await postSync({ cmd: { action, value: target }, clip: val });
+      if (ok) {
+        inp.value = '';
+        toast(asUrl ? 'Abrindo link no PC...' : 'Texto enviado pro Ctrl+C do PC ✓');
+      }
     }
 
     function copyPcClip() {
-      if (!lastPcClipText) return;
-      navigator.clipboard?.writeText(lastPcClipText);
-      toast('Texto do PC copiado!');
+      const txt = document.getElementById('pc-clip-text').textContent;
+      if (!txt) return;
+      navigator.clipboard?.writeText(txt);
+      toast('Copiado no celular ✓');
     }
 
-    // Tarefas & Notas
-    function renderTasks() {
+    async function pollSync() {
+      if (!pairToken || document.visibilityState !== 'visible') return;
+      try {
+        const res = await fetch(`${API_BASE}/sync?token=${encodeURIComponent(pairToken)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastTasksTs) {
+          lastTasksTs = data.tasksUpdatedAt;
+          tasks = data.tasks;
+          renderTasks(false);
+        }
+        if (typeof data.notes === 'string' && (data.notesUpdatedAt || 0) > lastNotesTs) {
+          lastNotesTs = data.notesUpdatedAt;
+          const el = document.getElementById('notes-input');
+          if (el && document.activeElement !== el) {
+            el.value = data.notes;
+            localStorage.setItem('lm_notes', data.notes);
+          }
+        }
+        if (data.pcClip?.text && (data.pcClip.ts || 0) > lastClipTs) {
+          lastClipTs = data.pcClip.ts;
+          document.getElementById('pc-clip-text').textContent = data.pcClip.text;
+          document.getElementById('pc-clip-wrap').classList.add('show');
+        }
+      } catch (_) {}
+    }
+
+    // === TAREFAS & NOTAS ===
+    function renderTasks(push = true) {
       const list = document.getElementById('task-list');
       list.innerHTML = '';
-      const done = tasks.filter(t => t.done).length;
+      const done = tasks.filter((t) => t.done).length;
       document.getElementById('task-count').textContent = `${done}/${tasks.length}`;
       if (!tasks.length) {
         list.innerHTML = '<div style="font-size:12.5px; color:var(--muted); text-align:center; padding:8px;">Nenhuma tarefa ainda.</div>';
-        return;
+      } else {
+        tasks.forEach((t, i) => {
+          const row = document.createElement('div');
+          row.className = 'task-item' + (t.done ? ' done' : '');
+          const safe = String(t.text || '').replace(/</g, '&lt;');
+          row.innerHTML = `<div class="task-left" onclick="toggleTask(${i})"><div class="chk">${t.done ? '✓' : ''}</div><span>${safe}</span></div><button class="del" type="button" onclick="delTask(${i})">×</button>`;
+          list.appendChild(row);
+        });
       }
-      tasks.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.className = 'task-item' + (t.done ? ' done' : '');
-        div.innerHTML = `
-          <div class="task-left" onclick="toggleTask(${i})">
-            <div class="chk">${t.done ? '✓' : ''}</div>
-            <span>${t.text.replace(/</g, '&lt;')}</span>
-          </div>
-          <button class="del" onclick="delTask(${i})">×</button>
-        `;
-        list.appendChild(div);
-      });
+      localStorage.setItem('lm_tasks', JSON.stringify(tasks));
+      if (push && pairToken) { lastTasksTs = Date.now(); postSync({ tasks }); }
     }
-
-    async function syncTasksOut() {
-      lastTasksTs = Date.now();
-      localStorage.setItem('lumo_m_tasks', JSON.stringify(tasks));
-      renderTasks();
-      if (pairToken) await pushSync({ tasks });
-    }
-
     function addTask(e) {
       e.preventDefault();
-      const inp = document.getElementById('new-task');
-      const txt = inp.value.trim();
-      if (!txt) return;
-      tasks.push({ text: txt, done: false });
+      const inp = document.getElementById('new-task'), v = inp.value.trim();
+      if (!v) return;
+      tasks.push({ text: v, done: false });
       inp.value = '';
-      syncTasksOut();
+      renderTasks(true);
     }
-    function toggleTask(i) { tasks[i].done = !tasks[i].done; syncTasksOut(); }
-    function delTask(i) { tasks.splice(i, 1); syncTasksOut(); }
+    function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(true); }
+    function delTask(i) { tasks.splice(i, 1); renderTasks(true); }
 
-    function onNotesInput() {
-      const val = document.getElementById('notes-input').value;
-      localStorage.setItem('lumo_m_notes', val);
-      document.getElementById('notes-saved').textContent = 'Salvando...';
-      clearTimeout(notesDebounce);
-      notesDebounce = setTimeout(async () => {
-        lastNotesTs = Date.now();
-        if (pairToken) await pushSync({ notes: val });
-        document.getElementById('notes-saved').textContent = 'Sincronizado ✓';
-        setTimeout(() => { document.getElementById('notes-saved').textContent = ''; }, 1800);
+    function onNotesInput(val) {
+      localStorage.setItem('lm_notes', val);
+      const st = document.getElementById('notes-saved');
+      st.textContent = 'Salvando...';
+      clearTimeout(notesTimer);
+      notesTimer = setTimeout(async () => {
+        if (pairToken) {
+          lastNotesTs = Date.now();
+          await postSync({ notes: val });
+          st.textContent = 'Sincronizado ✓';
+        } else {
+          st.textContent = 'Salvo local';
+        }
       }, 900);
     }
 
-    // Chat IA
-    function appendMsg(text, who) {
+    // === IA, RESUMIR LINKS & WHISPER ===
+    function appendChat(text, who) {
       const box = document.getElementById('chat-box');
       const div = document.createElement('div');
       div.className = 'msg ' + who;
-      div.textContent = text;
+      const body = document.createElement('div');
+      body.textContent = text;
+      div.appendChild(body);
+      if (who === 'ai') {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'msg-copy';
+        b.textContent = 'Copiar';
+        b.onclick = () => {
+          navigator.clipboard?.writeText(text);
+          b.textContent = 'Copiado ✓';
+          setTimeout(() => { b.textContent = 'Copiar'; }, 1500);
+        };
+        div.appendChild(b);
+      }
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
+      return div;
     }
+
     function clearChat() {
       document.getElementById('chat-box').innerHTML = '<div class="msg ai">Conversa limpa! Como posso ajudar?</div>';
     }
-    async function sendPrompt(e) {
+
+    function toggleLinkBar() {
+      const bar = document.getElementById('link-bar');
+      const open = bar.classList.toggle('show');
+      if (open) document.getElementById('link-url-input').focus();
+    }
+
+    function setAiBusy(busy) {
+      document.getElementById('ai-btn').disabled = busy;
+      document.getElementById('ai-btn').textContent = busy ? '...' : 'Enviar';
+      document.getElementById('m-face').classList.toggle('thinking', busy);
+    }
+
+    async function summarizeMobileUrl(rawUrl) {
+      const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'https://' + rawUrl;
+      appendChat('🔗 Resumir: ' + url, 'user');
+      setAiBusy(true);
+      try {
+        const res = await fetch(`${API_BASE}/summarize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.summary) appendChat((data.title ? `📌 ${data.title}\n\n` : '') + data.summary, 'ai');
+        else appendChat(data.error || 'Não consegui resumir essa página.', 'ai');
+      } catch (_) {
+        appendChat('Erro de conexão ao resumir.', 'ai');
+      } finally {
+        setAiBusy(false);
+      }
+    }
+
+    function submitMobileLink(e) {
+      e.preventDefault();
+      const inp = document.getElementById('link-url-input');
+      const v = inp.value.trim();
+      if (!v) return;
+      inp.value = '';
+      document.getElementById('link-bar').classList.remove('show');
+      summarizeMobileUrl(v);
+    }
+
+    async function handleMobileAudio(input) {
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) { toast('Áudio maior que 20 MB.'); return; }
+      appendChat(`🎙️ Transcrevendo: ${file.name}`, 'user');
+      setAiBusy(true);
+      try {
+        const form = new FormData();
+        form.append('file', file, file.name || 'audio.ogg');
+        form.append('summarize', '1');
+        const res = await fetch(`${API_BASE}/transcribe`, {
+          method: 'POST',
+          headers: { 'X-Lumo-Client': 'lumo-mobile-v1' },
+          body: form
+        });
+        const data = await res.json();
+        if (data.transcript) {
+          const out = data.summary
+            ? `🎙️ Resumo:\n${data.summary}\n\n— Transcrição —\n${data.transcript}`
+            : `🎙️ Transcrição:\n\n${data.transcript}`;
+          appendChat(out, 'ai');
+        } else {
+          appendChat(data.error || 'Não consegui transcrever esse áudio.', 'ai');
+        }
+      } catch (_) {
+        appendChat('Erro de conexão ao transcrever.', 'ai');
+      } finally {
+        setAiBusy(false);
+      }
+    }
+
+    async function sendAiPrompt(e) {
       e.preventDefault();
       const inp = document.getElementById('ai-input');
       const prompt = inp.value.trim();
       if (!prompt) return;
       inp.value = '';
-      appendMsg(prompt, 'user');
-      const btn = document.getElementById('ai-btn');
-      btn.disabled = true; btn.textContent = '...';
-      document.getElementById('m-face').classList.add('thinking');
+
+      if (/^\/resumir\s+/i.test(prompt)) {
+        return summarizeMobileUrl(prompt.replace(/^\/resumir\s+/i, '').trim());
+      }
+      if (/^https?:\/\/\S+$/i.test(prompt)) {
+        return summarizeMobileUrl(prompt);
+      }
+
+      appendChat(prompt, 'user');
+      setAiBusy(true);
       try {
-        const res = await fetch(API + '/', {
+        const res = await fetch(API_BASE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
           body: JSON.stringify({ prompt, userName: userName || null })
         });
         const data = await res.json();
-        appendMsg(data.reply || data.error || 'Sem resposta.', 'ai');
+        appendChat(data.reply || data.error || 'Sem resposta agora.', 'ai');
       } catch (_) {
-        appendMsg('Erro de conexão com a IA.', 'ai');
+        appendChat('Sem conexão com o Lumo Cloud.', 'ai');
+      } finally {
+        setAiBusy(false);
       }
-      document.getElementById('m-face').classList.remove('thinking');
-      btn.disabled = false; btn.textContent = 'Enviar';
     }
 
-    // Instalação PWA
+    // === PWA INSTALL & INIT ===
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      deferredPrompt = e;
+      deferredInstall = e;
       document.getElementById('install-card').style.display = 'flex';
     });
-    async function installPwa() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
+
+    async function triggerInstall() {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall = null;
       document.getElementById('install-card').style.display = 'none';
     }
 
     (function init() {
-      // Auto-pareamento quando escaneia o QR Code do PC (?pair=LUMO-XXXXXX)
-      const params = new URLSearchParams(window.location.search);
-      const qrToken = params.get('pair');
-      if (qrToken && qrToken.trim().length >= 6) {
-        pairToken = qrToken.trim().toUpperCase();
-        localStorage.setItem('lumo_pair_token', pairToken);
-        history.replaceState({}, '', './');
-        toast('Pareado via QR Code! ✓');
+      buildAccentDots();
+      setSurface(localStorage.getItem('lm_surface') || 'obsidian');
+      setAccent(localStorage.getItem('lm_accent') || 'amber');
+      document.getElementById('name-input').value = userName;
+      document.getElementById('notes-input').value = localStorage.getItem('lm_notes') || '';
+
+      const pairParam = new URLSearchParams(window.location.search).get('pair');
+      if (pairParam && pairParam.trim().length >= 6) {
+        pairToken = pairParam.trim().toUpperCase();
+        localStorage.setItem('lm_token', pairToken);
+        history.replaceState({}, '', window.location.pathname);
+        toast('Pareado com ' + pairToken + ' ✓');
       }
 
-      // Renderiza paleta
-      const dots = document.getElementById('theme-dots');
-      palette.forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'tdot'; d.dataset.hex = p.hex; d.style.background = p.hex;
-        d.onclick = () => applyColor(p.hex);
-        dots.appendChild(d);
-      });
-      applyColor(localStorage.getItem('lumo_m_color') || '#f6b974');
-
-      document.getElementById('name-input').value = userName;
-      document.getElementById('notes-input').value = localStorage.getItem('lumo_m_notes') || '';
       updatePairUI();
-      renderTasks();
-      pullSync(false);
-      setInterval(() => { if (!document.hidden && pairToken) pullSync(false); }, 6000);
+      renderTasks(false);
+      pollSync();
+      setInterval(pollSync, 6000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollSync(); });
 
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
     })();
   </script>
 </body>
