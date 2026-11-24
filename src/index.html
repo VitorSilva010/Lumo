@@ -774,10 +774,218 @@
       background: rgba(255,255,255,0.035); color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.18s;
     }
     .eye-style-btn.active-btn { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  
+    /* === LUMO v1.7.0 — FLUIDEZ, DESIGN & CHEGADA EM CÁPSULA === */
+    #panel.open {
+      animation: panelSpringOpen 0.34s cubic-bezier(0.34, 1.38, 0.64, 1) forwards !important;
+    }
+    @keyframes panelSpringOpen {
+      0% { opacity: 0; transform: translateY(-14px) scale(0.92); filter: blur(4px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    .view.active {
+      animation: viewSilkEnter 0.28s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    @keyframes viewSilkEnter {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    .hub-tile {
+      transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, border-color 0.2s, box-shadow 0.24s !important;
+    }
+    .hub-tile:hover {
+      transform: translateY(-3px) scale(1.02) !important;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.38), 0 0 18px var(--accent-soft) !important;
+    }
+    .btn-primary, .btn-ghost, .circle-btn, .mm-btn {
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.2s !important;
+    }
+
+    /* Badge de Afinidade/Nível */
+    .affinity-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9.8px; font-weight: 600; color: var(--text);
+      background: rgba(255, 255, 255, 0.055); border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2.5px 8px; border-radius: 999px; margin-top: 4px;
+    }
+    .affinity-pill .lv-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Snippets (Frases Rápidas) */
+    .snippet-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06); cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .snippet-item:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateX(2px); }
+    .snippet-meta { overflow: hidden; flex: 1; }
+    .snippet-name { font-size: 11.5px; font-weight: 600; color: var(--text); }
+    .snippet-val { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* === PALCO CINEMATOGRÁFICO DE CHEGADA === */
+    #cinema-stage {
+      display: none; position: fixed; inset: 0; z-index: 120;
+      pointer-events: none; overflow: hidden;
+    }
+    #cinema-stage.active { display: block; }
+
+    #mothership {
+      position: absolute; top: 14px; left: 50%; width: 150px; height: 58px;
+      margin-left: -75px; opacity: 0;
+      transform: translateX(-270px) rotate(-4deg);
+      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 18px var(--accent-soft));
+      transition: transform 1.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+    }
+    #mothership.arrive {
+      opacity: 1; transform: translateX(0) rotate(0deg);
+    }
+    #mothership.hovering {
+      opacity: 1; animation: shipHover 1.8s ease-in-out infinite alternate;
+    }
+    #mothership.depart {
+      opacity: 0; transform: translateX(310px) translateY(-18px) scale(0.72) rotate(8deg);
+      transition: transform 0.95s cubic-bezier(0.55, 0.05, 0.67, 0.19), opacity 0.75s ease;
+    }
+    @keyframes shipHover {
+      from { transform: translateX(0) translateY(0); }
+      to { transform: translateX(0) translateY(-4px); }
+    }
+
+    #drop-beam {
+      position: absolute; top: 58px; left: 50%; width: 76px; height: 150px;
+      margin-left: -38px;
+      background: linear-gradient(180deg, var(--accent-glow), transparent 90%);
+      clip-path: polygon(32% 0%, 68% 0%, 100% 100%, 0% 100%);
+      opacity: 0; transform: scaleY(0.1); transform-origin: top center;
+      transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #drop-beam.on { opacity: 0.72; transform: scaleY(1); }
+
+    #impact-ring {
+      position: absolute; top: 214px; left: 50%; width: 140px; height: 26px;
+      margin-left: -70px; border-radius: 50%;
+      border: 2px solid var(--accent); opacity: 0; transform: scale(0.2);
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    #impact-ring.boom {
+      animation: shockwave 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes shockwave {
+      0% { opacity: 0.95; transform: scale(0.25); }
+      100% { opacity: 0; transform: scale(1.85); }
+    }
+
+    #drop-capsule {
+      position: absolute; top: 44px; left: 50%; width: 158px; height: 54px;
+      margin-left: -79px; border-radius: 999px;
+      background: var(--bg-pill); border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.68), 0 0 32px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(0.35);
+    }
+    #drop-capsule.falling {
+      opacity: 1;
+      animation: capsuleDrop 1.05s cubic-bezier(0.45, 0, 0.9, 0.55) forwards;
+    }
+    @keyframes capsuleDrop {
+      0%   { top: 48px; transform: scale(0.42, 0.55); opacity: 1; }
+      58%  { top: 186px; transform: scale(0.92, 1.12); opacity: 1; }
+      72%  { top: 194px; transform: scale(1.18, 0.80); opacity: 1; }
+      84%  { top: 168px; transform: scale(0.96, 1.06); opacity: 1; }
+      93%  { top: 188px; transform: scale(1.06, 0.94); opacity: 1; }
+      100% { top: 184px; transform: scale(1, 1); opacity: 1; }
+    }
+    #drop-capsule.docking {
+      opacity: 1; top: 8px !important; transform: scale(1) !important;
+      transition: top 0.88s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s ease;
+    }
+
+    .cine-face {
+      display: flex; align-items: center; justify-content: center; gap: 18px;
+      transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .cine-eye {
+      width: 13px; height: 19px; border-radius: 999px;
+      background: var(--accent); box-shadow: 0 0 16px var(--accent-glow);
+      position: relative; opacity: 0;
+      transition: all 0.22s ease;
+    }
+    .cine-eye::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 4px; height: 4px; border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+    }
+    .cine-face.boot .cine-eye { opacity: 1; animation: eyeFlicker 0.45s ease forwards; }
+    @keyframes eyeFlicker {
+      0% { opacity: 0; height: 3px; }
+      35% { opacity: 1; height: 4px; }
+      60% { opacity: 0.4; height: 14px; }
+      100% { opacity: 1; height: 19px; }
+    }
+    .cine-face.on .cine-eye { opacity: 1; }
+    .cine-face.blink .cine-eye { opacity: 1; height: 3px; border-radius: 4px; }
+    .cine-face.blink .cine-eye::after { opacity: 0; }
+    .cine-face.happy .cine-eye {
+      opacity: 1; height: 11px; width: 15px; background: transparent; box-shadow: none;
+      border-top: 3.5px solid var(--accent); border-radius: 50% 50% 0 0; transform: translateY(3px);
+    }
+    .cine-face.happy .cine-eye::after { opacity: 0; }
+
+    #cinema-bubble {
+      position: absolute; top: 252px; left: 50%;
+      transform: translateX(-50%) translateY(8px) scale(0.95);
+      max-width: 390px; width: max-content; padding: 10px 16px; border-radius: 16px;
+      background: rgba(13, 14, 21, 0.97); border: 1px solid rgba(246, 185, 116, 0.45);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 22px var(--accent-soft);
+      font-size: 12.6px; font-weight: 500; line-height: 1.4; text-align: center;
+      color: var(--text); opacity: 0;
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #cinema-bubble.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+    #cinema-skip {
+      position: absolute; bottom: 8px; right: 16px; pointer-events: auto;
+      background: rgba(13, 14, 21, 0.82); border: 1px solid var(--border);
+      color: var(--muted); font-size: 10.5px; padding: 4px 10px; border-radius: 999px;
+      cursor: pointer; transition: all 0.16s ease;
+    }
+    #cinema-skip:hover { color: var(--accent); border-color: var(--accent); }
+
   </style>
 </head>
 <body>
   <div id="app">
+    <div id="cinema-stage">
+      <svg id="mothership" viewBox="0 0 160 64" fill="none">
+        <defs>
+          <linearGradient id="hullGrad" x1="0" y1="0" x2="160" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#272a3b" />
+            <stop offset="55%" stop-color="#141622" />
+            <stop offset="100%" stop-color="#0b0c12" />
+          </linearGradient>
+        </defs>
+        <ellipse cx="80" cy="40" rx="68" ry="13" fill="url(#hullGrad)" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />
+        <path d="M44 33 C52 13, 108 13, 116 33 Z" fill="#1b1e2e" stroke="var(--accent)" stroke-opacity="0.55" stroke-width="1.4" />
+        <ellipse cx="80" cy="24" rx="18" ry="5" fill="var(--accent)" fill-opacity="0.32" />
+        <circle cx="42" cy="40" r="3" fill="var(--accent)" />
+        <circle cx="80" cy="43" r="3.5" fill="var(--accent)" />
+        <circle cx="118" cy="40" r="3" fill="var(--accent)" />
+        <rect x="64" y="48" width="32" height="5" rx="2.5" fill="var(--accent)" fill-opacity="0.7" />
+      </svg>
+      <div id="drop-beam"></div>
+      <div id="impact-ring"></div>
+      <div id="drop-capsule">
+        <div class="cine-face" id="cine-face">
+          <div class="cine-eye"></div>
+          <div class="cine-eye"></div>
+        </div>
+      </div>
+      <div id="cinema-bubble"></div>
+      <button id="cinema-skip" onclick="finishArrivalCinema()">Pular</button>
+    </div>
+
     <div id="corner-sensor" title="Chamar o Lumo (ou Alt + Espaço)" onclick="wakeFromGame()">
       <div class="dot"></div>
     </div>
@@ -871,6 +1079,7 @@
                 <div class="hero-clock" id="live-clock">00<span class="colon">:</span>00</div>
                 <div class="hero-greet" id="greeting-text">Bom dia!</div>
                 <div class="hero-date" id="daily-date">Hoje</div>
+                <div class="affinity-pill" id="affinity-badge" title="Ganha XP usando o Lumo!"><span class="lv-dot"></span><span id="affinity-text">Nv. 1 · Recém-chegado</span></div>
               </div>
               <div class="hero-right">
                 <span class="weather-chip" onclick="fetchWeather(true)" title="Atualizar clima">
@@ -1013,6 +1222,7 @@
         <!-- BARRA INTELIGENTE -->
         <div class="quick-ai-dock">
           <div class="cmd-chips">
+            <button class="cmd-chip" type="button" onclick="fillCmd('/tr ')">/tr Traduzir</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/g ')">/g Google</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/yt ')">/yt YouTube</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/cor')">/cor</button>
@@ -1066,6 +1276,21 @@
             <span id="pwd-output" style="overflow:hidden; text-overflow:ellipsis;">Clique em gerar...</span>
             <button class="btn-primary" style="padding:4px 9px; font-size:11px;" onclick="generatePassword()">Gerar & Copiar</button>
           </div>
+        </div>
+      </div>
+
+
+        <div class="card">
+          <div class="label-xs">
+            <span>Frases Rápidas (1 clique)</span>
+            <span style="color:var(--muted); font-weight:400;">Pix · E-mail · Links</span>
+          </div>
+          <div class="task-list" id="snippets-list"></div>
+          <form class="inline-form" onsubmit="addSnippet(event)">
+            <input type="text" id="snip-title" placeholder="Nome (ex: Pix)" style="max-width:96px;" />
+            <input type="text" id="snip-val" placeholder="Texto p/ copiar..." />
+            <button type="submit" class="btn-primary">Add</button>
+          </form>
         </div>
       </div>
 
@@ -1219,7 +1444,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.6.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.7.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -1296,8 +1521,11 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.6.0</div></div>
-            <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.7.0</div></div>
+            <div style="display:flex; gap:5px;">
+              <button class="btn-ghost" title="Assistir animação de chegada novamente" onclick="replayArrivalCinema()">Rever Intro</button>
+              <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1574,6 +1802,24 @@
         const q = raw.slice(4).trim();
         if (q && invoke) { await invoke('open_external_url', { url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` }); hopPill(); return; }
       }
+      if (lower.startsWith('/tr ') || lower.startsWith('/trad ')) {
+        const txt = raw.replace(/^\/(tr|trad)\s+/i, '').trim();
+        if (txt) {
+          addAffinityXp(6);
+          openView('ia');
+          await executePrompt('Traduza o texto abaixo de forma natural (se estiver em outro idioma, para português; se estiver em português, para inglês). Responda apenas com a tradução:\n\n' + txt);
+          return;
+        }
+      }
+      if (lower.startsWith('/corrigir ')) {
+        const txt = raw.slice(10).trim();
+        if (txt) {
+          addAffinityXp(6);
+          openView('ia');
+          await executePrompt('Corrija a ortografia, acentuação e fluidez do texto abaixo mantendo o tom natural. Responda apenas com o texto corrigido:\n\n' + txt);
+          return;
+        }
+      }
       if (lower === '/cor') { openView('kit'); pickScreenColor(); return; }
       if (lower === '/senha') { openView('kit'); generatePassword(); return; }
       if (lower.startsWith('/qr ')) { openView('kit'); document.getElementById('qr-input').value = raw.slice(4).trim(); generateQR(new Event('submit')); return; }
@@ -1746,7 +1992,7 @@
             say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
           }
         } else if (!silent) {
-          document.getElementById('update-cfg-status').textContent = 'Você já está na versão mais recente (v1.6.0)!';
+          document.getElementById('update-cfg-status').textContent = 'Você já está na versão mais recente (v1.7.0)!';
         }
       } catch (err) {
         if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 60);
@@ -2337,6 +2583,7 @@
 
     async function pollWindowsLoop() {
       if (isShuttingDown) return;
+      if (cinemaPlaying) { setTimeout(pollWindowsLoop, 250); return; }
       if (invoke) {
         try {
           const state = await invoke('get_desktop_state');
@@ -2754,15 +3001,22 @@
       setTimeout(() => checkForUpdates(true), 3500);
       setInterval(() => checkForUpdates(true), 15 * 60 * 1000);
 
-      // Despertar animado garantido com saudação na tela
-      setTimeout(() => {
-        setExpression('happy'); hopPill(); playChirp(460, 820, 0.26);
-        const msg = userName
-          ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.`
-          : `${getGreetingBase()}! Clique em mim para nos conhecermos.`;
-        say(msg, 4800, true, null, true);
-        setTimeout(() => restoreIdleExpression(), 1500);
-      }, 450);
+      renderSnippets();
+      renderAffinity();
+
+      // Primeira vez instalado: roda a chegada cinematográfica na cápsula!
+      if (!localStorage.getItem('lumo_intro_done')) {
+        setTimeout(() => playArrivalCinema(), 350);
+      } else {
+        setTimeout(() => {
+          setExpression('happy'); hopPill(); playChirp(460, 820, 0.26);
+          const msg = userName
+            ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.`
+            : `${getGreetingBase()}! Clique em mim para nos conhecermos.`;
+          say(msg, 4800, true, null, true);
+          setTimeout(() => restoreIdleExpression(), 1500);
+        }, 450);
+      }
     })();
   </script>
 </body>

@@ -82,6 +82,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
     let (w, h, align_right) = match mode.as_str() {
         "expanded" => (452.0_f64, 650.0_f64, false),
+        "cinema" => (480.0_f64, 340.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
         _ => (310.0_f64, 150.0_f64, false),
     };
@@ -103,7 +104,7 @@ fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), Str
         )));
     }
 
-    if mode == "expanded" {
+    if mode == "expanded" || mode == "cinema" {
         let _ = window.set_focus();
     }
 
