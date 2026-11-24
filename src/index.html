@@ -729,7 +729,7 @@
     }
 
   
-    /* === LUMO v1.7.2 — VISUAL & ANIMAÇÕES === */
+    /* === LUMO v1.7.3 — VISUAL & ANIMAÇÕES === */
     #lumo-pill:hover {
       transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
       border-color: rgba(255, 255, 255, 0.22);
@@ -895,6 +895,30 @@
       transition: top 0.85s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
     }
 /* LUMO_V172_CSS_END */
+  
+/* LUMO_V173_CSS_START */
+    #app { padding-top: 16px !important; }
+    #lumo-pill { overflow: visible !important; }
+    #lumo-face {
+      transition: transform 0.11s cubic-bezier(0.22, 1, 0.36, 1) !important;
+      will-change: transform;
+    }
+    #lumo-face #acc-headphones {
+      position: absolute !important;
+      top: -15px !important;
+      left: 50% !important;
+      width: 78px !important;
+      height: 42px !important;
+      opacity: 0 !important;
+      pointer-events: none;
+      transform: translateX(-50%) scale(0.86) !important;
+      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    #lumo-face.music #acc-headphones {
+      opacity: 0.96 !important;
+      transform: translateX(-50%) scale(1) !important;
+    }
+/* LUMO_V173_CSS_END */
   </style>
 </head>
 <body>
@@ -908,13 +932,14 @@
       <div class="eq-bars" id="eq-bars">
         <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
       </div>
-      <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+      
+      <div class="face" id="lumo-face">
+        <div id="sweat-drop"></div>
+        <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
           <path d="M12 26 A28 24 0 0 1 68 26" />
           <rect x="6" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
           <rect x="67" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
         </svg>
-      <div class="face" id="lumo-face">
-        <div id="sweat-drop"></div>
         
         <svg id="acc-glasses" class="acc-svg" viewBox="0 0 68 26" fill="none" stroke="currentColor" stroke-width="2.4">
           <rect x="7" y="4" width="21" height="16" rx="5" />
@@ -1424,7 +1449,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.7.2</span>
+            <span>Plano · Lumo v1.7.3</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1519,7 +1544,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.7.2</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.7.3</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -3297,7 +3322,7 @@
       }, 650);
     })();
   
-    // === UPGRADE VISUAL & ANIMAÇÕES (v1.7.2) ===
+    // === UPGRADE VISUAL & ANIMAÇÕES (v1.7.3) ===
     function setEyeStyle(style, btnEl) {
       const face = document.getElementById('lumo-face');
       if (!face) return;
@@ -3379,7 +3404,7 @@
     })();
 
   
-    // === PONTE PC <-> CELULAR PWA (v1.7.2) ===
+    // === PONTE PC <-> CELULAR PWA (v1.7.3) ===
     const SYNC_API = 'https://lumo-ai.sivavieiravitor.workers.dev/sync';
     let syncToken = localStorage.getItem('lumo_sync_token') || '';
     let isApplyingRemoteSync = false;
@@ -3522,8 +3547,10 @@
     })();
 
   
-/* LUMO_V172_JS_START */
-    (function initV172Polish() {
+
+  
+/* LUMO_V173_JS_START */
+    (function initV173Fix() {
       var pillEl = document.getElementById('lumo-pill');
       if (pillEl) {
         pillEl.addEventListener('animationend', function(ev) {
@@ -3538,17 +3565,55 @@
           }
         });
       }
-      if (typeof window.setEyeTarget === 'function' && !window.setEyeTarget._v172) {
-        var origEye = window.setEyeTarget;
-        window.setEyeTarget = function(x, y) {
-          var cx = Math.max(-10, Math.min(10, Number(x) || 0));
-          var cy = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
-          return origEye(cx, cy);
-        };
-        window.setEyeTarget._v172 = true;
+
+      if (typeof eyeRafId !== 'undefined' && eyeRafId) {
+        try { cancelAnimationFrame(eyeRafId); } catch (_) {}
+        eyeRafId = null;
       }
+
+      var lastEyeCall = 0;
+      window.setEyeTarget = function(x, y) {
+        if (typeof isHiddenInGame !== 'undefined' && isHiddenInGame) return;
+        lastEyeCall = Date.now();
+        var cx = Math.max(-11, Math.min(11, Number(x) || 0));
+        var cy = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
+        var face = document.getElementById('lumo-face');
+        if (face) {
+          face.style.transform = 'translate(' + cx.toFixed(1) + 'px, ' + cy.toFixed(1) + 'px)';
+        }
+      };
+
+      window.addEventListener('pointermove', function(ev) {
+        if ((typeof isHiddenInGame !== 'undefined' && isHiddenInGame) ||
+            (typeof isTypingLook !== 'undefined' && isTypingLook) ||
+            (typeof cinemaPlaying !== 'undefined' && cinemaPlaying)) return;
+        var p = document.getElementById('lumo-pill');
+        if (!p) return;
+        var r = p.getBoundingClientRect();
+        var dx = (ev.clientX - (r.left + r.width / 2)) / 18;
+        var dy = (ev.clientY - (r.top + r.height / 2)) / 18;
+        window.setEyeTarget(dx, dy);
+      });
+
+      setInterval(async function() {
+        if (!invoke ||
+            (typeof isShuttingDown !== 'undefined' && isShuttingDown) ||
+            (typeof isHiddenInGame !== 'undefined' && isHiddenInGame) ||
+            (typeof isTypingLook !== 'undefined' && isTypingLook) ||
+            (typeof cinemaPlaying !== 'undefined' && cinemaPlaying)) return;
+        if (Date.now() - lastEyeCall < 280) return;
+        try {
+          var st = await invoke('get_desktop_state');
+          if (typeof st.cursor_x === 'number') {
+            var halfW = Math.max(480, (st.screen_w || 1920) * 0.42);
+            var tx = ((st.cursor_x - st.win_center_x) / halfW) * 11;
+            var ty = ((st.cursor_y - (st.win_y + 35)) / 420) * 5.5;
+            window.setEyeTarget(tx, ty);
+          }
+        } catch (_) {}
+      }, 95);
     })();
-/* LUMO_V172_JS_END */
+/* LUMO_V173_JS_END */
   </script>
 </body>
 </html>
