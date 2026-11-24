@@ -81,7 +81,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 #[tauri::command]
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
     let (w, h, align_right) = match mode.as_str() {
-        "expanded" => (446.0_f64, 624.0_f64, false),
+        "expanded" => (452.0_f64, 650.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
         _ => (310.0_f64, 150.0_f64, false),
     };
