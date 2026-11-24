@@ -1222,7 +1222,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.3.0</span>
+            <span>Plano · Lumo v1.3.1</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1305,7 +1305,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.3.0</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.3.1</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -2323,20 +2323,44 @@
       renderClipboard();
     }
 
-    function activateLicense(e) {
+    async function activateLicense(e) {
       e.preventDefault();
-      const code = document.getElementById('license-input').value.trim().toUpperCase();
-      if (['LUMO-PRO-2026', 'LUMO-FRIEND', 'LUMO-BETA'].includes(code) || code.startsWith('LUMO-')) {
-        isPro = true; localStorage.setItem('lumo_pro', 'true');
-        document.getElementById('license-input').value = '';
-        applyPlanUI(); setExpression('love'); burstPillLove(true); playChirp(600, 980, 0.3);
-        say(`Lumo Pro ativado${userName ? ', ' + userName : ''}! Tudo liberado.`, 3500, true);
+      const input = document.getElementById('license-input');
+      const btn = document.getElementById('license-btn');
+      const code = input.value.trim().toUpperCase();
+      if (!code) return;
+
+      if (code === 'FREE') {
+        isPro = false;
+        localStorage.setItem('lumo_pro', 'false');
+        localStorage.removeItem('lumo_license_key');
+        input.value = '';
+        applyPlanUI();
+        say('Voltando para o modo Grátis.', 2200, true);
+        return;
+      }
+
+      if (!invoke) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        const msg = await invoke('activate_license', { key: code });
+        isPro = true;
+        localStorage.setItem('lumo_pro', 'true');
+        localStorage.setItem('lumo_license_key', code);
+        input.value = '';
+        applyPlanUI();
+        setExpression('love');
+        burstPillLove(true);
+        playChirp(600, 980, 0.3);
+        say(msg, 3800, true);
         setTimeout(() => restoreIdleExpression(), 2600);
-      } else if (code === 'FREE') {
-        isPro = false; localStorage.setItem('lumo_pro', 'false');
-        applyPlanUI(); say('Voltando para o modo Grátis.', 2200, true);
-      } else {
-        playChirp(260, 180, 0.2); say('Chave inválida. Use LUMO-FRIEND ou LUMO-PRO-2026', 3000, true);
+      } catch (err) {
+        playChirp(260, 180, 0.22);
+        say(String(err), 3800, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = isPro ? 'Ativo' : 'Ativar';
       }
     }
 

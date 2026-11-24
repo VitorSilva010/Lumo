@@ -426,6 +426,64 @@ fn get_windows_context() -> (i32, i32, String) {
     (0, 0, String::from("Desktop"))
 }
 
+
+#[cfg(windows)]
+fn get_machine_id() -> String {
+    use winreg::enums::*;
+    use winreg::RegKey;
+    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+    if let Ok(key) = hklm.open_subkey(r"SOFTWARE\Microsoft\Cryptography") {
+        if let Ok(guid) = key.get_value::<String, _>("MachineGuid") {
+            if !guid.trim().is_empty() {
+                return guid.trim().to_string();
+            }
+        }
+    }
+    std::env::var("COMPUTERNAME").unwrap_or_else(|_| "win-device".to_string())
+}
+
+#[cfg(not(windows))]
+fn get_machine_id() -> String {
+    "dev-machine".to_string()
+}
+
+#[tauri::command]
+async fn activate_license(key: String) -> Result<String, String> {
+    let clean_key = key.trim().to_uppercase();
+    if clean_key.is_empty() {
+        return Err("Digite sua chave de licença.".to_string());
+    }
+    let machine_id = get_machine_id();
+    let client = reqwest::Client::new();
+    let res = client
+        .post("https://lumo-ai.sivavieiravitor.workers.dev/activate")
+        .header("X-Lumo-Client", "lumo-desktop-v1")
+        .json(&serde_json::json!({
+            "key": clean_key,
+            "machineId": machine_id
+        }))
+        .send()
+        .await
+        .map_err(|e| format!("Sem conexão para validar a chave: {}", e))?;
+
+    let json: serde_json::Value = res
+        .json()
+        .await
+        .map_err(|_| "Resposta inválida do servidor de licenças.".to_string())?;
+
+    if json["valid"].as_bool() == Some(true) {
+        Ok(json["message"]
+            .as_str()
+            .unwrap_or("Lumo Pro ativado com sucesso!")
+            .to_string())
+    } else {
+        Err(json["error"]
+            .as_str()
+            .unwrap_or("Chave inválida ou limite de PCs atingido.")
+            .to_string())
+    }
+}
+
 #[tauri::command]
 fn save_api_key(provider: String, api_key: String) -> Result<(), String> {
     let entry = Entry::new("lumo-assistant", &provider).map_err(|e| e.to_string())?;
@@ -567,6 +625,7 @@ pub fn run() {
             set_autostart,
             save_api_key,
             delete_api_key,
+            activate_license,
             ask_gemini
         ])
         .run(tauri::generate_context!())
