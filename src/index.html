@@ -442,7 +442,11 @@
       <!-- VIEW 7: CELULAR (PWA) -->
       <div class="view" id="view-mobile">
         <div class="card" style="text-align:center;">
-          <div class="label-xs"><span>Lumo Mobile (Android & iPhone)</span><span style="color:var(--ok);">Online</span></div>
+          <div class="label-xs"><span>Lumo Mobile (Android & iPhone)</span><span id="mob-sync-status" style="color:var(--muted);">Desativado</span></div>
+          <div class="card-row" style="margin:6px 0 8px; text-align:left;">
+            <div><div style="font-size:11.5px; font-weight:600;">Sincronizar com celular</div><div style="font-size:10px; color:var(--muted);">Ative apenas quando parear um aparelho</div></div>
+            <label class="switch"><input type="checkbox" id="mobsync-toggle" onchange="toggleMobileSync(this.checked)" /><span class="slider"></span></label>
+          </div>
           <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">Escaneie o QR Code com o celular para controlar mídia, tarefas, notas e Ctrl+C.</p>
           <div style="display:flex; justify-content:center; margin:6px 0 10px;">
             <img id="mob-qr-img" alt="QR Pareamento" style="width:150px; height:150px; border-radius:12px; background:#fff; padding:6px;" />
@@ -466,7 +470,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.8.3</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.8.4</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -547,7 +551,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.3</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.4</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>

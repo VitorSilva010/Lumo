@@ -8,6 +8,11 @@ let personality = localStorage.getItem('lumo_personality') || 'balanced';
 let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
 let autoCloseOnBlur = localStorage.getItem('lumo_autoclose') !== 'false';
 let trayOnlyMode = localStorage.getItem('lumo_trayonly') === 'true';
+let mobileSyncEnabled = localStorage.getItem('lumo_mobsync') === 'true';
+let lastGlobalCursorX = -1, lastGlobalCursorY = -1, lastCursorMoveMs = Date.now();
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 let autoInstallUpdates = localStorage.getItem('lumo_autoupdate') !== 'false';
 
 let isPinned = false, suppressBlur = false, justOpenedUntil = 0;
@@ -76,7 +81,7 @@ function setEyeTarget(x, y) {
 }
 
 setInterval(() => {
-  if (isHiddenInGame || isShuttingDown || window.cinemaPlaying) return;
+  if (isHiddenInGame || isShuttingDown || window.cinemaPlaying || (trayOnlyMode && !isExpanded)) return;
   const dx = eyeTargetX - eyeCurX;
   const dy = eyeTargetY - eyeCurY;
   if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) return;
@@ -383,7 +388,10 @@ async function pollWindowsLoop() {
     try {
       const st = await invoke('get_desktop_state');
       // 1. Olhos (sempre primeiro!)
-      if (!isHiddenInGame && !isTypingLook && (Date.now() - lastPointerEyeMs > 160) && typeof st.cursor_x === 'number') {
+      if (typeof st.cursor_x === 'number' && (st.cursor_x !== lastGlobalCursorX || st.cursor_y !== lastGlobalCursorY)) {
+        lastGlobalCursorX = st.cursor_x; lastGlobalCursorY = st.cursor_y; lastCursorMoveMs = Date.now();
+      }
+      if (!isHiddenInGame && !(trayOnlyMode && !isExpanded) && !isTypingLook && (Date.now() - lastPointerEyeMs > 160) && typeof st.cursor_x === 'number') {
         const halfW = Math.max(480, (st.screen_w || 1920) * 0.42);
         const tx = ((st.cursor_x - st.win_center_x) / halfW) * 10;
         const ty = ((st.cursor_y - (st.win_y + 35)) / 420) * 5.5;
@@ -431,7 +439,7 @@ async function pollWindowsLoop() {
         }
 
         const ignored = ['sobreposição', 'captura', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
-        if (document.getElementById('autohide-toggle').checked && !ignored && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
+        if (!trayOnlyMode && document.getElementById('autohide-toggle').checked && !ignored && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
           const norm = s => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
           const nt = norm(title);
           const game = gameTipsDB.find(g => g.keys.some(k => nt.includes(norm(k))));
@@ -447,7 +455,9 @@ async function pollWindowsLoop() {
       }
     } catch (_) {}
   }
-  setTimeout(pollWindowsLoop, (isHiddenInGame || (trayOnlyMode && !isExpanded)) ? 320 : 50);
+  const idleCursor = Date.now() - lastCursorMoveMs > 1500;
+  const nextPoll = (isHiddenInGame || (trayOnlyMode && !isExpanded)) ? 500 : (idleCursor ? 160 : 60);
+  setTimeout(pollWindowsLoop, nextPoll);
 }
 
 // === MÍDIA & AMBIENTE ===
@@ -495,6 +505,7 @@ let ambientNodes = [], ambientGain = null, lofiTimer = null;
 function stopAmbient() {
   clearInterval(lofiTimer); lofiTimer = null;
   ambientNodes.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
+  if (ambientGain) { try { ambientGain.disconnect(); } catch (_) {} ambientGain = null; }
   ambientNodes = []; activeAmbient = null;
   document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tile-midia').classList.remove('active-tile');
@@ -655,7 +666,7 @@ function updateDailySummary() {
   if (total && done === total && !celebratedTasks) { celebratedTasks = true; burstPillLove(true); setExpression('happy'); setTimeout(() => restoreIdleExpression(), 1800); }
   else if (done < total) celebratedTasks = false;
 }
-function renderTasks() {
+function renderTasks(syncOut = true) {
   const list = document.getElementById('task-list'); list.innerHTML = '';
   tasks.forEach((t, idx) => {
     const div = document.createElement('div'); div.className = 'task-item' + (t.done ? ' done' : '');
@@ -664,7 +675,7 @@ function renderTasks() {
   });
   localStorage.setItem('lumo_tasks', JSON.stringify(tasks));
   updateDailySummary();
-  if (!isApplyingRemoteSync) { lastRemoteTasksTs = Date.now(); pushPcSync({ tasks }); }
+  if (syncOut && !isApplyingRemoteSync) { lastRemoteTasksTs = Date.now(); pushPcSync({ tasks }); }
 }
 function addTask(e) {
   e.preventDefault();
@@ -732,9 +743,13 @@ async function startBreathing() {
   if (breathingTimer) {
     clearInterval(breathingTimer); breathingTimer = null;
     p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
-    document.getElementById('breath-btn').textContent = 'Iniciar'; restoreIdleExpression(); return;
+    document.getElementById('breath-btn').textContent = 'Iniciar'; restoreIdleExpression(); if (trayOnlyMode) syncWindowMode('tray_hidden'); return;
   }
-  if (isExpanded) await togglePanel(false);
+  if (isExpanded) {
+    isExpanded = false;
+    document.getElementById('panel').classList.remove('open', 'closing');
+  }
+  await syncWindowMode('pill');
   document.getElementById('breath-btn').textContent = 'Parar';
   const phases = [
     { cls: 'breathing-in', msg: 'Inspire devagar... (4s)', f1: 360, f2: 520 },
@@ -744,7 +759,7 @@ async function startBreathing() {
   let step = 0;
   const run = () => {
     p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
-    if (step >= 15) { clearInterval(breathingTimer); breathingTimer = null; document.getElementById('breath-btn').textContent = 'Iniciar'; setExpression('happy'); say('Pausa concluída!', 3000, true); setTimeout(() => restoreIdleExpression(), 1800); return; }
+    if (step >= 15) { clearInterval(breathingTimer); breathingTimer = null; document.getElementById('breath-btn').textContent = 'Iniciar'; setExpression('happy'); say('Pausa concluída!', 3000, true); setTimeout(() => { restoreIdleExpression(); if (trayOnlyMode && !isExpanded) syncWindowMode('tray_hidden'); }, 2200); return; }
     const cur = phases[step % 3]; p.classList.add(cur.cls); setExpression(step % 3 === 1 ? 'sleepy' : 'normal');
     playChirp(cur.f1, cur.f2, 0.3); say(cur.msg, 3800, true); step++;
   };
@@ -773,6 +788,7 @@ function setupDragAndDrop() {
 async function handleFiles(fileList) {
   const files = Array.from(fileList); if (!files.length) return;
   for (const file of files) {
+    if (file.size > 20 * 1024 * 1024) { say('Arquivo acima de 20 MB ignorado.', 3000, true); continue; }
     const r = new FileReader();
     r.onload = () => { pocketFiles.unshift({ name: file.name, size: file.size, type: file.type, dataUrl: r.result }); pocketFiles = pocketFiles.slice(0, 8); renderPocket(); };
     r.readAsDataURL(file);
@@ -797,7 +813,7 @@ function removePocket(idx) { pocketFiles.splice(idx, 1); renderPocket(); }
 async function saveRawPocket(idx) {
   const f = pocketFiles[idx]; if (!f || !invoke) return;
   const buf = new Uint8Array(await (await fetch(f.dataUrl)).arrayBuffer());
-  await invoke('save_file_bytes', { filename: f.name, bytes: Array.from(buf) }); say('Salvo em Lumo_Arquivos!', 2600, true);
+  try { await invoke('save_file_bytes', { filename: f.name, bytes: Array.from(buf) }); say('Salvo em Lumo_Arquivos!', 2600, true); } catch (e) { say('Erro ao salvar: ' + e, 3200, true); }
 }
 async function convertImage(idx, mime, ext) {
   if (!isPro && ext === 'webp') { openView('config'); say('WebP é do Lumo Pro!', 2200, true); return; }
@@ -810,8 +826,7 @@ async function convertImage(idx, mime, ext) {
     ctx.drawImage(img, 0, 0);
     c.toBlob(async blob => {
       if (!blob || !invoke) return;
-      await invoke('save_file_bytes', { filename: `${f.name.replace(/\.[^.]+$/, '')}_lumo.${ext}`, bytes: Array.from(new Uint8Array(await blob.arrayBuffer())) });
-      hopPill(); playChirp(640, 960, 0.2); say(`Salvo (${formatSize(blob.size)}) em Lumo_Arquivos!`, 3000, true);
+      try { await invoke('save_file_bytes', { filename: `${f.name.replace(/\.[^.]+$/, '')}_lumo.${ext}`, bytes: Array.from(new Uint8Array(await blob.arrayBuffer())) }); hopPill(); playChirp(640, 960, 0.2); say(`Salvo (${formatSize(blob.size)}) em Lumo_Arquivos!`, 3000, true); } catch (e) { say('Erro ao converter: ' + e, 3200, true); }
     }, mime, q);
   };
   img.src = f.dataUrl;
@@ -843,15 +858,14 @@ async function convertImageToPdf(idx) {
       ps(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
       const pdf = new Uint8Array(chunks.reduce((a, b) => a + b.length, 0)); let pos = 0;
       for (const ch of chunks) { pdf.set(ch, pos); pos += ch.length; }
-      await invoke('save_file_bytes', { filename: f.name.replace(/\.[^.]+$/, '') + '_lumo.pdf', bytes: Array.from(pdf) });
-      hopPill(); playChirp(640, 960, 0.2); say('PDF salvo em Lumo_Arquivos!', 3000, true);
+      try { await invoke('save_file_bytes', { filename: f.name.replace(/\.[^.]+$/, '') + '_lumo.pdf', bytes: Array.from(pdf) }); hopPill(); playChirp(640, 960, 0.2); say('PDF salvo em Lumo_Arquivos!', 3000, true); } catch (e) { say('Erro ao gerar PDF: ' + e, 3200, true); }
     }, 'image/jpeg', 0.9);
   };
   img.src = f.dataUrl;
 }
 
 // === IA, VOZ, CONFIGURAÇÕES, TEMAS, AUTO-UPDATE & MOBILE SYNC ===
-async function saveGeminiKey(e) { e.preventDefault(); const inp = document.getElementById('api-key-input'); if (!inp.value.trim() || !invoke) return; await invoke('save_api_key', { provider: 'gemini', apiKey: inp.value.trim() }); inp.value = ''; appendMsg('Chave própria salva!', 'ai'); }
+async function saveGeminiKey(e) { e.preventDefault(); const inp = document.getElementById('api-key-input'); if (!inp.value.trim() || !invoke) return; try { await invoke('save_api_key', { provider: 'gemini', apiKey: inp.value.trim() }); inp.value = ''; playChirp(600, 860, 0.16); say('Chave própria salva no cofre!', 2600, true); } catch (err) { say('Erro ao salvar chave: ' + err, 3200, true); } }
 async function removeGeminiKey() { if (invoke) { await invoke('delete_api_key', { provider: 'gemini' }); say('Usando IA integrada.', 2200, true); } }
 function clearChat() { document.getElementById('chat-box').innerHTML = '<div class="msg ai">Conversa limpa! Como posso ajudar?</div>'; }
 function appendMsg(text, who) {
@@ -880,7 +894,7 @@ async function executePrompt(prompt) {
 }
 
 function toggleVoice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) { say('Reconhecimento de voz indisponível neste PC.', 3000, true); return; }
   const btn = document.getElementById('mic-btn'), rec = new SR(); rec.lang = 'pt-BR';
   btn.classList.add('recording'); setExpression('listening');
   rec.onresult = ev => {
@@ -890,6 +904,7 @@ function toggleVoice() {
     else if (l.includes('tchau') || l.includes('dormir')) gracefulShutdown();
     else { openView('ia'); executePrompt(t); }
   };
+  rec.onerror = () => { btn.classList.remove('recording'); restoreIdleExpression(); say('Não consegui ouvir o microfone.', 2600, true); };
   rec.onend = () => { btn.classList.remove('recording'); restoreIdleExpression(); };
   rec.start();
 }
@@ -975,7 +990,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.3 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.4 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1059,14 +1074,28 @@ function renderMobileQR() {
 }
 async function copyMobileUrl() { const u = 'https://vitorsilva010.github.io/Lumo/app/?pair=' + encodeURIComponent(syncToken); if (invoke) await invoke('set_clipboard_text', { text: u }); say('Link copiado!', 2000, true); }
 function resetMobileToken() { syncToken = createPairCode(); localStorage.setItem('lumo_sync_token', syncToken); renderMobileQR(); pushPcSync({ tasks, notes: localStorage.getItem('lumo_notes') || '' }); }
-async function pushPcSync(payload) { if (!syncToken) return; try { await fetch(`${API_BASE}/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' }, body: JSON.stringify({ token: syncToken, source: 'pc', ...payload }) }); } catch (_) {} }
-async function sendPcClipToMobile() { if (!invoke) return; const t = await invoke('get_clipboard_text'); if (!t) return; await pushPcSync({ clip: t }); hopPill(); say('Ctrl+C enviado pro celular!', 2400, true); }
+function updateMobileSyncUI() {
+  const chk = document.getElementById('mobsync-toggle');
+  const st = document.getElementById('mob-sync-status');
+  if (chk) chk.checked = mobileSyncEnabled;
+  if (st) { st.textContent = mobileSyncEnabled ? 'Ativo' : 'Desativado'; st.style.color = mobileSyncEnabled ? 'var(--ok)' : 'var(--muted)'; }
+}
+function toggleMobileSync(val) {
+  mobileSyncEnabled = Boolean(val);
+  localStorage.setItem('lumo_mobsync', String(mobileSyncEnabled));
+  updateMobileSyncUI();
+  playChirp(mobileSyncEnabled ? 560 : 440, mobileSyncEnabled ? 820 : 320, 0.14);
+  if (mobileSyncEnabled) { pollMobileCommands(); say('Sincronização com celular ativada!', 2600, true); }
+  else say('Sincronização pausada.', 2000, true);
+}
+async function pushPcSync(payload) { if (!mobileSyncEnabled || !syncToken) return; try { await fetch(`${API_BASE}/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' }, body: JSON.stringify({ token: syncToken, source: 'pc', ...payload }) }); } catch (_) {} }
+async function sendPcClipToMobile() { if (!invoke) return; if (!mobileSyncEnabled) toggleMobileSync(true); const t = await invoke('get_clipboard_text'); if (!t) { say('Nenhum texto no Ctrl+C.', 2200, true); return; } await pushPcSync({ clip: t }); hopPill(); say('Ctrl+C enviado pro celular!', 2400, true); }
 async function pollMobileCommands() {
-  if (!syncToken || isShuttingDown) return;
+  if (!mobileSyncEnabled || !syncToken || isShuttingDown) return;
   try {
     const res = await fetch(`${API_BASE}/sync?token=${encodeURIComponent(syncToken)}`); if (!res.ok) return;
     const data = await res.json();
-    if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastRemoteTasksTs) { lastRemoteTasksTs = data.tasksUpdatedAt; isApplyingRemoteSync = true; tasks = data.tasks; renderTasks(); isApplyingRemoteSync = false; }
+    if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastRemoteTasksTs) { lastRemoteTasksTs = data.tasksUpdatedAt; isApplyingRemoteSync = true; tasks = data.tasks; renderTasks(false); isApplyingRemoteSync = false; }
     if (typeof data.notes === 'string' && (data.notesUpdatedAt || 0) > lastRemoteNotesTs) { lastRemoteNotesTs = data.notesUpdatedAt; const el = document.getElementById('quick-notes'); if (el && el.value !== data.notes) { el.value = data.notes; localStorage.setItem('lumo_notes', data.notes); } }
     const cmd = data.lastCmd;
     if (cmd && cmd.id && cmd.id !== lastRemoteCmdId && (Date.now() - (cmd.ts || 0)) < 35000) {
@@ -1111,7 +1140,7 @@ pill.addEventListener('click', () => {
 });
 
 document.getElementById('panel').addEventListener('pointermove', e => {
-  const t = e.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card');
+  const t = e.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card, .motd-card, .news-card');
   if (!t) return;
   const r = t.getBoundingClientRect();
   t.style.setProperty('--mx', (e.clientX - r.left).toFixed(1) + 'px');
@@ -1145,7 +1174,7 @@ setInterval(() => {
 }, 1000);
 
 setInterval(async () => {
-  if (!invoke || isShuttingDown) return;
+  if (!invoke || isShuttingDown || isHiddenInGame || (trayOnlyMode && !isExpanded && !isPro)) return;
   try {
     const text = await invoke('get_clipboard_text');
     if (text && text !== lastClipSeen) {
@@ -1178,10 +1207,11 @@ setInterval(() => {
   document.getElementById('voice-select').value = voiceMode;
   document.getElementById('autoclose-toggle').checked = autoCloseOnBlur;
   const trayChk = document.getElementById('trayonly-toggle'); if (trayChk) trayChk.checked = trayOnlyMode;
+  updateMobileSyncUI();
   document.getElementById('autoupdate-toggle').checked = autoInstallUpdates;
   document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
 
-  updateLiveClock(); updateGreetingUI(); renderMobileQR(); renderColorHistory(); renderTasks(); applyPlanUI();
+  updateLiveClock(); updateGreetingUI(); renderMobileQR(); renderColorHistory(); renderTasks(false); applyPlanUI();
   setupDragAndDrop(); scheduleBlink();
 
   if (invoke) { try { document.getElementById('autostart-toggle').checked = await invoke('get_autostart'); } catch (_) {} }
@@ -1196,14 +1226,16 @@ setInterval(() => {
   fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()).then(d => { if (d?.rates?.BRL) { usdRate = d.rates.BRL; if (d.rates.EUR) eurRate = d.rates.BRL / d.rates.EUR; } }).catch(() => {});
 
   pollWindowsLoop();
-  setInterval(pollMobileCommands, 4000);
+  setInterval(pollMobileCommands, 8000);
   setTimeout(() => checkForUpdates(true), 3500);
+  setInterval(() => checkForUpdates(true), 30 * 60 * 1000);
 
   setTimeout(() => {
     if (!localStorage.getItem('lumo_intro_v1') && typeof window.playArrivalCinema === 'function') {
       window.playArrivalCinema();
       return;
     }
+    if (trayOnlyMode) return;
     setExpression('happy'); hopPill(); playChirp(460, 820, 0.24);
     const msg = userName ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.` : `${getGreetingBase()}! Clique em mim para começarmos.`;
     say(msg, 4600, true, null, true);

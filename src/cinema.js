@@ -177,7 +177,7 @@ async function finishArrivalCinema() {
   document.getElementById('cinema-stage')?.classList.remove('active');
   const pillEl = document.getElementById('lumo-pill');
   if (pillEl) pillEl.style.visibility = 'visible';
-  await syncWindowMode('pill');
+  await syncWindowMode(typeof trayOnlyMode !== 'undefined' && trayOnlyMode ? 'tray_hidden' : 'pill');
   setExpression('happy');
   hopPill();
   setTimeout(() => restoreIdleExpression(), 1500);
