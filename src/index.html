@@ -212,7 +212,7 @@
             </button>
             <button class="hub-tile" id="tile-bolso" onclick="openView('bolso')">
               <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
-              <div><div class="tile-title">Bolso</div><div class="tile-sub" id="sub-bolso">JPG · WebP · PDF</div></div>
+              <div><div class="tile-title">Bolso</div><div class="tile-sub" id="sub-bolso">Docs · Áudio · Img</div></div>
             </button>
             <button class="hub-tile" id="tile-util" onclick="openView('util')">
               <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg></div>
@@ -261,6 +261,8 @@
 
         <div class="quick-ai-dock">
           <div class="cmd-chips">
+            <button class="cmd-chip" type="button" onclick="fillCmd('/resumir ')">/resumir</button>
+            <button class="cmd-chip" type="button" onclick="fillCmd('/doc ')">/doc</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/g ')">/g Google</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/yt ')">/yt YouTube</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/cor')">/cor</button>
@@ -353,7 +355,7 @@
         <div class="drop-zone" id="drop-zone" onclick="openFilePicker()">
           <svg class="ic ic-lg" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
           <div style="font-size:12.5px; font-weight:600;">Bandeja Mágica</div>
-          <p>Arraste imagens ou arquivos para converter em WebP, JPG, PNG ou PDF.</p>
+          <p>Arraste imagens, PDFs, textos ou áudios (.ogg/.mp3) para converter, resumir ou transcrever.</p>
           <input type="file" id="file-picker" multiple style="display:none;" onchange="onFilePicked(this.files)" />
         </div>
         <div class="card" style="padding:8px 12px;">
@@ -373,6 +375,7 @@
           <span class="label-xs" style="margin:0;">Lumo AI · Multi-Model</span>
           <button class="btn-ghost" onclick="clearChat()">Limpar</button>
         </div>
+        <div id="doc-ctx-bar"></div>
         <div id="chat-box"><div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div></div>
         <form class="inline-form" onsubmit="sendPrompt(event)">
           <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." oninput="onUserTyping()" onblur="stopTypingLook()" />
@@ -471,7 +474,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.9.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v2.0.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -607,7 +610,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.9.1</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.0.0</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -618,5 +621,6 @@
   <script src="./cinema.js"></script>
   <script src="./daily.js"></script>
   <script src="./custom.js"></script>
+  <script src="./docs.js"></script>
 </body>
 </html>
