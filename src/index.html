@@ -7,15 +7,17 @@
   <style>
     :root {
       --accent: #f6b974;
-      --accent-soft: rgba(246, 185, 116, 0.15);
-      --accent-glow: rgba(246, 185, 116, 0.36);
-      --bg-pill: rgba(13, 14, 19, 0.94);
-      --bg-panel: rgba(15, 16, 22, 0.96);
-      --surface: rgba(255, 255, 255, 0.038);
-      --surface-hover: rgba(255, 255, 255, 0.075);
-      --border: rgba(255, 255, 255, 0.1);
+      --accent-soft: rgba(246, 185, 116, 0.14);
+      --accent-glow: rgba(246, 185, 116, 0.34);
+      --bg-pill: rgba(12, 13, 18, 0.95);
+      --bg-panel: rgba(13, 14, 20, 0.96);
+      --surface: rgba(255, 255, 255, 0.036);
+      --surface-2: rgba(255, 255, 255, 0.058);
+      --surface-hover: rgba(255, 255, 255, 0.082);
+      --border: rgba(255, 255, 255, 0.095);
+      --border-strong: rgba(255, 255, 255, 0.16);
       --text: #f3f4f6;
-      --muted: #9ca3af;
+      --muted: #94a3b8;
       --danger: #f87171;
       --warn: #fbbf24;
       --ok: #34d399;
@@ -42,8 +44,9 @@
       width: 16px; height: 16px; stroke: currentColor; fill: none;
       stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
+    svg.ic-xs { width: 12px; height: 12px; }
     svg.ic-sm { width: 14px; height: 14px; }
-    svg.ic-lg { width: 20px; height: 20px; }
+    svg.ic-lg { width: 19px; height: 19px; }
 
     #app {
       width: 100%; height: 100%;
@@ -57,7 +60,7 @@
     #corner-sensor {
       display: none; position: fixed; top: 6px; right: 6px;
       width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(13, 14, 19, 0.92); border: 1px solid var(--accent);
+      background: rgba(12, 13, 18, 0.94); border: 1px solid var(--accent);
       box-shadow: 0 0 18px var(--accent-glow);
       align-items: center; justify-content: center; cursor: pointer;
       animation: pulseCorner 2.2s infinite ease-in-out;
@@ -73,13 +76,13 @@
 
     /* Cápsula Obsidian */
     #lumo-pill {
-      position: relative; flex-shrink: 0; min-width: 154px; height: 54px;
+      position: relative; flex-shrink: 0; min-width: 156px; height: 54px;
       padding: 0 20px; border-radius: 999px;
       background: var(--bg-pill); border: 1px solid var(--border);
       box-shadow:
-        0 12px 32px rgba(0, 0, 0, 0.58),
+        0 14px 34px rgba(0, 0, 0, 0.62),
         0 0 26px var(--accent-soft),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
       display: flex; align-items: center; justify-content: center; gap: 10px;
       cursor: pointer;
       animation: pillBoot 0.75s cubic-bezier(0.22, 1, 0.36, 1), pillBreath 4.6s ease-in-out 0.8s infinite;
@@ -102,8 +105,8 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     @keyframes pillBreath {
-      0%, 100% { box-shadow: 0 12px 32px rgba(0,0,0,0.58), 0 0 22px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.15); }
-      50% { box-shadow: 0 14px 36px rgba(0,0,0,0.62), 0 0 32px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.2); }
+      0%, 100% { box-shadow: 0 14px 34px rgba(0,0,0,0.62), 0 0 22px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.16); }
+      50% { box-shadow: 0 16px 38px rgba(0,0,0,0.66), 0 0 34px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.22); }
     }
     #lumo-pill:hover { transform: translateY(1px) scale(1.035); }
     #lumo-pill:active { transform: scale(0.95, 1.05); }
@@ -115,13 +118,9 @@
       100% { transform: scale(1); }
     }
 
-    /* Partículas (carinho e confete) */
     .fx-particle {
-      position: fixed;
-      pointer-events: none;
-      z-index: 60;
-      font-size: 13px;
-      font-weight: 700;
+      position: fixed; pointer-events: none; z-index: 60;
+      font-size: 13px; font-weight: 700;
       animation: particleBurst 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
     @keyframes particleBurst {
@@ -129,22 +128,13 @@
       100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.25) rotate(var(--rot)); }
     }
 
-    /* Gota de suor animada (PC pesado) */
     #sweat-drop {
-      position: absolute;
-      top: 4px;
-      right: -6px;
-      width: 7px;
-      height: 10px;
+      position: absolute; top: 4px; right: -6px; width: 7px; height: 10px;
       border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
-      background: #38bdf8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.75);
-      opacity: 0;
-      pointer-events: none;
+      background: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.75);
+      opacity: 0; pointer-events: none;
     }
-    .face.sweat #sweat-drop {
-      animation: sweatFall 1.3s infinite ease-in;
-    }
+    .face.sweat #sweat-drop { animation: sweatFall 1.3s infinite ease-in; }
     @keyframes sweatFall {
       0% { opacity: 0; transform: translateY(-4px) scale(0.7); }
       30% { opacity: 1; }
@@ -240,7 +230,7 @@
       position: fixed; top: 68px; left: 50%;
       transform: translateX(-50%) translateY(-6px) scale(0.95);
       width: max-content; max-width: 294px; padding: 7px 14px; border-radius: 14px;
-      background: rgba(15, 16, 22, 0.96); border: 1px solid var(--border);
+      background: rgba(14, 15, 22, 0.96); border: 1px solid var(--border-strong);
       box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); font-size: 12px; line-height: 1.35;
       color: var(--text); text-align: center; opacity: 0; pointer-events: none; z-index: 20;
       transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
@@ -248,26 +238,41 @@
     #speech-bubble.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
     #speech-bubble.clickable { pointer-events: auto; cursor: pointer; border-color: var(--accent); }
 
-    /* Painel Principal */
+    /* Painel Principal com Brilho Ambiente */
     #panel {
       position: relative;
-      display: none; margin-top: 10px; width: 418px; height: 526px;
-      border-radius: 24px; background: var(--bg-panel); border: 1px solid var(--border);
-      box-shadow: 0 26px 64px rgba(0, 0, 0, 0.78), 0 0 34px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.13);
+      display: none; margin-top: 10px; width: 424px; height: 540px;
+      border-radius: 24px;
+      background:
+        radial-gradient(ellipse 80% 35% at 50% 0%, var(--accent-soft), transparent 70%),
+        var(--bg-panel);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 28px 68px rgba(0, 0, 0, 0.82), 0 0 34px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.14);
       flex-direction: column; overflow: hidden;
       transform-origin: top center;
-      animation: panelOpen 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #panel.open { display: flex; }
+    #panel.open {
+      display: flex;
+      animation: panelOpen 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    #panel.closing {
+      display: flex;
+      animation: panelClose 0.16s ease forwards;
+      pointer-events: none;
+    }
     @keyframes panelOpen {
-      from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+      from { opacity: 0; transform: translateY(-10px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes panelClose {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-8px) scale(0.95); }
     }
 
     /* Barra Superior */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 14px 9px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); gap: 8px;
+      padding: 11px 14px 9px; border-bottom: 1px solid rgba(255, 255, 255, 0.065); gap: 8px;
       flex-shrink: 0;
     }
     .nav-left { display: flex; align-items: center; gap: 8px; }
@@ -282,7 +287,7 @@
     }
     .back-btn {
       display: none; align-items: center; gap: 4px;
-      background: var(--surface); border: 1px solid var(--border);
+      background: var(--surface-2); border: 1px solid var(--border);
       color: var(--text); font-size: 11.5px; font-weight: 500;
       padding: 5px 10px; border-radius: 10px; cursor: pointer;
       transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
@@ -293,11 +298,11 @@
 
     .icon-actions { display: flex; gap: 5px; }
     .circle-btn {
-      width: 30px; height: 30px; border-radius: 10px;
+      width: 29px; height: 29px; border-radius: 9px;
       border: 1px solid var(--border); background: var(--surface);
       color: var(--muted); cursor: pointer; display: flex;
       align-items: center; justify-content: center;
-      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .circle-btn:hover, .circle-btn.active-btn {
       border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-1px);
@@ -313,10 +318,10 @@
     }
     .view.active {
       display: flex;
-      animation: viewEnter 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: viewEnter 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
     @keyframes viewEnter {
-      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      from { opacity: 0; transform: translateY(8px) scale(0.985); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .view::-webkit-scrollbar, .home-scroll::-webkit-scrollbar, #chat-box::-webkit-scrollbar { width: 4px; }
@@ -326,110 +331,163 @@
 
     #view-resumo { padding: 0; overflow: hidden; gap: 0; }
     .home-scroll {
-      flex: 1; overflow-y: auto; padding: 13px 15px 12px;
+      flex: 1; overflow-y: auto; padding: 12px 14px 12px;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+
+    /* === NOVA TELA RESUMO (BENTO AO VIVO) === */
+    .hero-bento {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 12px 14px;
       display: flex; flex-direction: column; gap: 10px;
-    }
-
-    .summary-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .greeting h2 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.2px; }
-    .greeting p { font-size: 10.8px; color: var(--muted); margin-top: 2px; }
-
-    .sys-pill {
-      font-size: 10px; padding: 5px 9px; border-radius: 999px;
-      background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25);
-      color: var(--ok); white-space: nowrap; font-weight: 600;
-      transition: color 0.3s, border-color 0.3s, background 0.3s;
-    }
-    .sys-pill.warn { color: var(--warn); background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
-    .sys-pill.hot { color: var(--danger); background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35); }
-
-    /* Card Resumo do Dia */
-    .daily-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
-      border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 16px;
-      padding: 11px 13px; display: flex; flex-direction: column; gap: 7px;
       position: relative; overflow: hidden;
     }
-    .daily-card::before {
+    .hero-bento::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
     }
-    .daily-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .daily-date { font-size: 11.5px; font-weight: 600; color: var(--text); text-transform: capitalize; }
+    .hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .hero-clock {
+      font-size: 27px; font-weight: 700; letter-spacing: -1px; line-height: 1;
+      color: var(--text); font-variant-numeric: tabular-nums;
+    }
+    .hero-clock .colon { color: var(--accent); animation: colonBlink 2s infinite; }
+    @keyframes colonBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.35; } }
+    .hero-greet { font-size: 13px; font-weight: 600; margin-top: 5px; color: var(--text); }
+    .hero-date { font-size: 10.8px; color: var(--muted); text-transform: capitalize; margin-top: 1px; }
+
+    .hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
     .weather-chip {
       display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent);
-      background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; font-weight: 500;
+      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.22);
+      padding: 4px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap;
     }
-    .daily-note { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
-    .progress-wrap { display: flex; align-items: center; gap: 8px; margin-top: 1px; }
-    .progress-track { flex: 1; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+    .uptime-chip { font-size: 10px; color: var(--muted); }
+
+    /* Barras ao vivo CPU & RAM */
+    .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-box {
+      background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.065);
+      border-radius: 11px; padding: 7px 9px; display: flex; flex-direction: column; gap: 5px;
+    }
+    .metric-head { display: flex; justify-content: space-between; align-items: center; font-size: 10px; }
+    .metric-label { color: var(--muted); font-weight: 600; letter-spacing: 0.4px; }
+    .metric-val { font-weight: 600; color: var(--ok); font-variant-numeric: tabular-nums; }
+    .metric-val.warn { color: var(--warn); }
+    .metric-val.hot { color: var(--danger); }
+    .mini-track { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+    .mini-fill {
+      height: 100%; width: 0%; border-radius: 999px; background: var(--ok);
+      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+    }
+    .mini-fill.warn { background: var(--warn); }
+    .mini-fill.hot { background: var(--danger); }
+
+    /* Faixa de Lembrete Ativo */
+    #active-reminder-strip {
+      display: none; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 11px; border-radius: 12px;
+      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.35);
+      font-size: 11.5px; color: var(--text);
+    }
+    #active-reminder-strip.show { display: flex; animation: viewEnter 0.22s ease; }
+
+    /* Mini-Player direto no Resumo */
+    .mini-media-strip {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 11px; border-radius: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .mini-media-info { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+    .mini-media-icon {
+      width: 28px; height: 28px; border-radius: 9px;
+      background: var(--accent-soft); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .mini-media-text { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-media-sub { font-size: 9.8px; color: var(--muted); }
+    .mini-media-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .mm-btn {
+      width: 27px; height: 27px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04); color: var(--text);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: all 0.16s ease;
+    }
+    .mm-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .mm-btn.play { background: var(--accent); color: #111318; border-color: var(--accent); }
+    .mm-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    #onboarding-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(246, 185, 116, 0.14), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(246, 185, 116, 0.35); border-radius: 16px; padding: 11px 13px;
+    }
+    #onboarding-card.show { display: block; animation: viewEnter 0.3s ease; }
+
+    /* Grid de Botões */
+    .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .hub-tile {
+      position: relative; display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: space-between; gap: 6px;
+      padding: 9px 10px; border-radius: 14px;
+      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.075);
+      color: var(--text); cursor: pointer; text-align: left;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.18s, border-color 0.18s, box-shadow 0.2s;
+    }
+    .hub-tile:hover {
+      background: var(--surface-hover); border-color: rgba(246, 185, 116, 0.45);
+      transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+    }
+    .hub-tile:active { transform: translateY(0) scale(0.96); }
+    .hub-tile.active-tile { background: var(--accent-soft); border-color: var(--accent); }
+    .tile-icon {
+      width: 27px; height: 27px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .hub-tile:hover .tile-icon { transform: scale(1.08); }
+    .hub-tile.active-tile .tile-icon { background: var(--accent); color: #111318; }
+    .tile-title { font-size: 11.5px; font-weight: 600; line-height: 1.15; }
+    .tile-sub { font-size: 9.6px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    /* Progresso integrado nas Tarefas */
+    .progress-wrap { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
+    .progress-track { flex: 1; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
     .progress-fill {
       height: 100%; width: 0%; border-radius: 999px;
       background: linear-gradient(90deg, var(--accent), #fff3d6);
       box-shadow: 0 0 10px var(--accent-glow);
       transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .progress-pct { font-size: 10.5px; font-weight: 600; color: var(--accent); min-width: 30px; text-align: right; }
+    .progress-pct { font-size: 10px; font-weight: 600; color: var(--accent); min-width: 28px; text-align: right; }
 
-    #onboarding-card {
-      display: none;
-      background: linear-gradient(135deg, rgba(246, 185, 116, 0.12), rgba(255, 255, 255, 0.03));
-      border: 1px solid rgba(246, 185, 116, 0.32); border-radius: 16px; padding: 11px 13px;
-    }
-    #onboarding-card.show { display: block; animation: viewEnter 0.3s ease; }
-
-    /* Grid de Botões */
-    .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .hub-tile {
-      position: relative; display: flex; flex-direction: column;
-      align-items: flex-start; justify-content: space-between; gap: 7px;
-      padding: 10px 10px 9px; border-radius: 15px;
-      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.075);
-      color: var(--text); cursor: pointer; text-align: left;
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s, border-color 0.2s, box-shadow 0.22s;
-      animation: tilePop 0.38s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    }
-    .hub-tile:nth-child(1) { animation-delay: 0.02s; }
-    .hub-tile:nth-child(2) { animation-delay: 0.05s; }
-    .hub-tile:nth-child(3) { animation-delay: 0.08s; }
-    .hub-tile:nth-child(4) { animation-delay: 0.11s; }
-    .hub-tile:nth-child(5) { animation-delay: 0.14s; }
-    .hub-tile:nth-child(6) { animation-delay: 0.17s; }
-    @keyframes tilePop {
-      from { opacity: 0; transform: translateY(10px) scale(0.94); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .hub-tile:hover {
-      background: var(--surface-hover); border-color: rgba(246, 185, 116, 0.45);
-      transform: translateY(-3px) scale(1.015); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
-    }
-    .hub-tile:active { transform: translateY(0) scale(0.96); }
-    .hub-tile.active-tile { background: var(--accent-soft); border-color: var(--accent); }
-    .tile-icon {
-      width: 28px; height: 28px; border-radius: 9px;
-      background: rgba(255, 255, 255, 0.055); color: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.22s ease, background 0.2s ease, color 0.2s ease;
-    }
-    .hub-tile:hover .tile-icon { transform: scale(1.08); }
-    .hub-tile.active-tile .tile-icon { background: var(--accent); color: #111318; }
-    .tile-title { font-size: 11.5px; font-weight: 600; line-height: 1.15; }
-    .tile-sub { font-size: 9.8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-
-    /* Barra de Comandos / Chat Rápido */
+    /* Barra Inteligente no Rodapé + Chips de Atalho */
     .quick-ai-dock {
-      flex-shrink: 0; padding: 9px 13px 11px;
+      flex-shrink: 0; padding: 7px 13px 10px;
       border-top: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(11, 12, 17, 0.94);
+      background: rgba(10, 11, 16, 0.96);
+      display: flex; flex-direction: column; gap: 6px;
     }
+    .cmd-chips { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 1px; }
+    .cmd-chips::-webkit-scrollbar { display: none; }
+    .cmd-chip {
+      font-size: 9.8px; color: var(--muted); background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.075); border-radius: 999px;
+      padding: 2px 8px; cursor: pointer; white-space: nowrap; transition: all 0.16s ease;
+    }
+    .cmd-chip:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
     .quick-ai-form {
       display: flex; align-items: center; gap: 7px;
-      background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.11);
-      border-radius: 14px; padding: 4px 5px 4px 11px;
-      transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      background: rgba(255, 255, 255, 0.048); border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 13px; padding: 3px 4px 3px 10px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
     .quick-ai-form:focus-within {
-      border-color: var(--accent); background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent); background: rgba(255, 255, 255, 0.065);
       box-shadow: 0 0 18px var(--accent-soft);
     }
     .sparkle-ic { color: var(--accent); animation: gentlePulse 2.8s infinite ease-in-out; }
@@ -439,7 +497,7 @@
       color: var(--text); font-size: 11.8px; outline: none;
     }
     .quick-ai-send {
-      width: 30px; height: 30px; border-radius: 10px;
+      width: 29px; height: 29px; border-radius: 9px;
       background: var(--accent); color: #111318; border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: transform 0.18s ease;
@@ -447,11 +505,10 @@
     .quick-ai-send:hover { transform: scale(1.06); }
     .quick-ai-send:active { transform: scale(0.92); }
 
-    /* Kit Rápido (Cor, QR, Senha) */
+    /* Kit Rápido */
     .color-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
     .color-chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 8px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px;
       background: rgba(255, 255, 255, 0.045); border: 1px solid var(--border);
       font-size: 11px; cursor: pointer; transition: transform 0.18s, border-color 0.18s;
     }
@@ -481,7 +538,7 @@
     }
 
     .card {
-      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.07);
+      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.075);
       border-radius: 16px; padding: 11px 13px;
     }
     .card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -551,13 +608,13 @@
     input:checked + .slider { background: var(--accent); }
     input:checked + .slider::before { transform: translateX(17px); background: #111; }
 
-    .task-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+    .task-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
     .task-item {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       padding: 6px 9px; border-radius: 10px; background: rgba(255, 255, 255, 0.025); font-size: 12px;
       transition: background 0.18s ease;
     }
-    .task-item:hover { background: rgba(255, 255, 255, 0.05); }
+    .task-item:hover { background: rgba(255, 255, 255, 0.055); }
     .task-left { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; overflow: hidden; }
     .task-left span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.2s ease; }
     .check-circle {
@@ -581,7 +638,7 @@
       transition: border-color 0.2s ease;
     }
     select option { background: #12131a; color: #f3f4f6; }
-    textarea { width: 100%; resize: none; min-height: 70px; user-select: text; line-height: 1.4; }
+    textarea { width: 100%; resize: none; min-height: 68px; user-select: text; line-height: 1.4; }
     input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 
     .btn-primary {
@@ -662,7 +719,7 @@
         <div class="nav-left">
           <button class="back-btn" id="back-btn" onclick="openView('resumo')">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
-            Início
+            Resumo
           </button>
           <div class="brand-title">
             <span class="brand-dot"></span>
@@ -670,6 +727,9 @@
           </div>
         </div>
         <div class="icon-actions">
+          <button class="circle-btn" id="pin-btn" title="Fixar painel aberto (não encolher ao clicar fora)" onclick="togglePin()">
+            <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+          </button>
           <button class="circle-btn" id="mic-btn" title="Comando de voz" onclick="toggleVoice()">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
           </button>
@@ -688,7 +748,7 @@
         </div>
       </div>
 
-      <!-- VIEW 1: INÍCIO -->
+      <!-- VIEW 1: RESUMO AO VIVO (BENTO) -->
       <div class="view active" id="view-resumo">
         <div class="home-scroll">
           <div id="update-banner">
@@ -705,44 +765,81 @@
             </form>
           </div>
 
-          <div class="summary-top">
-            <div class="greeting">
-              <h2 id="greeting-text">Bom dia!</h2>
-              <p id="uptime-text">Ativo há 0m · Alt+Espaço</p>
+          <!-- HERO BENTO: RELÓGIO + CLIMA + TELEMETRIA AO VIVO -->
+          <div class="hero-bento">
+            <div class="hero-row">
+              <div>
+                <div class="hero-clock" id="live-clock">00<span class="colon">:</span>00</div>
+                <div class="hero-greet" id="greeting-text">Bom dia!</div>
+                <div class="hero-date" id="daily-date">Carregando data...</div>
+              </div>
+              <div class="hero-right">
+                <span class="weather-chip" onclick="fetchWeather(true)" title="Clique para atualizar clima" style="cursor:pointer;">
+                  <svg class="ic ic-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                  <span id="weather-text">--°C</span>
+                </span>
+                <span class="uptime-chip" id="uptime-text">Ativo há 0m</span>
+              </div>
             </div>
-            <div class="sys-pill" id="sys-stat">CPU --% · RAM --G</div>
+
+            <div class="telemetry-grid">
+              <div class="metric-box">
+                <div class="metric-head">
+                  <span class="metric-label">CPU</span>
+                  <span class="metric-val" id="cpu-val">--%</span>
+                </div>
+                <div class="mini-track"><div class="mini-fill" id="cpu-bar"></div></div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-head">
+                  <span class="metric-label">RAM</span>
+                  <span class="metric-val" id="ram-val">-- / --G</span>
+                </div>
+                <div class="mini-track"><div class="mini-fill" id="ram-bar"></div></div>
+              </div>
+            </div>
           </div>
 
-          <!-- RESUMO DO DIA -->
-          <div class="daily-card">
-            <div class="daily-head">
-              <span class="daily-date" id="daily-date">Hoje</span>
-              <span class="weather-chip">
-                <svg class="ic ic-sm" style="width:12px;height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-                <span id="weather-text">Carregando...</span>
-              </span>
+          <!-- LEMBRETE ATIVO (SE HOUVER) -->
+          <div id="active-reminder-strip">
+            <div style="display:flex; align-items:center; gap:7px; overflow:hidden;">
+              <svg class="ic ic-sm" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span id="active-reminder-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
             </div>
-            <div class="daily-note" id="daily-note">Organizando o resumo do seu dia...</div>
-            <div class="progress-wrap">
-              <div class="progress-track">
-                <div class="progress-fill" id="summary-progress"></div>
+            <button class="del-btn" title="Cancelar lembrete" onclick="cancelReminder()">
+              <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- MINI-PLAYER RÁPIDO DIRETO NO RESUMO -->
+          <div class="mini-media-strip">
+            <div class="mini-media-info" onclick="openView('midia')" style="cursor:pointer;">
+              <div class="mini-media-icon">
+                <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               </div>
-              <span class="progress-pct" id="summary-pct">0%</span>
+              <div>
+                <div class="mini-media-text" id="mini-media-title">Controle de Mídia</div>
+                <div class="mini-media-sub" id="mini-media-sub">Spotify · YouTube · Lo-fi</div>
+              </div>
+            </div>
+            <div class="mini-media-btns">
+              <button class="mm-btn" title="Anterior" onclick="sendMedia('prev')">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>
+              </button>
+              <button class="mm-btn play" title="Play / Pause" onclick="sendMedia('play_pause')">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </button>
+              <button class="mm-btn" title="Próxima" onclick="sendMedia('next')">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+              </button>
+              <button class="mm-btn" id="mm-lofi-btn" title="Ativar/desativar Lo-fi rápido" onclick="toggleAmbient('lofi')">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+              </button>
             </div>
           </div>
 
           <!-- HUB 6 BOTÕES -->
           <div class="hub-grid">
-            <button class="hub-tile" id="tile-midia" onclick="openView('midia')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Mídia</div>
-                <div class="tile-sub" id="sub-midia">Player & Lo-fi</div>
-              </div>
-            </button>
-
             <button class="hub-tile" id="tile-ia" onclick="openView('ia')">
               <div class="tile-icon">
                 <svg class="ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
@@ -750,16 +847,6 @@
               <div>
                 <div class="tile-title">IA Lumo</div>
                 <div class="tile-sub">Chat integrado</div>
-              </div>
-            </button>
-
-            <button class="hub-tile" id="tile-bolso" onclick="openView('bolso')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Bolso</div>
-                <div class="tile-sub" id="sub-bolso">Soltar arquivos</div>
               </div>
             </button>
 
@@ -773,13 +860,33 @@
               </div>
             </button>
 
+            <button class="hub-tile" id="tile-bolso" onclick="openView('bolso')">
+              <div class="tile-icon">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              </div>
+              <div>
+                <div class="tile-title">Bolso</div>
+                <div class="tile-sub" id="sub-bolso">Soltar arquivos</div>
+              </div>
+            </button>
+
             <button class="hub-tile" id="tile-util" onclick="openView('util')">
               <div class="tile-icon">
                 <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
               </div>
               <div>
                 <div class="tile-title">Foco & PC</div>
-                <div class="tile-sub" id="sub-util">25:00 · Soneca</div>
+                <div class="tile-sub" id="sub-util">25:00 · Lembrete</div>
+              </div>
+            </button>
+
+            <button class="hub-tile" id="tile-midia" onclick="openView('midia')">
+              <div class="tile-icon">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
+              </div>
+              <div>
+                <div class="tile-title">Ambiente</div>
+                <div class="tile-sub" id="sub-midia">Lo-fi · Chuva</div>
               </div>
             </button>
 
@@ -794,11 +901,15 @@
             </button>
           </div>
 
-          <!-- TAREFAS -->
+          <!-- TAREFAS COM PROGRESSO EM TEMPO REAL -->
           <div class="card">
             <div class="label-xs">
               <span>Tarefas de Hoje</span>
-              <span id="task-limit-label" style="color:var(--muted); font-weight:400;"></span>
+              <span id="daily-note" style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0;"></span>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-track"><div class="progress-fill" id="summary-progress"></div></div>
+              <span class="progress-pct" id="summary-pct">0%</span>
             </div>
             <div class="task-list" id="task-list"></div>
             <form class="inline-form" onsubmit="addTask(event)">
@@ -808,11 +919,20 @@
           </div>
         </div>
 
-        <!-- BARRA INTELIGENTE (IA + COMANDOS /g, /yt, /cor, /qr, =conta) -->
+        <!-- BARRA INTELIGENTE NO RODAPÉ -->
         <div class="quick-ai-dock">
+          <div class="cmd-chips">
+            <button class="cmd-chip" type="button" onclick="fillCmd('/g ')">/g Google</button>
+            <button class="cmd-chip" type="button" onclick="fillCmd('/yt ')">/yt YouTube</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/cor')">/cor</button>
+            <button class="cmd-chip" type="button" onclick="fillCmd('/qr ')">/qr</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/senha')">/senha</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/d20')">/d20</button>
+            <button class="cmd-chip" type="button" onclick="fillCmd('=')">=Calc</button>
+          </div>
           <form class="quick-ai-form" onsubmit="quickCommand(event)">
             <svg class="ic ic-sm sparkle-ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-            <input type="text" id="quick-ai-input" placeholder="IA ou /g, /yt, /cor, /qr, /senha, /d20, =2+2..." oninput="onUserTyping()" onblur="stopTypingLook()" />
+            <input type="text" id="quick-ai-input" placeholder="Pergunte à IA ou digite um comando..." oninput="onUserTyping()" onblur="stopTypingLook()" />
             <button type="submit" class="quick-ai-send" title="Executar ou enviar para IA">
               <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -820,7 +940,7 @@
         </div>
       </div>
 
-      <!-- VIEW 2: KIT RÁPIDO (CONTA-GOTAS + QR CODE + SENHA FORTE) -->
+      <!-- VIEW 2: KIT RÁPIDO -->
       <div class="view" id="view-kit">
         <div class="card">
           <div class="label-xs">
@@ -928,11 +1048,11 @@
 
       <!-- VIEW 4: BOLSO -->
       <div class="view" id="view-bolso">
-        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-picker').click()">
+        <div class="drop-zone" id="drop-zone" onclick="openFilePicker()">
           <svg class="ic ic-lg" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
           <div style="font-size:12.5px; font-weight:600;">Bandeja Mágica</div>
           <p>Arraste arquivos aqui (ou no rostinho) para guardar ou converter imagens.</p>
-          <input type="file" id="file-picker" multiple style="display:none;" onchange="handleFiles(this.files)" />
+          <input type="file" id="file-picker" multiple style="display:none;" onchange="onFilePicked(this.files)" />
         </div>
 
         <div class="card" style="padding:8px 12px;">
@@ -964,7 +1084,7 @@
         </form>
       </div>
 
-      <!-- VIEW 6: FOCO & PC -->
+      <!-- VIEW 6: FOCO, LEMBRETES & PC -->
       <div class="view" id="view-util">
         <div class="card">
           <div class="label-xs">Timer Pomodoro</div>
@@ -974,6 +1094,21 @@
             <button class="btn-ghost" onclick="setTimer(15)">15m</button>
             <button class="btn-ghost" onclick="setTimer(5)">5m</button>
             <button class="btn-primary" id="timer-toggle-btn" onclick="toggleTimer()">Iniciar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label-xs">
+            <span>Lembrete Rápido</span>
+            <span id="rem-status" style="color:var(--muted); font-weight:400;">Nenhum ativo</span>
+          </div>
+          <input type="text" id="rem-label-input" placeholder="Ex: Tirar comida do forno, entrar na call..." style="width:100%; margin-bottom:7px;" />
+          <div class="preset-row">
+            <button class="btn-ghost" onclick="startReminder(5)">5m</button>
+            <button class="btn-ghost" onclick="startReminder(15)">15m</button>
+            <button class="btn-ghost" onclick="startReminder(30)">30m</button>
+            <button class="btn-ghost" onclick="startReminder(60)">1h</button>
+            <button class="btn-ghost" style="color:var(--danger);" onclick="cancelReminder()">Limpar</button>
           </div>
         </div>
 
@@ -1019,11 +1154,11 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.1.0</span>
+            <span>Plano · Lumo v1.2.0</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
-            <input type="text" id="license-input" placeholder="Chave Pro (Teste: LUMO-PRO-2026)" />
+            <input type="text" id="license-input" placeholder="Chave Pro (ex: LUMO-FRIEND)" />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
           </form>
         </div>
@@ -1046,6 +1181,16 @@
         </div>
 
         <div class="card">
+          <div class="card-row" style="margin-bottom:7px;">
+            <div>
+              <div style="font-size:12px; font-weight:600;">Encolher ao clicar fora</div>
+              <div style="font-size:10.5px; color:var(--muted);">Recolhe o painel ao focar outro app</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autoclose-toggle" checked onchange="toggleAutoClose(this.checked)" />
+              <span class="slider"></span>
+            </label>
+          </div>
           <div class="card-row" style="margin-bottom:7px;">
             <div>
               <div style="font-size:12px; font-weight:600;">Iniciar com o Windows</div>
@@ -1092,7 +1237,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.1.0</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.2.0</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1109,22 +1254,31 @@
     let isPro = localStorage.getItem('lumo_pro') === 'true';
     let personality = localStorage.getItem('lumo_personality') || 'balanced';
     let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
+    let autoCloseOnBlur = localStorage.getItem('lumo_autoclose') !== 'false';
+    let isPinned = false;
+    let suppressBlur = false;
+    let justOpenedUntil = 0;
+
     let stealthManual = false, stealthAuto = false;
-    let isExpanded = false, isHiddenInGame = false, isShuttingDown = false, isThinking = false;
+    let isExpanded = false, isClosing = false, isHiddenInGame = false, isShuttingDown = false, isThinking = false;
     let isTypingLook = false, pcUnderLoad = false;
     let manualSummonUntil = 0, lastInteraction = Date.now(), startTime = Date.now();
     let petCombo = 0, lastPetTime = 0, activeAmbient = null;
     let bubbleCopyPayload = null;
     let usdRate = 5.80, eurRate = 6.25;
+    let lastWeatherFetch = 0;
     let celebratedTasks = false;
 
     let targetEyeX = 0, targetEyeY = 0, currentEyeX = 0, currentEyeY = 0, eyeRafId = null;
     let lastCursorX = 0, lastDir = 0, shakeCount = 0, lastShakeReset = Date.now();
 
-    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Testar o Kit Rápido do Lumo","done":false},{"text":"Beber água","done":true}]');
+    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Testar o novo Lumo v1.2","done":false},{"text":"Beber água","done":true}]');
     let clipHistory = JSON.parse(localStorage.getItem('lumo_clips') || '[]');
     let colorHistory = JSON.parse(localStorage.getItem('lumo_colors') || '["#F6B974","#34D399","#67E8F9"]');
     let pocketFiles = [];
+
+    // Lembrete rápido
+    let activeReminder = null; // { label, endTime }
 
     const viewTitles = {
       resumo: 'Lumo',
@@ -1137,11 +1291,11 @@
     };
 
     const themes = {
-      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.15)', glow: 'rgba(246, 185, 116, 0.36)' },
-      lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.14)', glow: 'rgba(243, 244, 246, 0.28)' },
-      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.15)', glow: 'rgba(103, 232, 249, 0.36)' },
-      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.15)', glow: 'rgba(196, 181, 253, 0.36)' },
-      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.15)', glow: 'rgba(52, 211, 153, 0.36)' }
+      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.14)', glow: 'rgba(246, 185, 116, 0.34)' },
+      lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.13)', glow: 'rgba(243, 244, 246, 0.28)' },
+      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.14)', glow: 'rgba(103, 232, 249, 0.35)' },
+      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.14)', glow: 'rgba(196, 181, 253, 0.35)' },
+      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)', glow: 'rgba(52, 211, 153, 0.35)' }
     };
 
     const gameTipsDB = [
@@ -1162,15 +1316,14 @@
       { keys: ['prison architect'], name: 'Prison Architect', tips: ['Coloque detectores de metal na saída da cantina e da oficina.', 'Separe segurança máxima dos demais logo cedo.'] }
     ];
 
-    // --- Partículas Criativas (Carinho + Confete) ---
+    // --- Partículas ---
     function spawnParticles(x, y, symbols, colors, count = 8) {
       for (let i = 0; i < count; i++) {
         const el = document.createElement('span');
         el.className = 'fx-particle';
         el.textContent = symbols[i % symbols.length];
         el.style.color = colors[i % colors.length];
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
         const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
         const dist = 34 + Math.random() * 44;
         el.style.setProperty('--tx', `${(Math.cos(angle) * dist).toFixed(1)}px`);
@@ -1183,10 +1336,8 @@
 
     function burstPillLove(intense = false) {
       const rect = document.getElementById('lumo-pill').getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
       spawnParticles(
-        cx, cy,
+        rect.left + rect.width / 2, rect.top + rect.height / 2,
         intense ? ['♥', '✦', '♥', '★'] : ['✦', '♥', '·'],
         ['#fb7185', '#f6b974', '#fff3d6', '#c4b5fd'],
         intense ? 12 : 7
@@ -1198,37 +1349,26 @@
       if (!panel.classList.contains('open')) return;
       const rect = panel.getBoundingClientRect();
       spawnParticles(
-        rect.left + rect.width / 2,
-        rect.top + 170,
+        rect.left + rect.width / 2, rect.top + 170,
         ['●', '■', '✦', '★'],
-        ['#f6b974', '#34d399', '#67e8f9', '#fb7185', '#c4b5fd'],
-        16
+        ['#f6b974', '#34d399', '#67e8f9', '#fb7185', '#c4b5fd'], 16
       );
     }
 
-    // --- Olhos 60 FPS Sob Demanda (Otimização Real) ---
+    // --- Olhos 60 FPS Sob Demanda ---
     function setEyeTarget(x, y) {
-      targetEyeX = x;
-      targetEyeY = y;
-      if (!eyeRafId && !isHiddenInGame) {
-        eyeRafId = requestAnimationFrame(stepEyes);
-      }
+      targetEyeX = x; targetEyeY = y;
+      if (!eyeRafId && !isHiddenInGame) eyeRafId = requestAnimationFrame(stepEyes);
     }
 
     function stepEyes() {
       if (isHiddenInGame) { eyeRafId = null; return; }
-      const dx = targetEyeX - currentEyeX;
-      const dy = targetEyeY - currentEyeY;
-      currentEyeX += dx * 0.18;
-      currentEyeY += dy * 0.18;
+      const dx = targetEyeX - currentEyeX, dy = targetEyeY - currentEyeY;
+      currentEyeX += dx * 0.18; currentEyeY += dy * 0.18;
       document.getElementById('lumo-face').style.transform =
         `translate(${currentEyeX.toFixed(2)}px, ${currentEyeY.toFixed(2)}px)`;
-
-      if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) {
-        eyeRafId = requestAnimationFrame(stepEyes);
-      } else {
-        eyeRafId = null;
-      }
+      if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) eyeRafId = requestAnimationFrame(stepEyes);
+      else eyeRafId = null;
     }
 
     let typingTimer = null;
@@ -1240,19 +1380,67 @@
     }
     function stopTypingLook() { isTypingLook = false; }
 
+    // --- Relógio e Atualização em Tempo Real do Resumo ---
+    function updateLiveClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('live-clock').innerHTML = `${hh}<span class="colon">:</span>${mm}`;
+      const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('daily-date').textContent = dateStr;
+    }
+
+    function refreshSummaryNow() {
+      updateLiveClock();
+      updateGreetingUI();
+      updateDailySummary();
+      updateReminderUI();
+      const upMin = Math.floor((Date.now() - startTime) / 60000);
+      const hrs = Math.floor(upMin / 60), mins = upMin % 60;
+      document.getElementById('uptime-text').textContent =
+        isStealth() ? 'Modo Furtivo' : `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
+      if (Date.now() - lastWeatherFetch > 900000) fetchWeather(false);
+    }
+
+    // --- Fixar Painel & Auto-Encolher ao Clicar Fora ---
+    function togglePin() {
+      isPinned = !isPinned;
+      document.getElementById('pin-btn').classList.toggle('active-btn', isPinned);
+      playChirp(isPinned ? 620 : 460, isPinned ? 820 : 340, 0.14);
+    }
+
+    function toggleAutoClose(val) {
+      autoCloseOnBlur = val;
+      localStorage.setItem('lumo_autoclose', String(val));
+      playChirp(520, 680, 0.12);
+    }
+
     // --- Navegação ---
     function openView(viewName) {
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + viewName));
       document.getElementById('back-btn').classList.toggle('show', viewName !== 'resumo');
       document.getElementById('topbar-label').textContent = viewTitles[viewName] || 'Lumo';
       document.getElementById('cfg-btn').classList.toggle('active-btn', viewName === 'config');
+      if (viewName === 'resumo') refreshSummaryNow();
       if (viewName === 'ia') {
         const box = document.getElementById('chat-box');
         box.scrollTop = box.scrollHeight;
       }
     }
 
-    // --- Barra Inteligente (Comandos estilo Raycast + IA) ---
+    // --- Comandos Rápidos ---
+    function fillCmd(prefix) {
+      const inp = document.getElementById('quick-ai-input');
+      inp.value = prefix;
+      inp.focus();
+    }
+
+    function runCmdDirect(cmd) {
+      const inp = document.getElementById('quick-ai-input');
+      inp.value = cmd;
+      quickCommand(new Event('submit'));
+    }
+
     async function quickCommand(e) {
       e.preventDefault();
       stopTypingLook();
@@ -1260,10 +1448,8 @@
       const raw = input.value.trim();
       if (!raw) return;
       input.value = '';
-
       const lower = raw.toLowerCase();
 
-      // 1. Calculadora instantânea (=25*4)
       if (raw.startsWith('=')) {
         const expr = raw.slice(1).trim().replace(/,/g, '.');
         if (/^[\d\s+\-*/().%]+$/.test(expr)) {
@@ -1273,14 +1459,13 @@
               const out = Number.isInteger(res) ? String(res) : res.toFixed(2).replace('.', ',');
               if (invoke) await invoke('set_clipboard_text', { text: out });
               hopPill(); playChirp(620, 880, 0.16);
-              say(`Resultado: ${out} (já copiado!)`, 3600, true);
+              say(`Resultado: ${out} (copiado!)`, 3600, true);
               return;
             }
           } catch (_) {}
         }
       }
 
-      // 2. Busca Google (/g) ou YouTube (/yt)
       if (lower.startsWith('/g ') || lower.startsWith('/google ')) {
         const q = raw.replace(/^\/(g|google)\s+/i, '').trim();
         if (q && invoke) {
@@ -1298,18 +1483,15 @@
         }
       }
 
-      // 3. Ferramentas rápidas
       if (lower === '/cor') { openView('kit'); pickScreenColor(); return; }
       if (lower === '/senha') { openView('kit'); generatePassword(); return; }
       if (lower.startsWith('/qr ')) {
-        const txt = raw.slice(4).trim();
         openView('kit');
-        document.getElementById('qr-input').value = txt;
+        document.getElementById('qr-input').value = raw.slice(4).trim();
         generateQR(new Event('submit'));
         return;
       }
 
-      // 4. Comandos divertidos (/moeda e /d20 /dado)
       if (lower === '/moeda') {
         const face = Math.random() < 0.5 ? 'Cara' : 'Coroa';
         hopPill(); playChirp(580, 920, 0.2);
@@ -1326,12 +1508,66 @@
         return;
       }
 
-      // 5. Qualquer outra coisa vai para a IA integrada
       openView('ia');
       await executePrompt(raw);
     }
 
-    // --- Kit Rápido: Conta-gotas, QR Code e Senha Forte ---
+    // --- Lembretes Rápidos ---
+    function startReminder(mins) {
+      const label = document.getElementById('rem-label-input').value.trim() || 'Lembrete do Lumo';
+      activeReminder = { label, endTime: Date.now() + mins * 60000 };
+      document.getElementById('rem-label-input').value = '';
+      hopPill(); playChirp(560, 820, 0.18);
+      updateReminderUI();
+      say(`Combinado! Te lembro de "${label}" em ${mins} min.`, 3200, true);
+    }
+
+    function cancelReminder() {
+      activeReminder = null;
+      updateReminderUI();
+      playChirp(440, 340, 0.12);
+    }
+
+    function updateReminderUI() {
+      const strip = document.getElementById('active-reminder-strip');
+      const statusEl = document.getElementById('rem-status');
+      if (!activeReminder) {
+        strip.classList.remove('show');
+        statusEl.textContent = 'Nenhum ativo';
+        statusEl.style.color = 'var(--muted)';
+        return;
+      }
+      const remSec = Math.max(0, Math.ceil((activeReminder.endTime - Date.now()) / 1000));
+      const m = String(Math.floor(remSec / 60)).padStart(2, '0');
+      const s = String(remSec % 60).padStart(2, '0');
+      const txt = `${activeReminder.label} · ${m}:${s}`;
+      document.getElementById('active-reminder-text').textContent = txt;
+      strip.classList.add('show');
+      statusEl.textContent = `Falta ${m}:${s}`;
+      statusEl.style.color = 'var(--accent)';
+    }
+
+    // Tick de 1 segundo (Relógio + Lembretes)
+    setInterval(async () => {
+      if (isShuttingDown) return;
+      if (isExpanded) updateLiveClock();
+      if (activeReminder) {
+        if (Date.now() >= activeReminder.endTime) {
+          const msg = activeReminder.label;
+          activeReminder = null;
+          updateReminderUI();
+          if (isHiddenInGame) await wakeFromGame();
+          setExpression('surprised'); hopPill(); burstPillLove(true);
+          playChirp(640, 1080, 0.35);
+          say(`Lembrete${userName ? ', ' + userName : ''}: ${msg}!`, 7500, true, null, true);
+          setTimeout(() => restoreIdleExpression(), 3500);
+        } else {
+          updateReminderUI();
+        }
+      }
+    }, 1000);
+
+    // --- Kit Rápido ---
     function renderColorHistory() {
       const box = document.getElementById('color-history');
       box.innerHTML = '';
@@ -1354,6 +1590,7 @@
         say('Conta-gotas indisponível neste PC.', 2600, true);
         return;
       }
+      suppressBlur = true;
       try {
         const dropper = new EyeDropper();
         const result = await dropper.open();
@@ -1366,15 +1603,18 @@
           hopPill(); playChirp(640, 960, 0.18);
           say(`Cor ${hex} copiada!`, 2600, true);
         }
-      } catch (_) {}
+      } catch (_) {
+      } finally {
+        setTimeout(() => { suppressBlur = false; }, 450);
+      }
     }
 
     function generateQR(e) {
       e.preventDefault();
       const val = document.getElementById('qr-input').value.trim();
       if (!val) return;
-      const img = document.getElementById('qr-img');
-      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=6&data=${encodeURIComponent(val)}`;
+      document.getElementById('qr-img').src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=6&data=${encodeURIComponent(val)}`;
       document.getElementById('qr-preview').classList.add('show');
       hopPill(); playChirp(540, 820, 0.16);
     }
@@ -1404,12 +1644,8 @@
       say('Senha forte gerada e copiada!', 2400, true);
     }
 
-    // --- Resumo do Dia + Clima ---
+    // --- Progresso de Tarefas + Clima ---
     function updateDailySummary() {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
-      document.getElementById('daily-date').textContent = dateStr.replace('.', '');
-
       const total = tasks.length;
       const done = tasks.filter(t => t.done).length;
       const left = total - done;
@@ -1419,7 +1655,7 @@
       document.getElementById('summary-pct').textContent = `${pct}%`;
 
       if (total > 0 && left === 0) {
-        document.getElementById('daily-note').textContent = `Todas as ${total} tarefas concluídas! Dia zerado com sucesso.`;
+        document.getElementById('daily-note').textContent = 'Dia zerado!';
         if (!celebratedTasks) {
           celebratedTasks = true;
           burstTaskConfetti();
@@ -1428,18 +1664,13 @@
         }
       } else {
         celebratedTasks = false;
-        if (total === 0) {
-          document.getElementById('daily-note').textContent = 'Adicione suas tarefas para acompanhar o progresso do dia.';
-        } else if (left === 1) {
-          document.getElementById('daily-note').textContent = `${done} de ${total} concluídas · Falta só 1 tarefa para fechar o dia!`;
-        } else {
-          document.getElementById('daily-note').textContent = `${done} de ${total} concluídas · Restam ${left} pendentes hoje.`;
-        }
+        const cap = isPro ? '' : ` · máx 5`;
+        document.getElementById('daily-note').textContent = total ? `${done}/${total} concluídas${cap}` : `0 tarefas${cap}`;
       }
     }
 
     function weatherCodeToPt(code) {
-      if (code === 0) return 'Céu limpo';
+      if (code === 0) return 'Limpo';
       if (code >= 1 && code <= 3) return 'Nublado';
       if (code === 45 || code === 48) return 'Neblina';
       if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'Chuva';
@@ -1447,7 +1678,8 @@
       return 'Ameno';
     }
 
-    async function fetchWeather() {
+    async function fetchWeather(manual = false) {
+      if (manual) document.getElementById('weather-text').textContent = '...';
       try {
         const geo = await fetch('https://get.geojs.io/v1/ip/geo.json').then(r => r.json());
         if (!geo?.latitude || !geo?.longitude) throw new Error('no geo');
@@ -1455,11 +1687,12 @@
         const w = await fetch(url).then(r => r.json());
         const temp = Math.round(w?.current?.temperature_2m);
         if (!Number.isNaN(temp)) {
+          lastWeatherFetch = Date.now();
           document.getElementById('weather-text').textContent = `${temp}°C · ${weatherCodeToPt(w.current.weather_code)}`;
           return;
         }
       } catch (_) {}
-      document.getElementById('weather-text').textContent = 'Clima offline';
+      document.getElementById('weather-text').textContent = 'Offline';
     }
 
     // --- Nome & Saudação ---
@@ -1511,7 +1744,7 @@
       catch (e) { btn.disabled = false; btn.textContent = 'Tentar de novo'; say('Erro ao atualizar: ' + e, 3600, true); }
     }
 
-    // --- Modo Furtivo & Áudio ---
+    // --- Furtivo & Áudio ---
     function isStealth() { return stealthManual || stealthAuto; }
     function toggleStealth() {
       stealthManual = !stealthManual;
@@ -1602,7 +1835,9 @@
       document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('eq-bars').classList.remove('show');
       document.getElementById('tile-midia').classList.remove('active-tile');
-      document.getElementById('sub-midia').textContent = 'Player & Lo-fi';
+      document.getElementById('mm-lofi-btn').classList.remove('active');
+      document.getElementById('sub-midia').textContent = 'Lo-fi · Chuva';
+      document.getElementById('mini-media-title').textContent = 'Controle de Mídia';
       setEmote(''); restoreIdleExpression();
     }
 
@@ -1614,7 +1849,10 @@
       document.getElementById('amb-' + mode).classList.add('active');
       document.getElementById('eq-bars').classList.add('show');
       document.getElementById('tile-midia').classList.add('active-tile');
-      document.getElementById('sub-midia').textContent = mode === 'lofi' ? 'Tocando Lo-fi' : mode === 'rain' ? 'Tocando Chuva' : 'Som de Foco';
+      document.getElementById('mm-lofi-btn').classList.toggle('active', mode === 'lofi');
+      const label = mode === 'lofi' ? 'Tocando Lo-fi' : mode === 'rain' ? 'Som de Chuva' : 'Som de Foco';
+      document.getElementById('sub-midia').textContent = label;
+      document.getElementById('mini-media-title').textContent = label;
       setExpression('music'); setEmote('♪');
 
       const ctx = getAudioCtx();
@@ -1673,6 +1911,19 @@
     }
 
     // --- Bandeja Mágica ---
+    function openFilePicker() {
+      suppressBlur = true;
+      document.getElementById('file-picker').click();
+      window.addEventListener('focus', () => {
+        setTimeout(() => { suppressBlur = false; }, 500);
+      }, { once: true });
+    }
+
+    function onFilePicked(files) {
+      setTimeout(() => { suppressBlur = false; }, 400);
+      handleFiles(files);
+    }
+
     function setupDragAndDrop() {
       [document.getElementById('lumo-pill'), document.getElementById('drop-zone')].forEach(el => {
         el.addEventListener('dragover', (e) => {
@@ -1808,8 +2059,7 @@
         await invoke('cancel_shutdown');
         document.getElementById('sleep-status').textContent = 'Cancelado';
         document.getElementById('sleep-status').style.color = 'var(--muted)';
-        updateTimerUI();
-        restoreIdleExpression(); playChirp(520, 680, 0.16);
+        updateTimerUI(); restoreIdleExpression(); playChirp(520, 680, 0.16);
       } catch (_) {}
     }
 
@@ -1827,14 +2077,14 @@
         ? 'Anote ideias, links ou rascunhos... (salva automático)'
         : 'Recurso Lumo Pro — ative nas Configurações.';
 
-      document.getElementById('task-limit-label').textContent = isPro ? 'Ilimitado' : `${tasks.length}/5`;
+      updateDailySummary();
       renderClipboard();
     }
 
     function activateLicense(e) {
       e.preventDefault();
       const code = document.getElementById('license-input').value.trim().toUpperCase();
-      if (code === 'LUMO-PRO-2026' || code.startsWith('LUMO-')) {
+      if (['LUMO-PRO-2026', 'LUMO-FRIEND', 'LUMO-BETA'].includes(code) || code.startsWith('LUMO-')) {
         isPro = true; localStorage.setItem('lumo_pro', 'true');
         document.getElementById('license-input').value = '';
         applyPlanUI(); setExpression('love'); burstPillLove(true); playChirp(600, 980, 0.3);
@@ -1844,7 +2094,7 @@
         isPro = false; localStorage.setItem('lumo_pro', 'false');
         applyPlanUI(); say('Voltando para o modo Grátis.', 2200, true);
       } else {
-        playChirp(260, 180, 0.2); say('Chave inválida. Teste: LUMO-PRO-2026', 2800, true);
+        playChirp(260, 180, 0.2); say('Chave inválida. Use LUMO-FRIEND ou LUMO-PRO-2026', 3000, true);
       }
     }
 
@@ -1921,7 +2171,7 @@
       if (isShuttingDown) return;
       isShuttingDown = true; stopAmbient();
       if (isExpanded) {
-        isExpanded = false; document.getElementById('panel').classList.remove('open');
+        isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing');
         await syncWindowMode('pill');
       }
       setExpression('goodbye'); playChirp(520, 260, 0.45);
@@ -1933,21 +2183,34 @@
     async function syncWindowMode(mode) { if (invoke) try { await invoke('set_window_mode', { mode }); } catch (_) {} }
 
     async function togglePanel(forceState) {
-      if (isShuttingDown) return;
+      if (isShuttingDown || isClosing) return;
       lastInteraction = Date.now();
       if (isHiddenInGame) await wakeFromGame();
-      isExpanded = typeof forceState === 'boolean' ? forceState : !isExpanded;
+      const next = typeof forceState === 'boolean' ? forceState : !isExpanded;
+      if (next === isExpanded) return;
+
       const panel = document.getElementById('panel');
 
-      if (isExpanded) {
+      if (next) {
+        isExpanded = true;
+        justOpenedUntil = Date.now() + 450;
         document.getElementById('speech-bubble').classList.remove('show');
+        refreshSummaryNow();
         await syncWindowMode('expanded');
+        panel.classList.remove('closing');
         panel.classList.add('open');
         playChirp(480, 680, 0.16);
       } else {
+        isClosing = true;
+        isExpanded = false;
         panel.classList.remove('open');
-        await syncWindowMode('pill');
-        playChirp(620, 440, 0.14);
+        panel.classList.add('closing');
+        playChirp(620, 440, 0.13);
+        setTimeout(async () => {
+          panel.classList.remove('closing');
+          await syncWindowMode('pill');
+          isClosing = false;
+        }, 160);
       }
     }
 
@@ -1984,8 +2247,18 @@
       }
     });
 
-    // --- Monitoramento Adaptativo do Windows (Otimizado) ---
+    // --- Monitoramento Adaptativo (CPU/RAM ao vivo + Jogos + Furtivo) ---
     let activeGamePendingHide = false;
+    function applyMetricColor(valEl, barEl, pct) {
+      const isHot = pct >= 86;
+      const isWarn = pct >= 68 && !isHot;
+      valEl.classList.toggle('hot', isHot);
+      valEl.classList.toggle('warn', isWarn);
+      barEl.classList.toggle('hot', isHot);
+      barEl.classList.toggle('warn', isWarn);
+      barEl.style.width = `${Math.min(100, Math.max(4, pct))}%`;
+    }
+
     async function pollWindowsLoop() {
       if (isShuttingDown) return;
       if (invoke) {
@@ -1996,10 +2269,15 @@
           const ramPct = state.total_ram_mb > 0 ? Math.round((state.used_ram_mb / state.total_ram_mb) * 100) : 0;
           const cpu = state.cpu_percent || 0;
 
-          const sysEl = document.getElementById('sys-stat');
-          sysEl.textContent = `CPU ${cpu}% · RAM ${usedGb}/${totalGb}G`;
-          sysEl.classList.toggle('hot', cpu >= 88 || ramPct >= 90);
-          sysEl.classList.toggle('warn', (cpu >= 70 || ramPct >= 80) && !(cpu >= 88 || ramPct >= 90));
+          const cpuVal = document.getElementById('cpu-val');
+          const cpuBar = document.getElementById('cpu-bar');
+          const ramVal = document.getElementById('ram-val');
+          const ramBar = document.getElementById('ram-bar');
+
+          cpuVal.textContent = `${cpu}%`;
+          ramVal.textContent = `${usedGb}/${totalGb}G`;
+          applyMetricColor(cpuVal, cpuBar, cpu);
+          applyMetricColor(ramVal, ramBar, ramPct);
 
           const prevLoad = pcUnderLoad;
           pcUnderLoad = cpu >= 85 || ramPct >= 90;
@@ -2142,7 +2420,7 @@
     async function hideForGame(msg, delayMs = 950) {
       if (isHiddenInGame) return;
       if (isExpanded) {
-        isExpanded = false; document.getElementById('panel').classList.remove('open');
+        isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing');
         await syncWindowMode('pill');
       }
       if (msg) say(msg, 1800, true);
@@ -2172,7 +2450,7 @@
       const upMin = Math.floor((Date.now() - startTime) / 60000);
       const hrs = Math.floor(upMin / 60), mins = upMin % 60;
       document.getElementById('uptime-text').textContent =
-        `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m · ${isStealth() ? 'Modo Furtivo' : 'Alt+Espaço'}`;
+        isStealth() ? 'Modo Furtivo' : `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
 
       if (hrs >= 8) document.getElementById('app').classList.add('comfort-warm');
 
@@ -2219,7 +2497,6 @@
         list.appendChild(div);
       });
       localStorage.setItem('lumo_tasks', JSON.stringify(tasks));
-      document.getElementById('task-limit-label').textContent = isPro ? 'Ilimitado' : `${tasks.length}/5`;
       updateDailySummary();
     }
 
@@ -2244,7 +2521,7 @@
     function updateTimerUI() {
       const formatted = `${String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:${String(timerSeconds % 60).padStart(2, '0')}`;
       document.getElementById('timer-display').textContent = formatted;
-      document.getElementById('sub-util').textContent = timerInterval ? `Foco ${formatted}` : `${formatted} · Soneca`;
+      document.getElementById('sub-util').textContent = timerInterval ? `Foco ${formatted}` : `${formatted} · Lembrete`;
       document.getElementById('tile-util').classList.toggle('active-tile', Boolean(timerInterval));
       const badge = document.getElementById('pill-badge');
       badge.textContent = formatted; badge.classList.toggle('show', Boolean(timerInterval));
@@ -2384,6 +2661,10 @@
           openView('midia'); sendMedia('play_pause');
         } else if (lower.includes('desligar') && lower.includes('pc')) {
           const m = lower.match(/(\d+)/); schedulePcSleep(m ? parseInt(m[1], 10) : 30);
+        } else if (lower.includes('lembre') || lower.includes('lembrete')) {
+          const m = lower.match(/(\d+)/);
+          document.getElementById('rem-label-input').value = transcript;
+          startReminder(m ? parseInt(m[1], 10) : 10);
         } else if (lower.includes('foco') || lower.includes('timer')) {
           openView('util'); toggleTimer();
         } else if (lower.includes('esconder') || lower.includes('jogo')) {
@@ -2414,13 +2695,23 @@
       if (savedTheme) setTheme(savedTheme);
       document.getElementById('personality-select').value = personality;
       document.getElementById('voice-select').value = voiceMode;
+      document.getElementById('autoclose-toggle').checked = autoCloseOnBlur;
       document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
 
+      updateLiveClock();
       updateGreetingUI();
+
       if (invoke) {
         try { document.getElementById('autostart-toggle').checked = await invoke('get_autostart'); } catch (_) {}
       }
-      if (listen) listen('toggle-lumo', () => togglePanel());
+      if (listen) {
+        listen('toggle-lumo', () => togglePanel());
+        listen('window-blur', () => {
+          if (isExpanded && autoCloseOnBlur && !isPinned && !suppressBlur && Date.now() > justOpenedUntil) {
+            togglePanel(false);
+          }
+        });
+      }
 
       setupDragAndDrop();
       renderColorHistory();
@@ -2428,7 +2719,7 @@
       applyPlanUI();
       syncWindowMode('pill');
       fetchRates();
-      fetchWeather();
+      fetchWeather(false);
       pollWindowsLoop();
       setTimeout(() => checkForUpdates(true), 4000);
 

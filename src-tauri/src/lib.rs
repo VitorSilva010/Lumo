@@ -38,7 +38,7 @@ pub struct DesktopState {
 #[tauri::command]
 fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -> DesktopState {
     let (used_ram_mb, total_ram_mb, cpu_percent) = if let Ok(mut cache) = state.telemetry.lock() {
-        if cache.last_refresh.elapsed() >= Duration::from_millis(2000) {
+        if cache.last_refresh.elapsed() >= Duration::from_millis(1200) {
             cache.sys.refresh_memory();
             cache.sys.refresh_cpu_usage();
             cache.used_ram_mb = cache.sys.used_memory() / 1024 / 1024;
@@ -81,7 +81,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 #[tauri::command]
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
     let (w, h, align_right) = match mode.as_str() {
-        "expanded" => (442.0_f64, 608.0_f64, false),
+        "expanded" => (446.0_f64, 624.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
         _ => (310.0_f64, 150.0_f64, false),
     };
@@ -101,6 +101,10 @@ fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), Str
         let _ = window.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(
             x, 8.0,
         )));
+    }
+
+    if mode == "expanded" {
+        let _ = window.set_focus();
     }
 
     Ok(())
@@ -499,6 +503,11 @@ pub fn run() {
                 cpu_percent: 0,
             }),
             _instance_lock: lock,
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::Focused(false) = event {
+                let _ = window.emit("window-blur", ());
+            }
         })
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
