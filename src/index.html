@@ -466,7 +466,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.8.2</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.8.3</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -489,6 +489,10 @@
           </div>
         </div>
         <div class="card">
+                    <div class="card-row" style="margin-bottom:7px;">
+            <div><div style="font-size:12px; font-weight:600;">Só na bandeja do sistema</div><div style="font-size:10.5px; color:var(--muted);">Oculta a cápsula; abra pelo ícone perto do relógio</div></div>
+            <label class="switch"><input type="checkbox" id="trayonly-toggle" onchange="toggleTrayOnly(this.checked)" /><span class="slider"></span></label>
+          </div>
           <div class="card-row" style="margin-bottom:7px;">
             <div><div style="font-size:12px; font-weight:600;">Encolher ao clicar fora</div><div style="font-size:10.5px; color:var(--muted);">Recolhe o painel ao focar outro app</div></div>
             <label class="switch"><input type="checkbox" id="autoclose-toggle" checked onchange="toggleAutoClose(this.checked)" /><span class="slider"></span></label>
@@ -543,7 +547,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.2</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.3</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>

@@ -7,6 +7,7 @@ let isPro = localStorage.getItem('lumo_pro') === 'true';
 let personality = localStorage.getItem('lumo_personality') || 'balanced';
 let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
 let autoCloseOnBlur = localStorage.getItem('lumo_autoclose') !== 'false';
+let trayOnlyMode = localStorage.getItem('lumo_trayonly') === 'true';
 let autoInstallUpdates = localStorage.getItem('lumo_autoupdate') !== 'false';
 
 let isPinned = false, suppressBlur = false, justOpenedUntil = 0;
@@ -65,14 +66,25 @@ function unlockBlur() { setTimeout(() => { suppressBlur = false; }, 350); }
 function isStealth() { return stealthManual || stealthAuto; }
 function getGreetingBase() { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; }
 
-// === OLHOS REATIVOS (CSS direto — não congela fora de foco no WebView2) ===
+// === OLHOS REATIVOS (Interpolação contínua via GPU — sem travar fora de foco) ===
+let eyeTargetX = 0, eyeTargetY = 0, eyeCurX = 0, eyeCurY = 0, lastPointerEyeMs = 0;
+
 function setEyeTarget(x, y) {
   if (isHiddenInGame) return;
-  const cx = Math.max(-10, Math.min(10, Number(x) || 0));
-  const cy = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
-  const face = document.getElementById('lumo-face');
-  if (face) face.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`;
+  eyeTargetX = Math.max(-10, Math.min(10, Number(x) || 0));
+  eyeTargetY = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
 }
+
+setInterval(() => {
+  if (isHiddenInGame || isShuttingDown || window.cinemaPlaying) return;
+  const dx = eyeTargetX - eyeCurX;
+  const dy = eyeTargetY - eyeCurY;
+  if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) return;
+  eyeCurX += dx * 0.24;
+  eyeCurY += dy * 0.24;
+  const face = document.getElementById('lumo-face');
+  if (face) face.style.transform = `translate3d(${eyeCurX.toFixed(2)}px, ${eyeCurY.toFixed(2)}px, 0)`;
+}, 22);
 
 let typingTimer = null;
 function onUserTyping() {
@@ -87,6 +99,7 @@ window.addEventListener('pointermove', (ev) => {
   if (isHiddenInGame || isTypingLook || window.cinemaPlaying) return;
   const p = document.getElementById('lumo-pill');
   if (!p) return;
+  lastPointerEyeMs = Date.now();
   const r = p.getBoundingClientRect();
   setEyeTarget((ev.clientX - (r.left + r.width / 2)) / 18, (ev.clientY - (r.top + r.height / 2)) / 18);
 });
@@ -262,7 +275,7 @@ async function togglePanel(forceState) {
     playChirp(620, 440, 0.12);
     setTimeout(async () => {
       panel.classList.remove('closing');
-      await syncWindowMode('pill');
+      await syncWindowMode(trayOnlyMode ? 'tray_hidden' : 'pill');
       isClosing = false;
     }, 155);
   }
@@ -284,6 +297,13 @@ function togglePin() {
   playChirp(isPinned ? 620 : 460, isPinned ? 820 : 340, 0.14);
 }
 function toggleAutoClose(val) { autoCloseOnBlur = val; localStorage.setItem('lumo_autoclose', String(val)); }
+function toggleTrayOnly(val) {
+  trayOnlyMode = Boolean(val);
+  localStorage.setItem('lumo_trayonly', String(trayOnlyMode));
+  playChirp(trayOnlyMode ? 480 : 600, trayOnlyMode ? 360 : 840, 0.14);
+  if (trayOnlyMode) say('Modo Bandeja ativo! Ao fechar, fico só perto do relógio.', 3200, true);
+  else say('Cápsula flutuante reativada na tela!', 2400, true);
+}
 function toggleStealth() {
   stealthManual = !stealthManual;
   document.getElementById('stealth-btn').classList.toggle('active-btn', stealthManual);
@@ -295,7 +315,7 @@ async function gracefulShutdown() {
   if (isShuttingDown) return;
   isShuttingDown = true;
   stopAmbient();
-  if (isExpanded) { isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing'); await syncWindowMode('pill'); }
+  if (isExpanded) { isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing'); await syncWindowMode(trayOnlyMode && localStorage.getItem('lumo_intro_v1') ? 'tray_hidden' : 'pill'); }
   setExpression('goodbye');
   playChirp(520, 260, 0.42);
   say(`Tô indo descansar${userName ? ', ' + userName : ''}... até mais!`, 1400, true, null, true);
@@ -363,7 +383,7 @@ async function pollWindowsLoop() {
     try {
       const st = await invoke('get_desktop_state');
       // 1. Olhos (sempre primeiro!)
-      if (!isHiddenInGame && !isTypingLook && typeof st.cursor_x === 'number') {
+      if (!isHiddenInGame && !isTypingLook && (Date.now() - lastPointerEyeMs > 160) && typeof st.cursor_x === 'number') {
         const halfW = Math.max(480, (st.screen_w || 1920) * 0.42);
         const tx = ((st.cursor_x - st.win_center_x) / halfW) * 10;
         const ty = ((st.cursor_y - (st.win_y + 35)) / 420) * 5.5;
@@ -427,7 +447,7 @@ async function pollWindowsLoop() {
       }
     } catch (_) {}
   }
-  setTimeout(pollWindowsLoop, isHiddenInGame ? 300 : 85);
+  setTimeout(pollWindowsLoop, (isHiddenInGame || (trayOnlyMode && !isExpanded)) ? 320 : 50);
 }
 
 // === MÍDIA & AMBIENTE ===
@@ -955,7 +975,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.2 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.3 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1157,6 +1177,7 @@ setInterval(() => {
   document.getElementById('personality-select').value = personality;
   document.getElementById('voice-select').value = voiceMode;
   document.getElementById('autoclose-toggle').checked = autoCloseOnBlur;
+  const trayChk = document.getElementById('trayonly-toggle'); if (trayChk) trayChk.checked = trayOnlyMode;
   document.getElementById('autoupdate-toggle').checked = autoInstallUpdates;
   document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
 
@@ -1166,6 +1187,7 @@ setInterval(() => {
   if (invoke) { try { document.getElementById('autostart-toggle').checked = await invoke('get_autostart'); } catch (_) {} }
   if (listen) {
     listen('toggle-lumo', () => togglePanel());
+    listen('tray-toggle', () => togglePanel());
     listen('window-blur', () => setTimeout(() => tryCollapseOnOutside(''), 150));
   }
 

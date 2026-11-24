@@ -1,3 +1,6 @@
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::Emitter;
 use keyring::Entry;
 use serde::Serialize;
 use std::fs;
@@ -80,6 +83,11 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 
 #[tauri::command]
 fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
+    if mode == "tray_hidden" {
+        let _ = window.hide();
+        return Ok(());
+    }
+    let _ = window.show();
     let (w, h, align_right) = match mode.as_str() {
         "expanded" => (452.0_f64, 650.0_f64, false),
         "cinema" => (480.0_f64, 340.0_f64, false),
@@ -593,6 +601,32 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            let show_i = MenuItem::with_id(app, "show", "Abrir Lumo", true, None::<&str>)?;
+            let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
+            let tray_menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+            let mut tray_builder = TrayIconBuilder::new()
+                .tooltip("Lumo")
+                .menu(&tray_menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show" => { let _ = app.emit("tray-toggle", ()); }
+                    "quit" => { app.exit(0); }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let _ = tray.app_handle().emit("tray-toggle", ());
+                    }
+                });
+            if let Some(icon) = app.default_window_icon() {
+                tray_builder = tray_builder.icon(icon.clone());
+            }
+            let _ = tray_builder.build(app)?;
             if let Some(window) = app.get_webview_window("main") {
                 if let Ok(Some(monitor)) = window.primary_monitor() {
                     let scale = monitor.scale_factor();

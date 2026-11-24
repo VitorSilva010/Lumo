@@ -91,7 +91,7 @@ svg.ic-lg { width: 18px; height: 18px; }
 .face {
   position: relative; display: flex; align-items: center; justify-content: center;
   gap: 18px; width: 68px; height: 32px; will-change: transform;
-  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: none;
 }
 .acc-svg {
   position: absolute; pointer-events: none; opacity: 0;
