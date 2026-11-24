@@ -1,6 +1,5 @@
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::Emitter;
 use keyring::Entry;
 use serde::Serialize;
 use std::fs;
