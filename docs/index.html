@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumo — Seu companheiro inteligente para Windows</title>
+  <meta name="description" content="Um assistente de desktop leve (~3 MB) com IA integrada, controle de mídia, bandeja mágica de arquivos, Modo Café e Modo Jogo para Windows." />
+  <style>
+    :root {
+      --bg: #090a0f;
+      --surface: rgba(255, 255, 255, 0.035);
+      --surface-2: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.095);
+      --accent: #f6b974;
+      --accent-soft: rgba(246, 185, 116, 0.14);
+      --accent-glow: rgba(246, 185, 116, 0.35);
+      --text: #f3f4f6;
+      --muted: #94a3b8;
+      --ok: #34d399;
+      --love: #fb7185;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(ellipse 70% 45% at 50% -10%, rgba(246, 185, 116, 0.14), transparent 70%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1060px; margin: 0 auto; padding: 0 22px; }
+
+    /* Nav */
+    header {
+      position: sticky; top: 0; z-index: 40;
+      backdrop-filter: blur(14px);
+      background: rgba(9, 10, 15, 0.78);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav {
+      height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.2px; }
+    .brand-pill {
+      width: 34px; height: 20px; border-radius: 999px; background: #13151e;
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 5px;
+      box-shadow: 0 0 14px var(--accent-soft);
+    }
+    .brand-pill span { width: 4px; height: 7px; border-radius: 99px; background: var(--accent); }
+    .nav-links { display: flex; align-items: center; gap: 22px; font-size: 13.5px; color: var(--muted); }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-primary {
+      background: var(--accent); color: #111318;
+      box-shadow: 0 8px 28px var(--accent-soft);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 34px var(--accent-glow); }
+    .btn-ghost {
+      background: var(--surface); color: var(--text); border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+
+    /* Hero */
+    .hero { padding: 76px 0 64px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+
+    .version-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.28);
+      padding: 5px 13px; border-radius: 999px; margin-bottom: 26px;
+    }
+    .version-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+
+    /* Demo Interativa da Pílula */
+    .demo-stage {
+      position: relative; margin-bottom: 28px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    #demo-pill {
+      position: relative; width: 174px; height: 62px; border-radius: 999px;
+      background: #101219; border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7), 0 0 38px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+      user-select: none;
+    }
+    #demo-pill:hover { transform: scale(1.05); box-shadow: 0 20px 52px rgba(0,0,0,0.75), 0 0 46px var(--accent-glow); }
+    #demo-pill:active { transform: scale(0.96, 1.04); }
+    .demo-face { display: flex; align-items: center; justify-content: center; gap: 22px; will-change: transform; position: relative; }
+    .demo-eye {
+      width: 15px; height: 22px; border-radius: 999px;
+      background: var(--accent); box-shadow: 0 0 16px var(--accent-glow);
+      position: relative; transition: height 0.12s ease, border-radius 0.14s ease, background 0.2s ease;
+    }
+    .demo-eye::after {
+      content: ''; position: absolute; top: 4px; left: 4px;
+      width: 4.5px; height: 4.5px; border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+    }
+    .demo-face.blink .demo-eye { height: 3px; border-radius: 4px; }
+    .demo-face.blink .demo-eye::after { opacity: 0; }
+    .demo-face.love .demo-eye { background: var(--love); box-shadow: 0 0 18px rgba(251, 113, 133, 0.7); width: 17px; height: 17px; }
+    .demo-hint { font-size: 11.5px; color: var(--muted); }
+    #demo-bubble {
+      font-size: 12px; color: var(--text); background: #141620; border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 999px; min-height: 29px;
+      display: inline-flex; align-items: center; transition: opacity 0.25s ease;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5.4vw, 56px); font-weight: 800; letter-spacing: -1.4px;
+      line-height: 1.08; max-width: 780px;
+      background: linear-gradient(180deg, #ffffff 30%, #cbd5e1 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #f6b974, #fcd34d);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      margin-top: 18px; font-size: clamp(15px, 2vw, 18px); color: var(--muted);
+      max-width: 600px;
+    }
+    .hero-cta { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    .hero-meta {
+      margin-top: 16px; font-size: 12.5px; color: var(--muted);
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+    }
+
+    /* Seções */
+    section { padding: 68px 0; }
+    .sec-head { text-align: center; max-width: 620px; margin: 0 auto 40px; }
+    .sec-tag {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--accent); font-weight: 700; margin-bottom: 8px;
+    }
+    .sec-head h2 { font-size: clamp(24px, 3.6vw, 34px); font-weight: 700; letter-spacing: -0.6px; }
+    .sec-head p { color: var(--muted); font-size: 15px; margin-top: 8px; }
+
+    /* Bento Grid de Recursos */
+    .bento {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px;
+      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(246, 185, 116, 0.35); background: var(--surface-2); }
+    .card-ic {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: var(--accent-soft); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .card h3 { font-size: 16px; font-weight: 600; }
+    .card p { font-size: 13.5px; color: var(--muted); }
+    .pill-tag {
+      align-self: flex-start; font-size: 10.5px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; margin-top: auto;
+    }
+
+    /* Preços */
+    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 780px; margin: 0 auto; }
+    .price-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .price-card.pro {
+      background: linear-gradient(160deg, rgba(246, 185, 116, 0.1), rgba(255, 255, 255, 0.025));
+      border-color: rgba(246, 185, 116, 0.45);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    }
+    .price-val { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+    .price-val span { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .feat-list { list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 13.5px; color: #cbd5e1; }
+    .feat-list li { display: flex; align-items: center; gap: 9px; }
+    .feat-list li::before { content: '✓'; color: var(--ok); font-weight: 700; }
+
+    /* FAQ */
+    .faq-list { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    details {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 15px; padding: 15px 18px; cursor: pointer;
+    }
+    summary { font-size: 14.5px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    summary::after { content: '+'; color: var(--accent); font-size: 18px; }
+    details[open] summary::after { content: '−'; }
+    details p { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 32px 0; text-align: center; font-size: 13px; color: var(--muted);
+    }
+
+    @media (max-width: 820px) {
+      .bento { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand">
+        <div class="brand-pill"><span></span><span></span></div>
+        Lumo
+      </a>
+      <nav class="nav-links">
+        <a href="#recursos">Recursos</a>
+        <a href="#planos">Planos</a>
+        <a href="#faq">Dúvidas</a>
+        <a href="https://github.com/VitorSilva010/Lumo" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <a id="nav-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-primary btn-sm">
+        Baixar para Windows
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="version-badge">
+        <span class="dot"></span>
+        <span id="ver-label">Lumo v1.3.0 · Windows 10 & 11</span>
+      </div>
+
+      <div class="demo-stage">
+        <div id="demo-pill" title="Dê 2 cliques para fazer carinho!">
+          <div class="demo-face" id="demo-face">
+            <div class="demo-eye"></div>
+            <div class="demo-eye"></div>
+          </div>
+        </div>
+        <div id="demo-bubble">Mova o mouse ou dê 2 cliques em mim!</div>
+      </div>
+
+      <h1>Um assistente vivo para o seu PC que <span>não pesa na RAM</span>.</h1>
+      <p class="hero-sub">
+        IA integrada no primeiro clique, controle de mídia, bandeja mágica de arquivos, Modo Café e Modo Jogo — tudo numa cápsula flutuante de ~3 MB.
+      </p>
+
+      <div class="hero-cta">
+        <a id="hero-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-primary">
+          ⬇ Baixar Lumo Grátis (.exe)
+        </a>
+        <a href="#recursos" class="btn btn-ghost">Ver tudo o que ele faz</a>
+      </div>
+
+      <div class="hero-meta">
+        <span>⚡ Instalador ~3,5 MB</span>
+        <span>🔒 Sem login obrigatório</span>
+        <span>🔄 Atualizações automáticas</span>
+      </div>
+    </section>
+
+    <section id="recursos" class="container">
+      <div class="sec-head">
+        <div class="sec-tag">Feito para o dia a dia</div>
+        <h2>Pequeno na tela, gigante na utilidade</h2>
+        <p>Substitua abas abertas e utilitários pesados por um único atalho (<strong>Alt + Espaço</strong>).</p>
+      </div>
+
+      <div class="bento">
+        <div class="card">
+          <div class="card-ic">✦</div>
+          <h3>IA Integrada + Comandos</h3>
+          <p>Pergunte qualquer coisa sem abrir o navegador, ou use atalhos rápidos como <code>/g</code>, <code>/yt</code>, <code>/cor</code>, <code>/qr</code>, <code>/d20</code> e calculadora <code>=25*4</code>.</p>
+          <span class="pill-tag">Pronto no 1º clique</span>
+        </div>
+
+        <div class="card">
+          <div class="card-ic">📦</div>
+          <h3>Bandeja Mágica (Bolso)</h3>
+          <p>Arraste imagens direto no rostinho do Lumo para converter para <strong>WebP, JPG, PNG ou PDF</strong> 100% offline, sem sites cheios de anúncios.</p>
+          <span class="pill-tag">100% Offline</span>
+        </div>
+
+        <div class="card">
+          <div class="card-ic">🎮</div>
+          <h3>Modo Jogo Inteligente</h3>
+          <p>Detecta quando você abre um jogo, dá uma dica rápida no loading e se esconde sozinho no canto da tela para não atrapalhar seu FPS.</p>
+          <span class="pill-tag">~0% CPU em repouso</span>
+        </div>
+
+        <div class="card">
+          <div class="card-ic">🎨</div>
+          <h3>Kit Rápido no PC</h3>
+          <p>Conta-gotas para capturar qualquer cor <code>#HEX</code> da tela, gerador de QR Code para mandar links pro celular e gerador de senhas fortes.</p>
+          <span class="pill-tag">1 clique</span>
+        </div>
+
+        <div class="card">
+          <div class="card-ic">☕</div>
+          <h3>Foco, Café & Respiração</h3>
+          <p>Timer Pomodoro com óculos na pílula, <strong>Modo Café</strong> para manter o PC acordado em downloads, Modo Soneca e pausa de respiração guiada.</p>
+          <span class="pill-tag">Bem-estar & Produtividade</span>
+        </div>
+
+        <div class="card">
+          <div class="card-ic">🎵</div>
+          <h3>Mídia & Lo-fi Offline</h3>
+          <p>Controle Spotify e YouTube sem dar Alt+Tab, ou ligue som ambiente de Lo-fi, Chuva e Foco sintetizados em tempo real com fones animados.</p>
+          <span class="pill-tag">Sem gastar internet</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="planos" class="container">
+      <div class="sec-head">
+        <div class="sec-tag">Simples e justo</div>
+        <h2>Comece grátis, desbloqueie o Pro uma única vez</h2>
+        <p>Sem assinaturas surpresa. Pague uma vez e use para sempre no seu Windows.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div>
+            <h3>Lumo Grátis</h3>
+            <p style="color:var(--muted); font-size:13px;">Para experimentar e usar todo dia</p>
+          </div>
+          <div class="price-val">R$ 0 <span>/ para sempre</span></div>
+          <ul class="feat-list">
+            <li>IA integrada + barra de comandos rápidos</li>
+            <li>Resumo ao vivo com relógio, clima, CPU e RAM</li>
+            <li>Kit Rápido (Conta-gotas, QR Code, Senhas)</li>
+            <li>Modo Jogo, Modo Café, Respiração e Soneca PC</li>
+            <li>Conversão de imagens (JPG, PNG, PDF) e até 5 tarefas</li>
+          </ul>
+          <a id="free-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-ghost" style="margin-top:auto;">
+            Baixar Grátis
+          </a>
+        </div>
+
+        <div class="price-card pro">
+          <div>
+            <h3>Lumo Pro <span style="font-size:11px; background:var(--accent); color:#111; padding:2px 7px; border-radius:99px; margin-left:6px;">VITALÍCIO</span></h3>
+            <p style="color:var(--muted); font-size:13px;">Apoie o projeto e libere tudo</p>
+          </div>
+          <div class="price-val">R$ 29 <span>/ pagamento único</span></div>
+          <ul class="feat-list">
+            <li>Tudo do plano Grátis + atualizações vitalícias</li>
+            <li>Tarefas ilimitadas + Bloco de Notas rápido</li>
+            <li>Histórico inteligente de Ctrl+C</li>
+            <li>Sons ambiente offline (Lo-fi Zen, Chuva e Foco)</li>
+            <li>Conversão WebP no Bolso + todos os temas luminosos</li>
+          </ul>
+          <a href="#faq" class="btn btn-primary" style="margin-top:auto;" onclick="alert('Em breve: link de pagamento direto! Para testar agora, use a chave LUMO-FRIEND nas Configurações do app.'); return false;">
+            Desbloquear Lumo Pro
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="container">
+      <div class="sec-head">
+        <div class="sec-tag">Transparência</div>
+        <h2>Perguntas frequentes</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>O Windows mostrou uma tela azul ("O Windows protegeu o computador"). É seguro?</summary>
+          <p>Sim! O Lumo é um projeto independente e ainda não possui certificado pago da Microsoft (que custa centenas de dólares por ano). Como o código é compilado diretamente pelo GitHub Actions, basta clicar em <strong>Mais informações → Executar assim mesmo</strong> na primeira instalação.</p>
+        </details>
+        <details>
+          <summary>O Lumo pesa no computador ou derruba FPS em jogos?</summary>
+          <p>Não. Ele é construído em Rust + Tauri (pesa cerca de 3,5 MB no disco), faz cache da leitura de CPU/RAM e entra em repouso no Modo Jogo, mantendo o uso de CPU próximo de 0%.</p>
+        </details>
+        <details>
+          <summary>Como funcionam as atualizações?</summary>
+          <p>O Lumo possui auto-update silencioso assinado criptograficamente. Sempre que sai uma versão nova, ele baixa e aplica sozinho quando você não está jogando ou usando o painel.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      Feito com carinho por Vitor · <a href="https://github.com/VitorSilva010/Lumo" target="_blank" rel="noopener" style="color:var(--accent);">Repositório no GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // 1. Olhos interativos da pílula demo
+    const pill = document.getElementById('demo-pill');
+    const face = document.getElementById('demo-face');
+    const bubble = document.getElementById('demo-bubble');
+
+    document.addEventListener('mousemove', (e) => {
+      const r = pill.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = Math.max(-9, Math.min(9, (e.clientX - cx) / 38));
+      const dy = Math.max(-5, Math.min(5, (e.clientY - cy) / 38));
+      face.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    });
+
+    setInterval(() => {
+      if (!face.classList.contains('love')) {
+        face.classList.add('blink');
+        setTimeout(() => face.classList.remove('blink'), 130);
+      }
+    }, 3600);
+
+    pill.addEventListener('dblclick', () => {
+      face.classList.add('love');
+      bubble.textContent = 'Hehe, valeu pelo carinho! ♥';
+      setTimeout(() => {
+        face.classList.remove('love');
+        bubble.textContent = 'Pronto para morar no seu Windows!';
+      }, 2400);
+    });
+
+    pill.addEventListener('click', () => {
+      bubble.textContent = 'No Windows, 1 clique abre meu painel completo!';
+    });
+
+    // 2. Busca automaticamente a última release do GitHub para o botão de download
+    fetch('https://api.github.com/repos/VitorSilva010/Lumo/releases/latest')
+      .then((r) => r.json())
+      .then((rel) => {
+        if (!rel?.tag_name) return;
+        document.getElementById('ver-label').textContent = `Lumo ${rel.tag_name} · Windows 10 & 11`;
+        const exe = (rel.assets || []).find((a) => a.name.endsWith('-setup.exe'));
+        if (exe?.browser_download_url) {
+          ['hero-dl', 'nav-dl', 'free-dl'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.href = exe.browser_download_url;
+          });
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
