@@ -729,7 +729,7 @@
     }
 
   
-    /* === LUMO v1.5.0 — VISUAL & ANIMAÇÕES === */
+    /* === LUMO v1.7.2 — VISUAL & ANIMAÇÕES === */
     #lumo-pill:hover {
       transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
       border-color: rgba(255, 255, 255, 0.22);
@@ -825,6 +825,76 @@
       background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
     }
 
+  
+/* LUMO_V172_CSS_START */
+    #app { padding-top: 12px; }
+    #speech-bubble { top: 72px; max-width: 280px; padding: 6px 12px; }
+
+    /* Fone centralizado na cápsula */
+    #acc-headphones {
+      top: -7px !important; left: 50% !important; width: 82px !important; height: 42px !important;
+      transform: translateX(-50%) scale(0.86) !important; opacity: 0;
+    }
+    #lumo-pill:has(.face.music) #acc-headphones {
+      opacity: 0.95 !important; transform: translateX(-50%) scale(1) !important;
+    }
+
+    /* Animações 60 FPS puras (sem filter: blur engasgando em janela transparente) */
+    @keyframes panelSpringOpen {
+      0% { opacity: 0; transform: translateY(-12px) scale(0.93); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes viewSilkEnter {
+      from { opacity: 0; transform: translateY(8px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Expressões sempre funcionam nos estilos Fofo e Cyber */
+    .face.style-kawaii .eye { width: 15px; height: 18px; border-radius: 50%; }
+    .face.style-kawaii .eye::after { width: 5px; height: 5px; top: 3px; left: 3px; }
+    .face.style-kawaii .eye::before { opacity: 0.9; }
+    .face.style-kawaii .blush { opacity: 0.42; }
+    .face.style-cyber .eye {
+      width: 17px; height: 11px; border-radius: 3px;
+      box-shadow: 0 0 18px var(--accent-glow), inset 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+    .face.style-cyber .eye::after { width: 6px; height: 2.5px; border-radius: 2px; top: 2px; left: 3px; }
+
+    .face.blink .eye { height: 3px !important; border-radius: 4px !important; }
+    .face.blink .eye::after, .face.blink .eye::before { opacity: 0 !important; }
+    .face.wink .eye.right { height: 3.5px !important; border-radius: 4px !important; transform: translateY(1px) !important; }
+    .face.wink .eye.right::after, .face.wink .eye.right::before { opacity: 0 !important; }
+    .face.happy .eye {
+      height: 11px !important; width: 15px !important; background: transparent !important;
+      box-shadow: none !important; border-top: 3.5px solid var(--accent) !important;
+      border-radius: 50% 50% 0 0 !important; transform: translateY(3px) !important;
+    }
+    .face.happy .eye::after, .face.happy .eye::before { opacity: 0 !important; }
+    .face.sleepy .eye, .face.goodbye .eye {
+      height: 3.5px !important; width: 15px !important; border-radius: 0 0 12px 12px !important;
+      opacity: 0.65 !important; transform: translateY(3px) !important;
+    }
+    .face.sleepy .eye::after, .face.sleepy .eye::before,
+    .face.goodbye .eye::after, .face.goodbye .eye::before { opacity: 0 !important; }
+    .face.love .eye {
+      background: var(--love) !important; box-shadow: 0 0 16px rgba(251, 113, 133, 0.68) !important;
+      height: 16px !important; width: 16px !important; border-radius: 50% !important;
+    }
+    .face.dizzy .eye {
+      height: 14px !important; width: 14px !important; border-radius: 50% !important;
+      border: 3px dashed var(--accent) !important; background: transparent !important; box-shadow: none !important;
+    }
+    .face.dizzy .eye::after, .face.dizzy .eye::before { opacity: 0 !important; }
+    .face.focused .eye { height: 11px !important; width: 15px !important; border-radius: 3px 3px 8px 8px !important; transform: translateY(1px) !important; }
+    .face.bored .eye { height: 9px !important; border-radius: 3px 3px 10px 10px !important; transform: translateY(3px) !important; }
+
+    /* Acoplamento suave da cápsula na Intro sem piscar */
+    #drop-capsule.landed { opacity: 1; top: 184px; transform: scale(1); }
+    #drop-capsule.docking {
+      opacity: 1; top: 12px !important; transform: scale(1) !important;
+      transition: top 0.85s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
+    }
+/* LUMO_V172_CSS_END */
   </style>
 </head>
 <body>
@@ -838,13 +908,14 @@
       <div class="eq-bars" id="eq-bars">
         <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
       </div>
-      <div class="face" id="lumo-face">
-        <div id="sweat-drop"></div>
-        <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+      <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
           <path d="M12 26 A28 24 0 0 1 68 26" />
           <rect x="6" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
           <rect x="67" y="21" width="7" height="14" rx="3.5" fill="currentColor" />
         </svg>
+      <div class="face" id="lumo-face">
+        <div id="sweat-drop"></div>
+        
         <svg id="acc-glasses" class="acc-svg" viewBox="0 0 68 26" fill="none" stroke="currentColor" stroke-width="2.4">
           <rect x="7" y="4" width="21" height="16" rx="5" />
           <rect x="40" y="4" width="21" height="16" rx="5" />
@@ -1353,7 +1424,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.5.0</span>
+            <span>Plano · Lumo v1.7.2</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1448,7 +1519,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.5.0</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.7.2</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -3226,7 +3297,7 @@
       }, 650);
     })();
   
-    // === UPGRADE VISUAL & ANIMAÇÕES (v1.5.0) ===
+    // === UPGRADE VISUAL & ANIMAÇÕES (v1.7.2) ===
     function setEyeStyle(style, btnEl) {
       const face = document.getElementById('lumo-face');
       if (!face) return;
@@ -3308,7 +3379,7 @@
     })();
 
   
-    // === PONTE PC <-> CELULAR PWA (v1.5.0) ===
+    // === PONTE PC <-> CELULAR PWA (v1.7.2) ===
     const SYNC_API = 'https://lumo-ai.sivavieiravitor.workers.dev/sync';
     let syncToken = localStorage.getItem('lumo_sync_token') || '';
     let isApplyingRemoteSync = false;
@@ -3450,6 +3521,34 @@
       setInterval(pollMobileCommands, 4000);
     })();
 
+  
+/* LUMO_V172_JS_START */
+    (function initV172Polish() {
+      var pillEl = document.getElementById('lumo-pill');
+      if (pillEl) {
+        pillEl.addEventListener('animationend', function(ev) {
+          if (ev.animationName === 'hopBounce') pillEl.classList.remove('hop');
+        });
+      }
+      var panelEl = document.getElementById('panel');
+      if (panelEl) {
+        panelEl.addEventListener('animationend', function(ev) {
+          if (ev.animationName === 'cascadeFade' && ev.target && ev.target.classList) {
+            ev.target.classList.remove('cascade-in');
+          }
+        });
+      }
+      if (typeof window.setEyeTarget === 'function' && !window.setEyeTarget._v172) {
+        var origEye = window.setEyeTarget;
+        window.setEyeTarget = function(x, y) {
+          var cx = Math.max(-10, Math.min(10, Number(x) || 0));
+          var cy = Math.max(-4.5, Math.min(5.5, Number(y) || 0));
+          return origEye(cx, cy);
+        };
+        window.setEyeTarget._v172 = true;
+      }
+    })();
+/* LUMO_V172_JS_END */
   </script>
 </body>
 </html>
