@@ -1154,7 +1154,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.2.0</span>
+            <span>Plano · Lumo v1.2.1</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1237,7 +1237,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.2.0</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.2.1</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1715,16 +1715,35 @@
       setTimeout(() => restoreIdleExpression(), 2000);
     }
 
-    // --- Auto-Update ---
+    // --- Auto-Update Real (Silencioso + Periodico) ---
+    let autoInstallUpdates = localStorage.getItem('lumo_autoupdate') !== 'false';
+    let isUpdating = false;
+    let pendingAutoUpdate = null;
+
+    function toggleAutoUpdate(val) {
+      autoInstallUpdates = val;
+      localStorage.setItem('lumo_autoupdate', String(val));
+      playChirp(520, 680, 0.12);
+    }
+
     async function checkForUpdates(silent = true) {
-      if (!invoke) return;
+      if (!invoke || isUpdating || isShuttingDown) return;
       try {
         const newVer = await invoke('check_update');
         if (newVer) {
           document.getElementById('update-text').textContent = `Lumo v${newVer} pronto para instalar!`;
           document.getElementById('update-banner').classList.add('show');
-          document.getElementById('update-cfg-status').textContent = `Nova versão v${newVer} encontrada`;
-          if (personality !== 'zen') say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
+          document.getElementById('update-cfg-status').textContent = `Nova versão v${newVer} disponível`;
+
+          if (autoInstallUpdates) {
+            if (!isHiddenInGame && !isThinking && !isExpanded) {
+              await installRealUpdate(true, newVer);
+            } else {
+              pendingAutoUpdate = newVer;
+            }
+          } else if (personality !== 'zen') {
+            say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
+          }
         } else if (!silent) {
           document.getElementById('update-cfg-status').textContent = 'Você já está na versão mais recente!';
         }
@@ -1732,17 +1751,38 @@
         if (!silent) document.getElementById('update-cfg-status').textContent = 'Nenhuma atualização nova encontrada.';
       }
     }
+
     async function manualCheckUpdate() {
       document.getElementById('update-cfg-status').textContent = 'Verificando...';
       await checkForUpdates(false);
     }
-    async function installRealUpdate() {
-      if (!invoke) return;
+
+    async function installRealUpdate(autoMode = false, verLabel = '') {
+      if (!invoke || isUpdating) return;
+      isUpdating = true;
+      pendingAutoUpdate = null;
       const btn = document.getElementById('update-btn');
-      btn.disabled = true; btn.textContent = 'Baixando...';
-      try { await invoke('install_update'); }
-      catch (e) { btn.disabled = false; btn.textContent = 'Tentar de novo'; say('Erro ao atualizar: ' + e, 3600, true); }
+      if (btn) { btn.disabled = true; btn.textContent = 'Atualizando...'; }
+      document.getElementById('update-cfg-status').textContent = 'Baixando e aplicando patch...';
+      if (autoMode) {
+        say(`Atualizando sozinho${verLabel ? ' para v' + verLabel : ''}... volto já!`, 4000, true);
+      }
+      try {
+        await invoke('install_update');
+      } catch (err) {
+        isUpdating = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'Tentar de novo'; }
+        document.getElementById('update-cfg-status').textContent = 'Falha ao atualizar.';
+        if (!autoMode) say('Erro ao atualizar: ' + err, 3600, true);
+      }
     }
+
+    // Aplica atualizacao pendente assim que o usuario sair do jogo ou recolher o painel
+    setInterval(() => {
+      if (pendingAutoUpdate && autoInstallUpdates && !isUpdating && !isHiddenInGame && !isThinking && !isExpanded && !isShuttingDown) {
+        installRealUpdate(true, pendingAutoUpdate);
+      }
+    }, 15000);
 
     // --- Furtivo & Áudio ---
     function isStealth() { return stealthManual || stealthAuto; }
@@ -2696,6 +2736,7 @@
       document.getElementById('personality-select').value = personality;
       document.getElementById('voice-select').value = voiceMode;
       document.getElementById('autoclose-toggle').checked = autoCloseOnBlur;
+      document.getElementById('autoupdate-toggle').checked = autoInstallUpdates;
       document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
 
       updateLiveClock();
@@ -2721,7 +2762,8 @@
       fetchRates();
       fetchWeather(false);
       pollWindowsLoop();
-      setTimeout(() => checkForUpdates(true), 4000);
+      setTimeout(() => checkForUpdates(true), 3500);
+      setInterval(() => checkForUpdates(true), 15 * 60 * 1000);
 
       setTimeout(() => {
         setExpression('surprised'); hopPill(); playChirp(420, 740, 0.28);
