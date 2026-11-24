@@ -5,9 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lumo</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./cinema.css" />
 </head>
 <body>
   <div id="app">
+    <div id="cinema-stage">
+      <svg id="mothership" viewBox="0 0 160 64" fill="none">
+        <defs>
+          <linearGradient id="hullGrad" x1="0" y1="0" x2="160" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2a2e42" />
+            <stop offset="55%" stop-color="#141622" />
+            <stop offset="100%" stop-color="#0b0c12" />
+          </linearGradient>
+        </defs>
+        <ellipse cx="80" cy="40" rx="68" ry="13" fill="url(#hullGrad)" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />
+        <path d="M44 33 C52 13, 108 13, 116 33 Z" fill="#1c2032" stroke="var(--accent)" stroke-opacity="0.6" stroke-width="1.4" />
+        <ellipse cx="80" cy="24" rx="18" ry="5" fill="var(--accent)" fill-opacity="0.34" />
+        <circle cx="42" cy="40" r="3" fill="var(--accent)" />
+        <circle cx="80" cy="43" r="3.5" fill="var(--accent)" />
+        <circle cx="118" cy="40" r="3" fill="var(--accent)" />
+        <rect x="64" y="48" width="32" height="5" rx="2.5" fill="var(--accent)" fill-opacity="0.72" />
+      </svg>
+      <div id="drop-beam"></div>
+      <div id="impact-ring"></div>
+      <div id="drop-capsule">
+        <div class="cine-face" id="cine-face">
+          <div class="cine-eye"></div>
+          <div class="cine-eye"></div>
+        </div>
+      </div>
+      <div id="cinema-bubble"></div>
+      <button id="cinema-skip" onclick="finishArrivalCinema()">Pular</button>
+    </div>
     <div id="corner-sensor" title="Chamar o Lumo (ou Alt + Espaço)" onclick="wakeFromGame()">
       <div class="dot"></div>
     </div>
@@ -412,7 +441,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.8.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.8.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -489,13 +518,14 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.0</div></div>
-            <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.1</div></div>
+            <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <script src="./app.js"></script>
+  <script src="./cinema.js"></script>
 </body>
 </html>

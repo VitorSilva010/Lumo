@@ -84,7 +84,7 @@ function onUserTyping() {
 function stopTypingLook() { isTypingLook = false; }
 
 window.addEventListener('pointermove', (ev) => {
-  if (isHiddenInGame || isTypingLook) return;
+  if (isHiddenInGame || isTypingLook || window.cinemaPlaying) return;
   const p = document.getElementById('lumo-pill');
   if (!p) return;
   const r = p.getBoundingClientRect();
@@ -358,6 +358,7 @@ function applyMetricColor(valEl, barEl, pct) {
 
 async function pollWindowsLoop() {
   if (isShuttingDown) return;
+  if (window.cinemaPlaying) { setTimeout(pollWindowsLoop, 220); return; }
   if (invoke) {
     try {
       const st = await invoke('get_desktop_state');
@@ -954,7 +955,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.8.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1177,6 +1178,10 @@ setInterval(() => {
   setTimeout(() => checkForUpdates(true), 3500);
 
   setTimeout(() => {
+    if (!localStorage.getItem('lumo_intro_v1') && typeof window.playArrivalCinema === 'function') {
+      window.playArrivalCinema();
+      return;
+    }
     setExpression('happy'); hopPill(); playChirp(460, 820, 0.24);
     const msg = userName ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.` : `${getGreetingBase()}! Clique em mim para começarmos.`;
     say(msg, 4600, true, null, true);

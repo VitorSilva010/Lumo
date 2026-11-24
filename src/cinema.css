@@ -1,0 +1,208 @@
+#cinema-stage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  overflow: hidden;
+}
+#cinema-stage.active { display: block; }
+
+#mothership {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 156px;
+  height: 60px;
+  margin-left: -78px;
+  opacity: 0;
+  transform: translate3d(-260px, 0, 0) rotate(-5deg);
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 18px var(--accent-soft));
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+  will-change: transform, opacity;
+}
+#mothership.arrive {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+}
+#mothership.hovering {
+  opacity: 1;
+  animation: shipFloat 1.7s ease-in-out infinite alternate;
+}
+#mothership.depart {
+  opacity: 0;
+  transform: translate3d(300px, -20px, 0) scale(0.72) rotate(8deg);
+  transition: transform 0.9s cubic-bezier(0.55, 0.05, 0.67, 0.19), opacity 0.7s ease;
+}
+@keyframes shipFloat {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -5px, 0); }
+}
+
+#drop-beam {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  width: 80px;
+  height: 156px;
+  margin-left: -40px;
+  background: linear-gradient(180deg, var(--accent-glow), transparent 90%);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+  opacity: 0;
+  transform: scaleY(0.08);
+  transform-origin: top center;
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#drop-beam.on { opacity: 0.75; transform: scaleY(1); }
+
+#impact-ring {
+  position: absolute;
+  top: 214px;
+  left: 50%;
+  width: 146px;
+  height: 26px;
+  margin-left: -73px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 24px var(--accent-glow);
+  opacity: 0;
+  transform: scale(0.2);
+}
+#impact-ring.boom {
+  animation: shockwaveRing 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes shockwaveRing {
+  0% { opacity: 0.95; transform: scale(0.25); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+/* Posicionada em top: 16px (pixel exato da pílula real) — toda queda e subida usa GPU translate3d */
+#drop-capsule {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  width: 158px;
+  height: 54px;
+  margin-left: -79px;
+  border-radius: 999px;
+  background: var(--bg-pill);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.68), 0 0 32px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translate3d(0, 32px, 0) scale(0.38);
+  will-change: transform, opacity;
+}
+#drop-capsule.falling {
+  opacity: 1;
+  animation: capsuleDropGpu 1.05s cubic-bezier(0.42, 0, 0.85, 0.55) forwards;
+}
+@keyframes capsuleDropGpu {
+  0%   { opacity: 1; transform: translate3d(0, 34px, 0) scale(0.42, 0.54); }
+  56%  { opacity: 1; transform: translate3d(0, 170px, 0) scale(0.92, 1.12); }
+  70%  { opacity: 1; transform: translate3d(0, 178px, 0) scale(1.18, 0.80); }
+  83%  { opacity: 1; transform: translate3d(0, 152px, 0) scale(0.96, 1.06); }
+  93%  { opacity: 1; transform: translate3d(0, 172px, 0) scale(1.05, 0.95); }
+  100% { opacity: 1; transform: translate3d(0, 168px, 0) scale(1, 1); }
+}
+#drop-capsule.landed {
+  opacity: 1;
+  transform: translate3d(0, 168px, 0) scale(1);
+}
+#drop-capsule.docking {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cine-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cine-eye {
+  width: 13px;
+  height: 19px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+  position: relative;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+.cine-eye::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+}
+.cine-face.boot .cine-eye { opacity: 1; animation: cineBootEye 0.45s ease forwards; }
+@keyframes cineBootEye {
+  0% { opacity: 0; height: 3px; }
+  35% { opacity: 1; height: 4px; }
+  65% { opacity: 0.45; height: 14px; }
+  100% { opacity: 1; height: 19px; }
+}
+.cine-face.on .cine-eye { opacity: 1; }
+.cine-face.blink .cine-eye { opacity: 1; height: 3px; border-radius: 4px; }
+.cine-face.blink .cine-eye::after { opacity: 0; }
+.cine-face.happy .cine-eye {
+  opacity: 1;
+  height: 11px;
+  width: 15px;
+  background: transparent;
+  box-shadow: none;
+  border-top: 3.5px solid var(--accent);
+  border-radius: 50% 50% 0 0;
+  transform: translateY(3px);
+}
+.cine-face.happy .cine-eye::after { opacity: 0; }
+
+#cinema-bubble {
+  position: absolute;
+  top: 248px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px) scale(0.95);
+  max-width: 392px;
+  width: max-content;
+  padding: 9px 16px;
+  border-radius: 16px;
+  background: rgba(13, 14, 21, 0.97);
+  border: 1px solid rgba(246, 185, 116, 0.45);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 22px var(--accent-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#cinema-bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+#cinema-skip {
+  position: absolute;
+  bottom: 8px;
+  right: 16px;
+  pointer-events: auto;
+  background: rgba(13, 14, 21, 0.85);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10.5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+#cinema-skip:hover { color: var(--accent); border-color: var(--accent); }
