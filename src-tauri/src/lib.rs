@@ -570,7 +570,7 @@ pub fn run() {
         Err(_) => std::process::exit(0),
     };
 
-    let mut sys = System::new();
+    let mut sys = System::new_all();
     sys.refresh_memory();
     sys.refresh_cpu_usage();
 

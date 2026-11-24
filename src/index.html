@@ -729,7 +729,7 @@
     }
 
   
-    /* === LUMO v1.4.1 — VISUAL & ANIMAÇÕES === */
+    /* === LUMO v1.5.0 — VISUAL & ANIMAÇÕES === */
     #lumo-pill:hover {
       transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
       border-color: rgba(255, 255, 255, 0.22);
@@ -838,7 +838,7 @@
       <div class="eq-bars" id="eq-bars">
         <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
       </div>
-      <div class="face sleepy" id="lumo-face">
+      <div class="face" id="lumo-face">
         <div id="sweat-drop"></div>
         <svg id="acc-headphones" class="acc-svg" viewBox="0 0 80 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
           <path d="M12 26 A28 24 0 0 1 68 26" />
@@ -874,6 +874,9 @@
           </div>
         </div>
         <div class="icon-actions">
+          <button class="circle-btn" id="mobile-btn" title="Conectar Celular (PWA)" onclick="openView('mobile')">
+            <svg class="ic ic-sm" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><line x1="12" x2="12.01" y1="18" y2="18"/></svg>
+          </button>
           <button class="circle-btn" id="pin-btn" title="Fixar painel aberto (não encolher ao clicar fora)" onclick="togglePin()">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
           </button>
@@ -1315,6 +1318,29 @@
         </div>
       </div>
 
+      
+      <!-- VIEW: PAREAMENTO CELULAR (PWA) -->
+      <div class="view" id="view-mobile">
+        <div class="card" style="text-align:center;">
+          <div class="label-xs">
+            <span>Lumo Mobile (Android & iPhone)</span>
+            <span id="mob-sync-badge" style="color:var(--ok);">Ativo</span>
+          </div>
+          <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">
+            Aponte a câmera do celular para o QR Code abaixo e adicione à tela inicial para controlar mídia, tarefas, notas e Ctrl+C.
+          </p>
+          <div style="display:flex; justify-content:center; margin:6px 0 10px;">
+            <img id="mob-qr-img" alt="QR Pareamento" style="width:152px; height:152px; border-radius:12px; background:#fff; padding:6px;" />
+          </div>
+          <div style="font-family:Consolas,monospace; font-size:14px; font-weight:700; color:var(--accent); letter-spacing:1px; margin-bottom:10px;" id="mob-token-text"></div>
+          <div class="preset-row">
+            <button class="btn-primary" onclick="sendPcClipToMobile()">Enviar Ctrl+C pro Celular</button>
+            <button class="btn-ghost" onclick="copyMobileUrl()">Copiar Link</button>
+            <button class="btn-ghost" onclick="resetMobileToken()">Novo Código</button>
+          </div>
+        </div>
+      </div>
+
       <!-- VIEW 7: CONFIGURAÇÕES -->
       <div class="view" id="view-config">
         <div class="card">
@@ -1327,7 +1353,7 @@
 
         <div class="card">
           <div class="label-xs">
-            <span>Plano · Lumo v1.4.1</span>
+            <span>Plano · Lumo v1.5.0</span>
             <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
           </div>
           <form class="inline-form" onsubmit="activateLicense(event)">
@@ -1408,7 +1434,6 @@
             <input type="color" id="custom-theme-input" value="#f6b974" style="display:none;" oninput="applyCustomHex(this.value, false)" onchange="applyCustomHex(this.value, true)" />
           </div>
         </div>
-        </div>
 
         <div class="card">
           <div class="label-xs">Chave API Gemini Própria (Opcional)</div>
@@ -1423,7 +1448,7 @@
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.4.1</div>
+              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.5.0</div>
             </div>
             <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
           </div>
@@ -1473,6 +1498,7 @@
       bolso: 'Bandeja Mágica',
       ia: 'IA Lumo',
       util: 'Foco & PC',
+      mobile: 'Lumo Celular',
       config: 'Configurações'
     };
 
@@ -2724,6 +2750,9 @@
           }
 
           const title = (state.active_window || '').toLowerCase();
+          if (isExpanded && autoCloseOnBlur && !isPinned && !suppressBlur && Date.now() > justOpenedUntil && title && title !== 'lumo') {
+            togglePanel(false);
+          }
           stealthAuto = ['obs ', 'google meet', 'zoom meeting', 'microsoft teams'].some(k => title.includes(k));
           document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
 
@@ -3183,13 +3212,13 @@
           const msg = userName
             ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.`
             : `${getGreetingBase()}! Clique em mim para nos conhecermos.`;
-          say(msg, 4400, false, null, true);
+          say(msg, 4800, true, null, true);
         }
         setTimeout(() => restoreIdleExpression(), 1200);
       }, 650);
     })();
   
-    // === UPGRADE VISUAL & ANIMAÇÕES (v1.4.1) ===
+    // === UPGRADE VISUAL & ANIMAÇÕES (v1.5.0) ===
     function setEyeStyle(style, btnEl) {
       const face = document.getElementById('lumo-face');
       if (!face) return;
@@ -3268,6 +3297,149 @@
           setTimeout(() => f.classList.remove('wink'), 260);
         }
       }, 9500);
+    })();
+
+  
+    // === PONTE PC <-> CELULAR PWA (v1.5.0) ===
+    const SYNC_API = 'https://lumo-ai.sivavieiravitor.workers.dev/sync';
+    let syncToken = localStorage.getItem('lumo_sync_token') || '';
+    let isApplyingRemoteSync = false;
+    let lastRemoteTasksTs = 0, lastRemoteNotesTs = 0, lastRemoteCmdId = '';
+    let notesSyncTimer = null;
+
+    function createPairCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let out = 'LUMO-';
+      for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+      return out;
+    }
+
+    function renderMobileQR() {
+      if (!syncToken) {
+        syncToken = createPairCode();
+        localStorage.setItem('lumo_sync_token', syncToken);
+      }
+      const pairUrl = 'https://vitorsilva010.github.io/Lumo/app/?pair=' + encodeURIComponent(syncToken);
+      const img = document.getElementById('mob-qr-img');
+      if (img) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=6&data=' + encodeURIComponent(pairUrl);
+      const txt = document.getElementById('mob-token-text');
+      if (txt) txt.textContent = syncToken;
+    }
+
+    async function copyMobileUrl() {
+      const pairUrl = 'https://vitorsilva010.github.io/Lumo/app/?pair=' + encodeURIComponent(syncToken);
+      if (invoke) await invoke('set_clipboard_text', { text: pairUrl });
+      playChirp(620, 880, 0.14);
+      say('Link de pareamento copiado!', 2400, true);
+    }
+
+    function resetMobileToken() {
+      syncToken = createPairCode();
+      localStorage.setItem('lumo_sync_token', syncToken);
+      renderMobileQR();
+      pushPcSync({ tasks, notes: localStorage.getItem('lumo_notes') || '' });
+      say('Novo código de pareamento gerado!', 2400, true);
+    }
+
+    async function pushPcSync(payload) {
+      if (!syncToken) return;
+      try {
+        await fetch(SYNC_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
+          body: JSON.stringify({ token: syncToken, source: 'pc', ...payload })
+        });
+      } catch (_) {}
+    }
+
+    async function sendPcClipToMobile() {
+      if (!invoke) return;
+      const txt = await invoke('get_clipboard_text');
+      if (!txt) { say('Nenhum texto no Ctrl+C do PC.', 2200, true); return; }
+      await pushPcSync({ clip: txt });
+      playChirp(600, 900, 0.16); hopPill();
+      say('Ctrl+C enviado para o seu celular!', 2600, true);
+    }
+
+    async function pollMobileCommands() {
+      if (!syncToken || isShuttingDown) return;
+      try {
+        const res = await fetch(SYNC_API + '?token=' + encodeURIComponent(syncToken));
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Sincroniza tarefas vindas do celular
+        if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastRemoteTasksTs) {
+          lastRemoteTasksTs = data.tasksUpdatedAt;
+          isApplyingRemoteSync = true;
+          tasks = data.tasks;
+          renderTasks();
+          isApplyingRemoteSync = false;
+        }
+
+        // Sincroniza notas vindas do celular
+        if (typeof data.notes === 'string' && (data.notesUpdatedAt || 0) > lastRemoteNotesTs) {
+          lastRemoteNotesTs = data.notesUpdatedAt;
+          const el = document.getElementById('quick-notes');
+          if (el && el.value !== data.notes) {
+            el.value = data.notes;
+            localStorage.setItem('lumo_notes', data.notes);
+          }
+        }
+
+        // Executa comando remoto recente (< 35s) uma única vez
+        const cmd = data.lastCmd;
+        if (cmd && cmd.id && cmd.id !== lastRemoteCmdId && (Date.now() - (cmd.ts || 0)) < 35000) {
+          lastRemoteCmdId = cmd.id;
+          if (cmd.action === 'media' && cmd.value) {
+            await sendMedia(cmd.value);
+          } else if (cmd.action === 'sleep_pc' && cmd.value) {
+            await schedulePcSleep(Number(cmd.value) || 30);
+          } else if (cmd.action === 'cancel_sleep') {
+            await cancelPcSleep();
+          } else if (cmd.action === 'keep_awake') {
+            await toggleKeepAwake(!keepAwakeActive);
+          } else if (cmd.action === 'set_clip' && cmd.value && invoke) {
+            await invoke('set_clipboard_text', { text: String(cmd.value) });
+            hopPill(); playChirp(620, 920, 0.16);
+            say('Texto recebido do celular no seu Ctrl+C!', 3400, true);
+          } else if (cmd.action === 'open_url' && cmd.value && invoke) {
+            await invoke('open_external_url', { url: String(cmd.value) });
+            hopPill(); playChirp(580, 860, 0.16);
+          }
+        }
+      } catch (_) {}
+    }
+
+    (function initMobileBridge() {
+      renderMobileQR();
+
+      // Envia tarefas quando alteradas no PC
+      const origRenderTasks = window.renderTasks;
+      if (typeof origRenderTasks === 'function') {
+        window.renderTasks = function() {
+          origRenderTasks();
+          if (!isApplyingRemoteSync) {
+            lastRemoteTasksTs = Date.now();
+            pushPcSync({ tasks });
+          }
+        };
+      }
+
+      // Envia notas quando editadas no PC (debounce 1.2s)
+      const origSaveNotes = window.saveQuickNotes;
+      if (typeof origSaveNotes === 'function') {
+        window.saveQuickNotes = function(val) {
+          origSaveNotes(val);
+          clearTimeout(notesSyncTimer);
+          notesSyncTimer = setTimeout(() => {
+            lastRemoteNotesTs = Date.now();
+            pushPcSync({ notes: val });
+          }, 1200);
+        };
+      }
+
+      setInterval(pollMobileCommands, 4000);
     })();
 
   </script>
