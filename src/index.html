@@ -6,6 +6,7 @@
   <title>Lumo</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./cinema.css" />
+  <link rel="stylesheet" href="./polish.css" />
 </head>
 <body>
   <div id="app">
@@ -155,6 +156,16 @@
             </div>
           </div>
 
+                    <div class="motd-card">
+            <div class="motd-head">
+              <span>✦ Mensagem do Dia</span>
+              <button class="tiny-icon-btn" type="button" title="Outra mensagem" onclick="nextMotd()">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+              </button>
+            </div>
+            <div class="motd-text" id="motd-text"></div>
+          </div>
+
           <div id="active-reminder-strip">
             <span id="active-reminder-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
             <button class="del-btn" onclick="cancelReminder()">×</button>
@@ -230,6 +241,20 @@
               <input type="text" id="new-task-input" placeholder="+ Adicionar tarefa..." />
               <button type="submit" class="btn-primary">Add</button>
             </form>
+          </div>
+
+          <div class="news-card">
+            <div class="label-xs" style="margin-bottom:0;">
+              <span>Notícias de Hoje</span>
+              <div class="news-tabs">
+                <button class="news-tab active" type="button" data-cat="geral" onclick="loadNews('geral', true)">Geral</button>
+                <button class="news-tab" type="button" data-cat="tech" onclick="loadNews('tech', true)">Tech</button>
+                <button class="news-tab" type="button" data-cat="games" onclick="loadNews('games', true)">Games</button>
+              </div>
+            </div>
+            <div class="news-list" id="news-list">
+              <div style="font-size:11px; color:var(--muted); padding:4px;">Buscando manchetes de hoje...</div>
+            </div>
           </div>
         </div>
 
@@ -441,7 +466,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.8.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.8.2</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -518,7 +543,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.1</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.2</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -527,5 +552,6 @@
   </div>
   <script src="./app.js"></script>
   <script src="./cinema.js"></script>
+  <script src="./daily.js"></script>
 </body>
 </html>
