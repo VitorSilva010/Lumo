@@ -629,5 +629,5 @@ pub fn run() {
             ask_gemini
         ])
         .run(tauri::generate_context!())
-        .expect("Erro ao iniciar o Lumo");
+        .unwrap_or_else(|error| eprintln!("Erro ao iniciar o Lumo: {error}"));
 }

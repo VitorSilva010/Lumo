@@ -1,6 +1,6 @@
 [package]
 name = "lumo"
-version = "1.4.1"
+version = "1.5.0"
 description = "Lumo Desktop Companion"
 authors = ["Vitor"]
 edition = "2021"
@@ -25,6 +25,8 @@ arboard = "3"
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"
 windows = { version = "0.58", features = [
+  "Foundation",
+  "Media_Control",
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
   "Win32_UI_Input_KeyboardAndMouse",
