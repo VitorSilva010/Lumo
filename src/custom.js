@@ -12,6 +12,7 @@ let uiSurface = localStorage.getItem('lumo_surface') || 'obsidian';
 let uiRadius = localStorage.getItem('lumo_radius') || 'round';
 let uiOpacity = parseInt(localStorage.getItem('lumo_opacity') || '97', 10);
 if (Number.isNaN(uiOpacity) || uiOpacity < 72 || uiOpacity > 100) uiOpacity = 97;
+window.uiPosition = localStorage.getItem('lumo_pos') || 'top-center';
 
 let uiWidgets = { ...DEFAULT_WIDGETS };
 try {
@@ -55,6 +56,27 @@ function applyOpacity(val) {
   if (rng && String(rng.value) !== String(pct)) rng.value = pct;
 }
 
+async function applyPosition(pos, feedback = false) {
+  const valid = ['top-center', 'top-left', 'top-right', 'bottom-right'];
+  const next = valid.includes(pos) ? pos : 'top-center';
+  window.uiPosition = next;
+  localStorage.setItem('lumo_pos', next);
+  document.body.classList.toggle('pos-bottom', next.startsWith('bottom-'));
+  document.querySelectorAll('.pos-btn').forEach((b) => {
+    b.classList.toggle('active-btn', b.dataset.pos === next);
+  });
+  if (feedback) {
+    if (typeof syncWindowMode === 'function') {
+      const curMode = (typeof isExpanded !== 'undefined' && isExpanded)
+        ? 'expanded'
+        : ((typeof trayOnlyMode !== 'undefined' && trayOnlyMode) ? 'tray_hidden' : 'pill');
+      await syncWindowMode(curMode);
+    }
+    if (typeof playChirp === 'function') playChirp(560, 820, 0.14);
+    if (typeof hopPill === 'function') hopPill();
+  }
+}
+
 function getWidgetElement(key) {
   const resumo = document.getElementById('view-resumo');
   if (!resumo) return null;
@@ -92,16 +114,17 @@ function resetInterfaceStyle() {
   applySurface('obsidian', false);
   applyRadius('round', false);
   applyOpacity(97);
+  applyPosition('top-center', true);
   applyAllWidgets();
   if (typeof setTheme === 'function') setTheme('amber');
   if (typeof setEyeStyle === 'function') setEyeStyle('classic');
-  if (typeof playChirp === 'function') playChirp(560, 840, 0.16);
   if (typeof say === 'function') say('Aparência restaurada para o padrão!', 2400, true);
 }
 
 window.applySurface = applySurface;
 window.applyRadius = applyRadius;
 window.applyOpacity = applyOpacity;
+window.applyPosition = applyPosition;
 window.toggleWidget = toggleWidget;
 window.resetInterfaceStyle = resetInterfaceStyle;
 
@@ -109,5 +132,6 @@ window.resetInterfaceStyle = resetInterfaceStyle;
   applySurface(uiSurface, false);
   applyRadius(uiRadius, false);
   applyOpacity(uiOpacity);
+  applyPosition(window.uiPosition, false);
   applyAllWidgets();
 })();

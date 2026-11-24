@@ -246,7 +246,7 @@ async function onBubbleClick() {
 }
 
 // === JANELA, PAINEL E NAVEGAÇÃO ===
-async function syncWindowMode(mode) { if (invoke) try { await invoke('set_window_mode', { mode }); } catch (_) {} }
+async function syncWindowMode(mode) { if (invoke) try { const anchor = window.uiPosition || localStorage.getItem('lumo_pos') || 'top-center'; await invoke('set_window_mode', { mode, anchor }); } catch (_) {} }
 
 function tryCollapseOnOutside(reasonTitle = '') {
   const tag = document.activeElement?.tagName;
@@ -394,7 +394,8 @@ async function pollWindowsLoop() {
       if (!isHiddenInGame && !(trayOnlyMode && !isExpanded) && !isTypingLook && (Date.now() - lastPointerEyeMs > 160) && typeof st.cursor_x === 'number') {
         const halfW = Math.max(480, (st.screen_w || 1920) * 0.42);
         const tx = ((st.cursor_x - st.win_center_x) / halfW) * 10;
-        const ty = ((st.cursor_y - (st.win_y + 35)) / 420) * 5.5;
+        const pillOffsetY = (window.uiPosition || '').startsWith('bottom-') ? (isExpanded ? 600 : 105) : 35;
+        const ty = ((st.cursor_y - (st.win_y + pillOffsetY)) / 420) * 5.5;
         setEyeTarget(tx, ty);
       }
 
@@ -425,7 +426,8 @@ async function pollWindowsLoop() {
         if (st.cursor_x >= st.screen_w - 25 && st.cursor_y <= 25) wakeFromGame();
       } else {
         const dxMouse = st.cursor_x - lastCursorX;
-        const nearLumo = Math.abs(st.cursor_x - st.win_center_x) < 220 && st.cursor_y < 180;
+        const pillYRef = st.win_y + ((window.uiPosition || '').startsWith('bottom-') ? (isExpanded ? 600 : 105) : 35);
+        const nearLumo = Math.abs(st.cursor_x - st.win_center_x) < 220 && Math.abs(st.cursor_y - pillYRef) < 150;
         if (nearLumo && Math.abs(dxMouse) > 45) {
           const dir = Math.sign(dxMouse);
           if (dir !== 0 && dir !== lastDir) { shakeCount++; lastDir = dir; }
@@ -990,7 +992,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.9.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v1.9.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

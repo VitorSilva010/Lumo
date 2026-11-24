@@ -471,7 +471,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.9.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.9.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -570,6 +570,13 @@
             <button type="button" class="eye-style-btn radius-btn" data-radius="round" onclick="applyRadius('round', true)">Padrão</button>
             <button type="button" class="eye-style-btn radius-btn" data-radius="soft" onclick="applyRadius('soft', true)">Suave</button>
           </div>
+          <div style="margin-top:9px; font-size:10.5px; color:var(--muted); font-weight:600;">Posição na tela</div>
+          <div class="pos-grid">
+            <button type="button" class="pos-btn" data-pos="top-center" onclick="applyPosition('top-center', true)">Centro</button>
+            <button type="button" class="pos-btn" data-pos="top-left" onclick="applyPosition('top-left', true)">Esq.</button>
+            <button type="button" class="pos-btn" data-pos="top-right" onclick="applyPosition('top-right', true)">Dir.</button>
+            <button type="button" class="pos-btn" data-pos="bottom-right" onclick="applyPosition('bottom-right', true)">Relógio</button>
+          </div>
         </div>
         <div class="card">
           <div class="label-xs">
@@ -600,7 +607,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.9.0</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.9.1</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>

@@ -81,13 +81,18 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
 }
 
 #[tauri::command]
-fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), String> {
+fn set_window_mode(
+    window: tauri::WebviewWindow,
+    mode: String,
+    anchor: Option<String>,
+) -> Result<(), String> {
     if mode == "tray_hidden" {
         let _ = window.hide();
         return Ok(());
     }
     let _ = window.show();
-    let (w, h, align_right) = match mode.as_str() {
+
+    let (w, h, force_top_right) = match mode.as_str() {
         "expanded" => (452.0_f64, 650.0_f64, false),
         "cinema" => (480.0_f64, 340.0_f64, false),
         "hidden" => (64.0_f64, 64.0_f64, true),
@@ -101,13 +106,27 @@ fn set_window_mode(window: tauri::WebviewWindow, mode: String) -> Result<(), Str
     if let Ok(Some(monitor)) = window.primary_monitor() {
         let scale = monitor.scale_factor();
         let screen_w = monitor.size().width as f64 / scale;
-        let x = if align_right {
-            (screen_w - w - 8.0).max(0.0)
+        let screen_h = monitor.size().height as f64 / scale;
+        let pos_key = if force_top_right {
+            "top-right"
+        } else if mode == "cinema" {
+            "top-center"
         } else {
-            ((screen_w - w) / 2.0).max(0.0)
+            anchor.as_deref().unwrap_or("top-center")
         };
+
+        let (x, y) = match pos_key {
+            "top-left" => (12.0, 8.0),
+            "top-right" => ((screen_w - w - 12.0).max(0.0), 8.0),
+            "bottom-right" => (
+                (screen_w - w - 12.0).max(0.0),
+                (screen_h - h - 56.0).max(8.0),
+            ),
+            _ => (((screen_w - w) / 2.0).max(0.0), 8.0),
+        };
+
         let _ = window.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(
-            x, 8.0,
+            x, y,
         )));
     }
 

@@ -218,3 +218,61 @@ body.radius-soft .motd-card { border-radius: 18px; }
 }
 
 .cust-hidden { display: none !important; }
+
+/* === POSIÇÃO INFERIOR (PERTO DO RELÓGIO — ABRE PARA CIMA) === */
+body.pos-bottom #app {
+  flex-direction: column-reverse;
+  padding-top: 0;
+  padding-bottom: 16px;
+}
+body.pos-bottom #panel {
+  margin-top: 0;
+  margin-bottom: 10px;
+  transform-origin: bottom center;
+}
+body.pos-bottom #panel.open {
+  animation: panelSpringBottom 0.3s cubic-bezier(0.22, 1.18, 0.36, 1) forwards;
+}
+body.pos-bottom #panel.closing {
+  animation: panelOutBottom 0.14s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes panelSpringBottom {
+  0%   { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.94); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes panelOutBottom {
+  0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.95); }
+}
+body.pos-bottom #speech-bubble {
+  top: auto;
+  bottom: 76px;
+  transform: translateX(-50%) translateY(6px) scale(0.95);
+}
+body.pos-bottom #speech-bubble.show {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.pos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+.pos-btn {
+  padding: 6px 4px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.pos-btn:hover { border-color: var(--accent); color: var(--text); }
+.pos-btn.active-btn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
