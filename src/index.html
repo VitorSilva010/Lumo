@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./cinema.css" />
   <link rel="stylesheet" href="./polish.css" />
+  <link rel="stylesheet" href="./custom.css" />
 </head>
 <body>
   <div id="app">
@@ -470,7 +471,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v1.8.4</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v1.9.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -537,6 +538,54 @@
             <button type="button" class="eye-style-btn" data-style="cyber" onclick="setEyeStyle('cyber', this)">Cyber</button>
           </div>
         </div>
+                <div class="card">
+          <div class="label-xs">
+            <span>Fundo & Formato da Interface</span>
+            <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:9.8px;" onclick="resetInterfaceStyle()">Padrão</button>
+          </div>
+          <div class="surface-grid">
+            <button type="button" class="surface-btn" data-surface="obsidian" onclick="applySurface('obsidian', true)">
+              <span class="surface-swatch" style="background:#0b0c12;"></span>Obsidian
+            </button>
+            <button type="button" class="surface-btn" data-surface="midnight" onclick="applySurface('midnight', true)">
+              <span class="surface-swatch" style="background:#0c1426;"></span>Noite
+            </button>
+            <button type="button" class="surface-btn" data-surface="oled" onclick="applySurface('oled', true)">
+              <span class="surface-swatch" style="background:#000000;"></span>OLED
+            </button>
+            <button type="button" class="surface-btn" data-surface="graphite" onclick="applySurface('graphite', true)">
+              <span class="surface-swatch" style="background:#1a1c24;"></span>Grafite
+            </button>
+            <button type="button" class="surface-btn" data-surface="light" onclick="applySurface('light', true)">
+              <span class="surface-swatch" style="background:#f5f6fa; border-color:#cbd5e1;"></span>Claro
+            </button>
+          </div>
+          <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; color:var(--muted);">Opacidade</span>
+            <input type="range" id="opacity-slider" min="72" max="100" value="97" oninput="applyOpacity(this.value)" style="flex:1; accent-color:var(--accent);" />
+            <span id="opacity-val" style="font-size:11px; font-weight:600; color:var(--accent); min-width:34px; text-align:right;">97%</span>
+          </div>
+          <div class="eye-style-row" style="margin-top:9px;">
+            <button type="button" class="eye-style-btn radius-btn" data-radius="sharp" onclick="applyRadius('sharp', true)">Reto</button>
+            <button type="button" class="eye-style-btn radius-btn" data-radius="round" onclick="applyRadius('round', true)">Padrão</button>
+            <button type="button" class="eye-style-btn radius-btn" data-radius="soft" onclick="applyRadius('soft', true)">Suave</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label-xs">
+            <span>Montar o seu Resumo</span>
+            <span style="color:var(--muted); font-weight:400;">Toque p/ ocultar</span>
+          </div>
+          <div class="widget-grid">
+            <button type="button" class="widget-chip on" data-widget="telemetry" onclick="toggleWidget('telemetry')"><span>CPU & RAM</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="motd" onclick="toggleWidget('motd')"><span>Mensagem do Dia</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="media" onclick="toggleWidget('media')"><span>Mini-Player</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="hub" onclick="toggleWidget('hub')"><span>Atalhos (Hub)</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="tasks" onclick="toggleWidget('tasks')"><span>Tarefas</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="news" onclick="toggleWidget('news')"><span>Notícias</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="dock" onclick="toggleWidget('dock')"><span>Barra Rápida</span><span class="w-dot"></span></button>
+          </div>
+        </div>
         <div class="card">
           <div class="label-xs">Chave API Gemini Própria (Opcional)</div>
           <form class="inline-form" onsubmit="saveGeminiKey(event)">
@@ -551,7 +600,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.8.4</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.9.0</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -561,5 +610,6 @@
   <script src="./app.js"></script>
   <script src="./cinema.js"></script>
   <script src="./daily.js"></script>
+  <script src="./custom.js"></script>
 </body>
 </html>

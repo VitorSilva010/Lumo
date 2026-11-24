@@ -1,0 +1,220 @@
+/* === LUMO v1.9.0 — PERSONALIZAÇÃO DE INTERFACE === */
+:root {
+  --panel-rgb: 11, 12, 18;
+  --dock-rgb: 9, 10, 15;
+  --panel-alpha: 0.97;
+}
+
+#panel {
+  background-color: rgba(var(--panel-rgb), var(--panel-alpha)) !important;
+}
+#lumo-pill {
+  background: rgba(var(--panel-rgb), var(--panel-alpha)) !important;
+}
+.quick-ai-dock {
+  background: rgba(var(--dock-rgb), var(--panel-alpha)) !important;
+}
+
+/* === TEMAS DE FUNDO === */
+body.surface-midnight {
+  --panel-rgb: 12, 20, 38;
+  --dock-rgb: 9, 15, 29;
+}
+body.surface-oled {
+  --panel-rgb: 0, 0, 0;
+  --dock-rgb: 0, 0, 0;
+  --surface: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.12);
+}
+body.surface-graphite {
+  --panel-rgb: 26, 28, 36;
+  --dock-rgb: 20, 22, 29;
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-hover: rgba(255, 255, 255, 0.1);
+}
+
+/* MODO CLARO */
+body.surface-light {
+  --panel-rgb: 245, 246, 250;
+  --dock-rgb: 236, 238, 244;
+  --surface: rgba(15, 23, 42, 0.045);
+  --surface-2: rgba(15, 23, 42, 0.075);
+  --surface-hover: rgba(15, 23, 42, 0.095);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.18);
+  --text: #0f172a;
+  --muted: #475569;
+}
+body.surface-light #panel {
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22), 0 0 24px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+body.surface-light #lumo-pill {
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2), 0 0 22px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+body.surface-light .hero-bento {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.55));
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+body.surface-light .metric-box {
+  background: rgba(15, 23, 42, 0.055);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+body.surface-light .mini-track,
+body.surface-light .progress-track {
+  background: rgba(15, 23, 42, 0.1);
+}
+body.surface-light .hub-tile,
+body.surface-light .mini-media-strip,
+body.surface-light .card,
+body.surface-light .news-card {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+body.surface-light .hub-tile:hover {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+}
+body.surface-light .motd-card {
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0.85));
+  border-color: rgba(15, 23, 42, 0.1);
+}
+body.surface-light .news-item,
+body.surface-light .task-item {
+  background: rgba(15, 23, 42, 0.035);
+}
+body.surface-light .news-item:hover,
+body.surface-light .task-item:hover {
+  background: rgba(15, 23, 42, 0.07);
+}
+body.surface-light input[type="text"],
+body.surface-light input[type="password"],
+body.surface-light select,
+body.surface-light textarea,
+body.surface-light .quick-ai-form,
+body.surface-light .pwd-box {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.15);
+  color: #0f172a;
+}
+body.surface-light select option {
+  background: #f8fafc;
+  color: #0f172a;
+}
+body.surface-light #speech-bubble,
+body.surface-light #cinema-bubble {
+  background: rgba(255, 255, 255, 0.97);
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.18);
+}
+body.surface-light .topbar,
+body.surface-light .quick-ai-dock {
+  border-color: rgba(15, 23, 42, 0.09);
+}
+body.surface-light .slider {
+  background: rgba(15, 23, 42, 0.22);
+}
+body.surface-light .msg.ai {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+body.surface-light .view::-webkit-scrollbar-thumb,
+body.surface-light .home-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+/* === ESTILO DE CANTOS === */
+body.radius-sharp #panel { border-radius: 12px; }
+body.radius-sharp .hero-bento,
+body.radius-sharp .card,
+body.radius-sharp .news-card { border-radius: 10px; }
+body.radius-sharp .hub-tile,
+body.radius-sharp .mini-media-strip,
+body.radius-sharp .motd-card { border-radius: 9px; }
+
+body.radius-soft #panel { border-radius: 30px; }
+body.radius-soft .hero-bento,
+body.radius-soft .card,
+body.radius-soft .news-card { border-radius: 22px; }
+body.radius-soft .hub-tile,
+body.radius-soft .mini-media-strip,
+body.radius-soft .motd-card { border-radius: 18px; }
+
+/* === CONTROLES NA ABA CONFIGURAÇÕES === */
+.surface-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-top: 6px;
+}
+.surface-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 9.8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.surface-btn:hover { border-color: var(--accent); color: var(--text); }
+.surface-btn.active-btn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.surface-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.widget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+.widget-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.widget-chip.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.widget-chip .w-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+.widget-chip.on .w-dot {
+  background: var(--accent);
+  opacity: 1;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.cust-hidden { display: none !important; }
