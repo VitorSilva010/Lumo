@@ -3,537 +3,511 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lumo — Seu companheiro inteligente para Windows</title>
-  <meta name="description" content="Um assistente de desktop leve (~3 MB) com IA integrada, controle de mídia, bandeja mágica de arquivos, Modo Café e Modo Jogo para Windows." />
+  <title>Lumo v2.0 — Seu companheiro inteligente no Windows</title>
+  <meta name="description" content="Assistente minimalista para Windows com IA integrada, resumidor de páginas e PDFs, transcrição de áudios, Modo Bandeja, personalização completa e app para celular." />
   <style>
     :root {
-      --bg: #090a0f;
-      --surface: rgba(255, 255, 255, 0.035);
-      --surface-2: rgba(255, 255, 255, 0.06);
-      --border: rgba(255, 255, 255, 0.095);
-      --accent: #f6b974;
-      --accent-soft: rgba(246, 185, 116, 0.14);
-      --accent-glow: rgba(246, 185, 116, 0.35);
+      --bg: #07080d;
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface-2: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.1);
       --text: #f3f4f6;
       --muted: #94a3b8;
+      --accent: #f6b974;
+      --accent-soft: rgba(246, 185, 116, 0.14);
+      --accent-glow: rgba(246, 185, 116, 0.36);
       --ok: #34d399;
-      --love: #fb7185;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background:
-        radial-gradient(ellipse 70% 45% at 50% -10%, rgba(246, 185, 116, 0.14), transparent 70%),
+        radial-gradient(ellipse 75% 42% at 50% -10%, rgba(246, 185, 116, 0.13), transparent 68%),
         var(--bg);
       color: var(--text);
       line-height: 1.55;
       overflow-x: hidden;
     }
-
     a { color: inherit; text-decoration: none; }
-    .container { max-width: 1060px; margin: 0 auto; padding: 0 22px; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
 
-    /* Nav */
-    header {
+    /* NAV */
+    nav {
       position: sticky; top: 0; z-index: 40;
-      backdrop-filter: blur(14px);
-      background: rgba(9, 10, 15, 0.78);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      background: rgba(7, 8, 13, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
-    .nav {
-      height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.2px; }
-    .brand-pill {
-      width: 34px; height: 20px; border-radius: 999px; background: #13151e;
-      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 5px;
-      box-shadow: 0 0 14px var(--accent-soft);
-    }
-    .brand-pill span { width: 4px; height: 7px; border-radius: 99px; background: var(--accent); }
+    .nav-inner { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; }
+    .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
     .nav-links { display: flex; align-items: center; gap: 22px; font-size: 13.5px; color: var(--muted); }
     .nav-links a:hover { color: var(--text); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
 
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 11px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
-      cursor: pointer; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      padding: 10px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; border: 1px solid transparent;
+      transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.18s ease, background 0.18s ease;
     }
-    .btn-primary {
-      background: var(--accent); color: #111318;
-      box-shadow: 0 8px 28px var(--accent-soft);
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 34px var(--accent-glow); }
-    .btn-ghost {
-      background: var(--surface); color: var(--text); border-color: var(--border);
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
-    .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+    .btn:hover { transform: translateY(-1.5px); }
+    .btn-primary { background: var(--accent); color: #111318; box-shadow: 0 8px 26px var(--accent-soft); }
+    .btn-primary:hover { box-shadow: 0 12px 32px var(--accent-glow); }
+    .btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* Hero */
-    .hero { padding: 76px 0 64px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-
-    .version-badge {
+    /* HERO */
+    .hero { padding: 72px 0 56px; text-align: center; }
+    .badge {
       display: inline-flex; align-items: center; gap: 8px;
-      font-size: 12px; font-weight: 600; color: var(--accent);
-      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.28);
-      padding: 5px 13px; border-radius: 999px; margin-bottom: 26px;
+      padding: 5px 13px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.32); color: var(--accent);
+      margin-bottom: 22px;
     }
-    .version-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
-
-    /* Demo Interativa da Pílula */
-    .demo-stage {
-      position: relative; margin-bottom: 28px;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-    }
-    #demo-pill {
-      position: relative; width: 174px; height: 62px; border-radius: 999px;
-      background: #101219; border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7), 0 0 38px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
-      user-select: none;
-    }
-    #demo-pill:hover { transform: scale(1.05); box-shadow: 0 20px 52px rgba(0,0,0,0.75), 0 0 46px var(--accent-glow); }
-    #demo-pill:active { transform: scale(0.96, 1.04); }
-    .demo-face { display: flex; align-items: center; justify-content: center; gap: 22px; will-change: transform; position: relative; }
-    .demo-eye {
-      width: 15px; height: 22px; border-radius: 999px;
-      background: var(--accent); box-shadow: 0 0 16px var(--accent-glow);
-      position: relative; transition: height 0.12s ease, border-radius 0.14s ease, background 0.2s ease;
-    }
-    .demo-eye::after {
-      content: ''; position: absolute; top: 4px; left: 4px;
-      width: 4.5px; height: 4.5px; border-radius: 50%; background: rgba(255, 255, 255, 0.9);
-    }
-    .demo-face.blink .demo-eye { height: 3px; border-radius: 4px; }
-    .demo-face.blink .demo-eye::after { opacity: 0; }
-    .demo-face.love .demo-eye { background: var(--love); box-shadow: 0 0 18px rgba(251, 113, 133, 0.7); width: 17px; height: 17px; }
-    .demo-hint { font-size: 11.5px; color: var(--muted); }
-    #demo-bubble {
-      font-size: 12px; color: var(--text); background: #141620; border: 1px solid var(--border);
-      padding: 5px 12px; border-radius: 999px; min-height: 29px;
-      display: inline-flex; align-items: center; transition: opacity 0.25s ease;
-    }
-
     h1 {
-      font-size: clamp(32px, 5.4vw, 56px); font-weight: 800; letter-spacing: -1.4px;
-      line-height: 1.08; max-width: 780px;
-      background: linear-gradient(180deg, #ffffff 30%, #cbd5e1 100%);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: clamp(32px, 5.4vw, 54px); font-weight: 800; letter-spacing: -1.4px;
+      line-height: 1.08; max-width: 780px; margin: 0 auto 18px;
     }
-    h1 span {
-      background: linear-gradient(135deg, #f6b974, #fcd34d);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-sub {
-      margin-top: 18px; font-size: clamp(15px, 2vw, 18px); color: var(--muted);
-      max-width: 600px;
-    }
-    .hero-cta { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-    .hero-meta {
-      margin-top: 16px; font-size: 12.5px; color: var(--muted);
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
-    }
+    h1 span { color: var(--accent); }
+    .hero-sub { font-size: clamp(15px, 1.8vw, 17.5px); color: var(--muted); max-width: 620px; margin: 0 auto 30px; }
+    .hero-cta { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .hero-meta { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
 
-    /* Seções */
-    section { padding: 68px 0; }
-    .sec-head { text-align: center; max-width: 620px; margin: 0 auto 40px; }
-    .sec-tag {
-      font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px;
-      color: var(--accent); font-weight: 700; margin-bottom: 8px;
+    /* DEMO PILL */
+    .demo-wrap {
+      margin: 42px auto 0; max-width: 520px; padding: 26px 22px 22px;
+      border-radius: 26px; background: var(--surface); border: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      position: relative; transition: background 0.25s ease, border-color 0.25s ease;
     }
-    .sec-head h2 { font-size: clamp(24px, 3.6vw, 34px); font-weight: 700; letter-spacing: -0.6px; }
-    .sec-head p { color: var(--muted); font-size: 15px; margin-top: 8px; }
+    .demo-wrap.demo-light { background: #eef1f7; border-color: rgba(15, 23, 42, 0.14); color: #0f172a; }
+    #demo-pill {
+      min-width: 164px; height: 56px; padding: 0 22px; border-radius: 999px;
+      background: rgba(11, 12, 18, 0.96); border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.62), 0 0 28px var(--accent-soft);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease;
+    }
+    .demo-wrap.demo-light #demo-pill {
+      background: #ffffff; border-color: rgba(15, 23, 42, 0.14);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15), 0 0 24px var(--accent-soft);
+    }
+    #demo-pill:hover { transform: scale(1.06); }
+    #demo-pill:active { transform: scale(0.95); }
+    #demo-face { display: flex; align-items: center; gap: 18px; transition: transform 0.08s linear; }
+    .d-eye {
+      width: 13px; height: 19px; border-radius: 999px; background: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow); position: relative; transition: all 0.15s ease;
+    }
+    .d-eye::after { content: ''; position: absolute; top: 3px; left: 3px; width: 4px; height: 4px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); }
+    #demo-face.kawaii .d-eye { width: 15px; height: 18px; border-radius: 50%; }
+    #demo-face.cyber .d-eye { width: 17px; height: 11px; border-radius: 3px; }
+    #demo-face.happy .d-eye {
+      width: 15px; height: 11px; background: transparent; box-shadow: none;
+      border-top: 3.5px solid var(--accent); border-radius: 50% 50% 0 0; transform: translateY(3px);
+    }
+    #demo-face.happy .d-eye::after { opacity: 0; }
+    #demo-bubble {
+      font-size: 13px; padding: 8px 14px; border-radius: 13px;
+      background: rgba(14, 15, 22, 0.95); border: 1px solid var(--border); color: var(--text);
+      max-width: 380px; text-align: center;
+    }
+    .demo-wrap.demo-light #demo-bubble { background: #fff; color: #0f172a; border-color: rgba(15, 23, 42, 0.12); }
+    .demo-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 2px; }
+    .chip-btn {
+      font-size: 11.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+    }
+    .demo-wrap.demo-light .chip-btn { background: rgba(15, 23, 42, 0.06); color: #334155; border-color: rgba(15, 23, 42, 0.12); }
+    .chip-btn.active, .chip-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
-    /* Bento Grid de Recursos */
-    .bento {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    /* SECTIONS */
+    section { padding: 62px 0; }
+    .sec-head { text-align: center; max-width: 640px; margin: 0 auto 38px; }
+    .sec-tag { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px; }
+    h2 { font-size: clamp(24px, 3.6vw, 34px); font-weight: 800; letter-spacing: -0.8px; margin-bottom: 10px; }
+    .sec-head p { color: var(--muted); font-size: 15px; }
+
+    /* FEATURE GRID */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 22px;
+      display: flex; flex-direction: column; gap: 9px; transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px;
-      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-    }
-    .card:hover { transform: translateY(-3px); border-color: rgba(246, 185, 116, 0.35); background: var(--surface-2); }
-    .card-ic {
-      width: 38px; height: 38px; border-radius: 11px;
-      background: var(--accent-soft); color: var(--accent);
+    .feat-card:hover { border-color: rgba(246, 185, 116, 0.45); transform: translateY(-3px); }
+    .feat-ic {
+      width: 38px; height: 38px; border-radius: 11px; background: var(--accent-soft); color: var(--accent);
       display: flex; align-items: center; justify-content: center; font-size: 18px;
     }
-    .card h3 { font-size: 16px; font-weight: 600; }
-    .card p { font-size: 13.5px; color: var(--muted); }
-    .pill-tag {
-      align-self: flex-start; font-size: 10.5px; font-weight: 600; color: var(--accent);
-      background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; margin-top: auto;
+    .feat-card h3 { font-size: 16px; font-weight: 700; }
+    .feat-card p { font-size: 13.5px; color: var(--muted); }
+    .tag-new {
+      align-self: flex-start; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+      padding: 2px 8px; border-radius: 999px; background: rgba(52, 211, 153, 0.14); color: var(--ok);
     }
 
-    /* Preços */
-    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 780px; margin: 0 auto; }
-    .price-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 16px;
+    /* PRICING */
+    .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 820px; margin: 0 auto; }
+    .plan {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 28px;
+      display: flex; flex-direction: column; gap: 14px;
     }
-    .price-card.pro {
-      background: linear-gradient(160deg, rgba(246, 185, 116, 0.1), rgba(255, 255, 255, 0.025));
-      border-color: rgba(246, 185, 116, 0.45);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    .plan.pro {
+      background: linear-gradient(155deg, rgba(246, 185, 116, 0.12), rgba(255, 255, 255, 0.03));
+      border-color: rgba(246, 185, 116, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     }
-    .price-val { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
-    .price-val span { font-size: 14px; font-weight: 500; color: var(--muted); }
-    .feat-list { list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 13.5px; color: #cbd5e1; }
-    .feat-list li { display: flex; align-items: center; gap: 9px; }
-    .feat-list li::before { content: '✓'; color: var(--ok); font-weight: 700; }
+    .plan-top { display: flex; align-items: center; justify-content: space-between; }
+    .plan-name { font-size: 19px; font-weight: 700; }
+    .plan-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--accent); color: #111; }
+    .price { font-size: 38px; font-weight: 800; letter-spacing: -1.2px; }
+    .price small { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .plan ul { list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 13.8px; color: var(--muted); flex: 1; }
+    .plan li { display: flex; align-items: flex-start; gap: 8px; }
+    .plan li::before { content: '✓'; color: var(--accent); font-weight: 800; }
 
     /* FAQ */
-    .faq-list { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-    details {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 15px; padding: 15px 18px; cursor: pointer;
-    }
-    summary { font-size: 14.5px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-    summary::after { content: '+'; color: var(--accent); font-size: 18px; }
+    .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; padding: 15px 18px; }
+    summary { font-weight: 600; font-size: 14.5px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+    summary::after { content: '+'; color: var(--accent); font-size: 18px; line-height: 1; }
     details[open] summary::after { content: '−'; }
-    details p { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+    details p { margin-top: 10px; font-size: 13.8px; color: var(--muted); }
 
-    footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 32px 0; text-align: center; font-size: 13px; color: var(--muted);
+    footer { border-top: 1px solid rgba(255, 255, 255, 0.07); padding: 30px 0 42px; text-align: center; font-size: 13px; color: var(--muted); }
+
+    /* MODAL CHAVE PRO */
+    #key-modal {
+      display: none; position: fixed; inset: 0; z-index: 90;
+      background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    #key-modal.show { display: flex; }
+    .modal-card {
+      width: 100%; max-width: 440px; border-radius: 24px; padding: 26px;
+      background: #0f1119; border: 1px solid rgba(246, 185, 116, 0.45);
+      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.8); text-align: center;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    #km-key-box {
+      padding: 13px; border-radius: 12px; background: rgba(0, 0, 0, 0.45);
+      border: 1px dashed var(--accent); font-family: Consolas, monospace;
+      font-size: 18px; font-weight: 700; letter-spacing: 1.4px; color: var(--accent);
+      user-select: all; word-break: break-all;
     }
 
-    @media (max-width: 820px) {
-      .bento { grid-template-columns: 1fr; }
+    @media (max-width: 860px) {
+      .grid-3 { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
       .nav-links { display: none; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container nav">
-      <a href="#" class="brand">
-        <div class="brand-pill"><span></span><span></span></div>
-        Lumo
-      </a>
-      <nav class="nav-links">
+  <nav>
+    <div class="container nav-inner">
+      <a class="brand" href="#"><span class="brand-dot"></span>Lumo</a>
+      <div class="nav-links">
         <a href="#recursos">Recursos</a>
         <a href="#planos">Planos</a>
         <a href="#faq">Dúvidas</a>
-        <a href="./app/">App Celular</a>
-        <a href="https://github.com/VitorSilva010/Lumo" target="_blank" rel="noopener">GitHub</a>
-      </nav>
-      <a id="nav-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-primary btn-sm">
-        Baixar para Windows
-      </a>
+        <a href="./app/">Lumo Mobile</a>
+      </div>
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="./app/">App Celular</a>
+        <a class="btn btn-primary" id="nav-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest">Baixar Grátis</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero container">
+    <div class="badge">✦ <span id="ver-label">v2.0.0</span> · Windows 10 & 11 · Leve em Rust</div>
+    <h1>O assistente de tela que <span>acompanha seu ritmo</span> sem atrapalhar</h1>
+    <p class="hero-sub">
+      IA integrada, resumo de páginas e PDFs, transcrição de áudios do WhatsApp, controle de mídia, tarefas e app para celular — flutuando discretamente ou só na bandeja do relógio.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" id="hero-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest">Baixar para Windows (.exe)</a>
+      <a class="btn btn-ghost" href="./app/">Abrir Lumo Mobile (PWA)</a>
+    </div>
+    <div class="hero-meta">Download gratuito · Atualizações automáticas · Sem conta obrigatória</div>
+
+    <div class="demo-wrap" id="demo-wrap">
+      <div id="demo-pill" title="Clique para dar oi!">
+        <div id="demo-face">
+          <div class="d-eye"></div>
+          <div class="d-eye"></div>
+        </div>
+      </div>
+      <div id="demo-bubble">Mexa o mouse pela tela ou clique em mim!</div>
+      <div class="demo-controls">
+        <button class="chip-btn active" type="button" onclick="setDemoEye('classic', this)">Olho Clássico</button>
+        <button class="chip-btn" type="button" onclick="setDemoEye('kawaii', this)">Fofo</button>
+        <button class="chip-btn" type="button" onclick="setDemoEye('cyber', this)">Cyber</button>
+        <button class="chip-btn" type="button" onclick="toggleDemoLight(this)">Modo Claro</button>
+      </div>
     </div>
   </header>
 
-  <main>
-    <section class="hero container">
-      <div class="version-badge">
-        <span class="dot"></span>
-        <span id="ver-label">Lumo v1.3.0 · Windows 10 & 11</span>
+  <section id="recursos" class="container">
+    <div class="sec-head">
+      <div class="sec-tag">Tudo no mesmo lugar</div>
+      <h2>Pequeno na tela, gigante na rotina</h2>
+      <p>Pensado para ficar aberto o dia inteiro consumindo quase nada de RAM e respondendo em um atalho (<code>Alt + Espaço</code>).</p>
+    </div>
+    <div class="grid-3">
+      <div class="feat-card">
+        <span class="tag-new">Novo na v2.0</span>
+        <div class="feat-ic">📄</div>
+        <h3>Resumir links, PDFs e gerar docs</h3>
+        <p>Digite <code>/resumir</code> com qualquer link, arraste PDFs ou textos para o Bolso e salve respostas prontas em <strong>.doc (Word)</strong> ou <strong>.md</strong>.</p>
       </div>
+      <div class="feat-card">
+        <span class="tag-new">Novo na v2.0</span>
+        <div class="feat-ic">🎙️</div>
+        <h3>Transcrever áudios (Whisper)</h3>
+        <p>Recebeu um áudio gigante no WhatsApp? Arraste o <code>.ogg</code> ou <code>.mp3</code> na cápsula e receba o resumo em tópicos + texto completo.</p>
+      </div>
+      <div class="feat-card">
+        <span class="tag-new">Novo na v2.0</span>
+        <div class="feat-ic">🎨</div>
+        <h3>Do seu jeito (ou só na bandeja)</h3>
+        <p>Escolha 5 temas de fundo (incl. Modo Claro e OLED), opacidade, 4 posições na tela, oculte cards ou deixe o Lumo só nos ícones ocultos perto do relógio.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ic">⚡</div>
+        <h3>Resumo inteligente + Notícias</h3>
+        <p>Relógio, clima local, CPU e RAM em tempo real, tarefas com barra de progresso, Mensagem do Dia e manchetes de Geral, Tech e Games.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ic">📱</div>
+        <h3>Lumo Mobile integrado</h3>
+        <p>Escaneie o QR Code no celular para controlar Spotify/YouTube do sofá, trocar textos via Ctrl+C na nuvem e sincronizar tarefas e notas.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ic">🎮</div>
+        <h3>Modo Jogo, Foco e Kit Rápido</h3>
+        <p>Some pro canto ao abrir jogos, conta-gotas #HEX de tela, QR Code instantâneo, gerador de senhas, Pomodoro, Modo Café e conversor de imagens/PDF.</p>
+      </div>
+    </div>
+  </section>
 
-      <div class="demo-stage">
-        <div id="demo-pill" title="Dê 2 cliques para fazer carinho!">
-          <div class="demo-face" id="demo-face">
-            <div class="demo-eye"></div>
-            <div class="demo-eye"></div>
-          </div>
+  <section id="planos" class="container">
+    <div class="sec-head">
+      <div class="sec-tag">Simples e sem mensalidade</div>
+      <h2>Grátis pra usar, vitalício pra desbloquear tudo</h2>
+      <p>Use o essencial sem pagar nada. Se curtir o projeto, destrave todos os extras com um único pagamento.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-top"><span class="plan-name">Lumo Grátis</span></div>
+        <div class="price">R$ 0 <small>para sempre</small></div>
+        <ul>
+          <li>IA integrada, <code>/resumir</code> páginas e <code>/doc</code></li>
+          <li>Leitura de PDFs/textos e transcrição de áudios (Whisper)</li>
+          <li>Modo Bandeja, Modo Claro, 5 fundos e 4 posições na tela</li>
+          <li>Monitor de CPU/RAM, Clima, Notícias e Modo Jogo</li>
+          <li>Kit Rápido (Conta-gotas, QR, Senhas) e até 5 tarefas</li>
+          <li>Controle remoto pelo Lumo Mobile (PWA)</li>
+        </ul>
+        <a class="btn btn-ghost" id="free-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest">Baixar Versão Grátis</a>
+      </div>
+      <div class="plan pro">
+        <div class="plan-top">
+          <span class="plan-name">Lumo Pro</span>
+          <span class="plan-pill">PAGAMENTO ÚNICO</span>
         </div>
-        <div id="demo-bubble">Mova o mouse ou dê 2 cliques em mim!</div>
+        <div class="price">R$ 29 <small>vitalício · até 2 PCs</small></div>
+        <ul>
+          <li>Tudo do plano Grátis + atualizações futuras incluídas</li>
+          <li>Tarefas ilimitadas sincronizadas com o celular</li>
+          <li>+10 temas luminosos + seletor de cor livre personalizada</li>
+          <li>Sons Ambiente offline (Lo-fi Zen, Chuva e Foco)</li>
+          <li>Bloco de Notas sincronizado e Histórico de Ctrl+C</li>
+          <li>Conversão de imagens para WebP ultra-leve no Bolso</li>
+        </ul>
+        <button class="btn btn-primary" id="buy-pro-btn" type="button" onclick="startProCheckout()">Ativar Lumo Pro (Pix ou Cartão)</button>
       </div>
+    </div>
+  </section>
 
-      <h1>Um assistente vivo para o seu PC que <span>não pesa na RAM</span>.</h1>
-      <p class="hero-sub">
-        IA integrada no primeiro clique, controle de mídia, bandeja mágica de arquivos, Modo Café e Modo Jogo — tudo numa cápsula flutuante de ~3 MB.
-      </p>
-
-      <div class="hero-cta">
-        <a id="hero-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-primary">
-          ⬇ Baixar Lumo Grátis (.exe)
-        </a>
-        <a href="#recursos" class="btn btn-ghost">Ver tudo o que ele faz</a>
-      </div>
-
-      <div class="hero-meta">
-        <span>⚡ Instalador ~3,5 MB</span>
-        <span>🔒 Sem login obrigatório</span>
-        <span>🔄 Atualizações automáticas</span>
-      </div>
-    </section>
-
-    <section id="recursos" class="container">
-      <div class="sec-head">
-        <div class="sec-tag">Feito para o dia a dia</div>
-        <h2>Pequeno na tela, gigante na utilidade</h2>
-        <p>Substitua abas abertas e utilitários pesados por um único atalho (<strong>Alt + Espaço</strong>).</p>
-      </div>
-
-      <div class="bento">
-        <div class="card">
-          <div class="card-ic">✦</div>
-          <h3>IA Integrada + Comandos</h3>
-          <p>Pergunte qualquer coisa sem abrir o navegador, ou use atalhos rápidos como <code>/g</code>, <code>/yt</code>, <code>/cor</code>, <code>/qr</code>, <code>/d20</code> e calculadora <code>=25*4</code>.</p>
-          <span class="pill-tag">Pronto no 1º clique</span>
-        </div>
-
-        <div class="card">
-          <div class="card-ic">📦</div>
-          <h3>Bandeja Mágica (Bolso)</h3>
-          <p>Arraste imagens direto no rostinho do Lumo para converter para <strong>WebP, JPG, PNG ou PDF</strong> 100% offline, sem sites cheios de anúncios.</p>
-          <span class="pill-tag">100% Offline</span>
-        </div>
-
-        <div class="card">
-          <div class="card-ic">🎮</div>
-          <h3>Modo Jogo Inteligente</h3>
-          <p>Detecta quando você abre um jogo, dá uma dica rápida no loading e se esconde sozinho no canto da tela para não atrapalhar seu FPS.</p>
-          <span class="pill-tag">~0% CPU em repouso</span>
-        </div>
-
-        <div class="card">
-          <div class="card-ic">🎨</div>
-          <h3>Kit Rápido no PC</h3>
-          <p>Conta-gotas para capturar qualquer cor <code>#HEX</code> da tela, gerador de QR Code para mandar links pro celular e gerador de senhas fortes.</p>
-          <span class="pill-tag">1 clique</span>
-        </div>
-
-        <div class="card">
-          <div class="card-ic">☕</div>
-          <h3>Foco, Café & Respiração</h3>
-          <p>Timer Pomodoro com óculos na pílula, <strong>Modo Café</strong> para manter o PC acordado em downloads, Modo Soneca e pausa de respiração guiada.</p>
-          <span class="pill-tag">Bem-estar & Produtividade</span>
-        </div>
-
-        <div class="card">
-          <div class="card-ic">🎵</div>
-          <h3>Mídia & Lo-fi Offline</h3>
-          <p>Controle Spotify e YouTube sem dar Alt+Tab, ou ligue som ambiente de Lo-fi, Chuva e Foco sintetizados em tempo real com fones animados.</p>
-          <span class="pill-tag">Sem gastar internet</span>
-        </div>
-      </div>
-    </section>
-
-    <section id="planos" class="container">
-      <div class="sec-head">
-        <div class="sec-tag">Simples e justo</div>
-        <h2>Comece grátis, desbloqueie o Pro uma única vez</h2>
-        <p>Sem assinaturas surpresa. Pague uma vez e use para sempre no seu Windows.</p>
-      </div>
-
-      <div class="pricing-grid">
-        <div class="price-card">
-          <div>
-            <h3>Lumo Grátis</h3>
-            <p style="color:var(--muted); font-size:13px;">Para experimentar e usar todo dia</p>
-          </div>
-          <div class="price-val">R$ 0 <span>/ para sempre</span></div>
-          <ul class="feat-list">
-            <li>IA integrada + barra de comandos rápidos</li>
-            <li>Resumo ao vivo com relógio, clima, CPU e RAM</li>
-            <li>Kit Rápido (Conta-gotas, QR Code, Senhas)</li>
-            <li>Modo Jogo, Modo Café, Respiração e Soneca PC</li>
-            <li>Conversão de imagens (JPG, PNG, PDF) e até 5 tarefas</li>
-          </ul>
-          <a id="free-dl" href="https://github.com/VitorSilva010/Lumo/releases/latest" class="btn btn-ghost" style="margin-top:auto;">
-            Baixar Grátis
-          </a>
-        </div>
-
-        <div class="price-card pro">
-          <div>
-            <h3>Lumo Pro <span style="font-size:11px; background:var(--accent); color:#111; padding:2px 7px; border-radius:99px; margin-left:6px;">VITALÍCIO</span></h3>
-            <p style="color:var(--muted); font-size:13px;">Apoie o projeto e libere tudo</p>
-          </div>
-          <div class="price-val">R$ 29 <span>/ pagamento único</span></div>
-          <ul class="feat-list">
-            <li>Tudo do plano Grátis + atualizações vitalícias</li>
-            <li>Tarefas ilimitadas + Bloco de Notas rápido</li>
-            <li>Histórico inteligente de Ctrl+C</li>
-            <li>Sons ambiente offline (Lo-fi Zen, Chuva e Foco)</li>
-            <li>Conversão WebP no Bolso + todos os temas luminosos</li>
-          </ul>
-          <button id="buy-pro-btn" class="btn btn-primary" style="margin-top:auto;" onclick="startCheckout()">
-            Desbloquear Lumo Pro (Pix ou Cartão)
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section id="faq" class="container">
-      <div class="sec-head">
-        <div class="sec-tag">Transparência</div>
-        <h2>Perguntas frequentes</h2>
-      </div>
-      <div class="faq-list">
-        <details>
-          <summary>O Windows mostrou uma tela azul ("O Windows protegeu o computador"). É seguro?</summary>
-          <p>Sim! O Lumo é um projeto independente e ainda não possui certificado pago da Microsoft (que custa centenas de dólares por ano). Como o código é compilado diretamente pelo GitHub Actions, basta clicar em <strong>Mais informações → Executar assim mesmo</strong> na primeira instalação.</p>
-        </details>
-        <details>
-          <summary>O Lumo pesa no computador ou derruba FPS em jogos?</summary>
-          <p>Não. Ele é construído em Rust + Tauri (pesa cerca de 3,5 MB no disco), faz cache da leitura de CPU/RAM e entra em repouso no Modo Jogo, mantendo o uso de CPU próximo de 0%.</p>
-        </details>
-        <details>
-          <summary>Como funcionam as atualizações?</summary>
-          <p>O Lumo possui auto-update silencioso assinado criptograficamente. Sempre que sai uma versão nova, ele baixa e aplica sozinho quando você não está jogando ou usando o painel.</p>
-        </details>
-      </div>
-    </section>
-  </main>
+  <section id="faq" class="container">
+    <div class="sec-head">
+      <div class="sec-tag">Dúvidas frequentes</div>
+      <h2>Perguntas rápidas</h2>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>O Windows SmartScreen mostrou um aviso ao instalar. É seguro?</summary>
+        <p>Sim! Como o Lumo é um app independente em fase inicial (sem certificado pago de empresa), o Windows mostra o aviso padrão na primeira execução. Basta clicar em <strong>Mais informações → Executar assim mesmo</strong>. Todo o código-fonte é aberto no GitHub.</p>
+      </details>
+      <details>
+        <summary>Ele pesa no PC ou atrapalha enquanto eu jogo?</summary>
+        <p>Não. O motor é feito em Rust (Tauri) com baixíssimo uso de CPU. Quando você abre um jogo, ele vai automaticamente para um pontinho discreto no canto — ou você pode ativar o <strong>Modo Bandeja</strong> para deixá-lo oculto perto do relógio.</p>
+      </details>
+      <details>
+        <summary>Como recebo minha chave do Lumo Pro após pagar?</summary>
+        <p>Assim que o Pix ou Cartão é aprovado no Mercado Pago, você volta para esta página e sua chave <code>LUMO-XXXX-XXXX-XXXX</code> aparece na tela na hora. Depois é só colar em <strong>Configurações → Plano</strong> dentro do app.</p>
+      </details>
+      <details>
+        <summary>Preciso pagar mensalidade pela IA ou pela transcrição?</summary>
+        <p>Não! A IA integrada, o resumidor de links/PDFs e a transcrição de áudios já vêm prontos dentro da cota gratuita diária — e quem quiser uso pesado ilimitado ainda pode colocar a própria chave gratuita da API Gemini nas Configurações.</p>
+      </details>
+    </div>
+  </section>
 
   <footer>
     <div class="container">
-      Feito com carinho por Vitor · <a href="https://github.com/VitorSilva010/Lumo" target="_blank" rel="noopener" style="color:var(--accent);">Repositório no GitHub</a>
+      Feito com carinho para facilitar o seu dia no PC · <a href="https://github.com/VitorSilva010/Lumo" style="color:var(--accent);">GitHub</a> · <a href="./app/" style="color:var(--accent);">Lumo Mobile</a>
     </div>
   </footer>
 
-  <script>
-    // 1. Olhos interativos da pílula demo
-    const pill = document.getElementById('demo-pill');
-    const face = document.getElementById('demo-face');
-    const bubble = document.getElementById('demo-bubble');
-
-    document.addEventListener('mousemove', (e) => {
-      const r = pill.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dx = Math.max(-9, Math.min(9, (e.clientX - cx) / 38));
-      const dy = Math.max(-5, Math.min(5, (e.clientY - cy) / 38));
-      face.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
-    });
-
-    setInterval(() => {
-      if (!face.classList.contains('love')) {
-        face.classList.add('blink');
-        setTimeout(() => face.classList.remove('blink'), 130);
-      }
-    }, 3600);
-
-    pill.addEventListener('dblclick', () => {
-      face.classList.add('love');
-      bubble.textContent = 'Hehe, valeu pelo carinho! ♥';
-      setTimeout(() => {
-        face.classList.remove('love');
-        bubble.textContent = 'Pronto para morar no seu Windows!';
-      }, 2400);
-    });
-
-    pill.addEventListener('click', () => {
-      bubble.textContent = 'No Windows, 1 clique abre meu painel completo!';
-    });
-
-    // 2. Busca automaticamente a última release do GitHub para o botão de download
-    fetch('https://api.github.com/repos/VitorSilva010/Lumo/releases/latest')
-      .then((r) => r.json())
-      .then((rel) => {
-        if (!rel?.tag_name) return;
-        document.getElementById('ver-label').textContent = `Lumo ${rel.tag_name} · Windows 10 & 11`;
-        const exe = (rel.assets || []).find((a) => a.name.endsWith('-setup.exe'));
-        if (exe?.browser_download_url) {
-          ['hero-dl', 'nav-dl', 'free-dl'].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) el.href = exe.browser_download_url;
-          });
-        }
-      })
-      .catch(() => {});
-  
-    const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
-    let purchasedKey = '';
-
-    async function startCheckout() {
-      const btn = document.getElementById('buy-pro-btn');
-      btn.disabled = true;
-      btn.textContent = 'Abrindo Mercado Pago...';
-      try {
-        const res = await fetch(API_BASE + '/checkout', { method: 'POST' });
-        const data = await res.json();
-        if (data.init_point) {
-          localStorage.setItem('lumo_last_order', data.order_id);
-          window.location.href = data.init_point;
-          return;
-        }
-        alert(data.error || 'Não foi possível iniciar o checkout agora.');
-      } catch (e) {
-        alert('Erro de conexão com o servidor de pagamentos.');
-      }
-      btn.disabled = false;
-      btn.textContent = 'Desbloquear Lumo Pro (Pix ou Cartão)';
-    }
-
-    function copyPurchasedKey() {
-      if (!purchasedKey) return;
-      navigator.clipboard.writeText(purchasedKey);
-      document.getElementById('km-copy-btn').textContent = 'Chave Copiada ✓';
-    }
-
-    async function checkReturnedOrder() {
-      const params = new URLSearchParams(window.location.search);
-      const orderId = params.get('order');
-      const paymentId = params.get('payment_id') || params.get('collection_id') || '';
-      const checkoutState = params.get('checkout');
-      if (!orderId) return;
-
-      const modal = document.getElementById('key-modal');
-      const title = document.getElementById('km-title');
-      const desc = document.getElementById('km-desc');
-      const keyBox = document.getElementById('km-key-box');
-      const copyBtn = document.getElementById('km-copy-btn');
-      modal.style.display = 'flex';
-
-      if (checkoutState === 'fail') {
-        title.textContent = 'Pagamento não concluído';
-        desc.textContent = 'O pagamento foi cancelado ou recusado. Você pode tentar novamente quando quiser.';
-        return;
-      }
-
-      let tries = 0;
-      const poll = async () => {
-        tries++;
-        try {
-          const r = await fetch(`${API_BASE}/order-status?order=${encodeURIComponent(orderId)}&payment_id=${encodeURIComponent(paymentId)}`);
-          const d = await r.json();
-          if (d.status === 'approved' && d.key) {
-            purchasedKey = d.key;
-            title.textContent = 'Lumo Pro liberado!';
-            desc.textContent = 'Salve esta chave em um lugar seguro. Abra o Lumo > Configurações > cole abaixo de Plano e clique em Ativar (válida em até 2 PCs).';
-            keyBox.textContent = d.key;
-            keyBox.style.display = 'block';
-            copyBtn.style.display = 'inline-flex';
-            return;
-          }
-        } catch (_) {}
-        if (tries < 15) {
-          setTimeout(poll, 3000);
-        } else {
-          title.textContent = 'Aguardando confirmação';
-          desc.textContent = 'Se você pagou via Pix/Boleto, recarregue esta página em alguns instantes para ver sua chave.';
-        }
-      };
-      poll();
-    }
-    checkReturnedOrder();
-
-  </script>
-
-  <div id="key-modal" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(5,6,10,0.84); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#12141d; border:1px solid rgba(246,185,116,0.4); border-radius:22px; max-width:440px; width:100%; padding:28px; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.7);">
-      <div style="font-size:28px; margin-bottom:8px;">✦</div>
-      <h3 id="km-title" style="font-size:20px; margin-bottom:8px;">Confirmando pagamento...</h3>
-      <p id="km-desc" style="font-size:13.5px; color:#94a3b8; margin-bottom:18px;">Aguarde alguns segundos enquanto o Mercado Pago libera sua chave exclusiva.</p>
-      <div id="km-key-box" style="display:none; background:#090a0f; border:1px dashed #f6b974; border-radius:12px; padding:14px; font-family:Consolas,monospace; font-size:18px; font-weight:700; color:#f6b974; letter-spacing:1px; margin-bottom:14px; user-select:all;"></div>
+  <!-- MODAL DE ENTREGA DA CHAVE PRO -->
+  <div id="key-modal">
+    <div class="modal-card">
+      <h3 id="km-title">Verificando pagamento...</h3>
+      <p id="km-desc" style="font-size:13.5px; color:var(--muted);">Aguarde alguns segundos enquanto confirmamos com o Mercado Pago.</p>
+      <div id="km-key-box" style="display:none;"></div>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button id="km-copy-btn" class="btn btn-primary" style="display:none;" onclick="copyPurchasedKey()">Copiar Chave</button>
-        <button class="btn btn-ghost" onclick="document.getElementById('key-modal').style.display='none'">Fechar</button>
+        <button class="btn btn-primary" id="km-copy-btn" type="button" style="display:none;" onclick="copyLicenseKey()">Copiar Chave</button>
+        <button class="btn btn-ghost" type="button" onclick="closeKeyModal()">Fechar</button>
       </div>
     </div>
   </div>
 
+  <script>
+    const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
+    const REPO = 'VitorSilva010/Lumo';
+
+    // === DEMO INTERATIVA ===
+    const demoFace = document.getElementById('demo-face');
+    const demoBubble = document.getElementById('demo-bubble');
+    const demoPhrases = [
+      'Hehe! Clique em mim no Windows ou aperte Alt + Espaço.',
+      'Posso resumir links e PDFs ou transcrever áudios do WhatsApp!',
+      'Prefere tela limpa? Ative o Modo Bandeja perto do relógio.',
+      'Também tenho Modo Claro, OLED e app pro seu celular!'
+    ];
+    let demoIdx = 0;
+
+    window.addEventListener('pointermove', (e) => {
+      const pill = document.getElementById('demo-pill');
+      if (!pill) return;
+      const r = pill.getBoundingClientRect();
+      const dx = Math.max(-10, Math.min(10, (e.clientX - (r.left + r.width / 2)) / 24));
+      const dy = Math.max(-5, Math.min(5, (e.clientY - (r.top + r.height / 2)) / 24));
+      demoFace.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
+    });
+
+    document.getElementById('demo-pill').addEventListener('click', () => {
+      demoFace.classList.add('happy');
+      demoBubble.textContent = demoPhrases[demoIdx++ % demoPhrases.length];
+      setTimeout(() => demoFace.classList.remove('happy'), 1200);
+    });
+
+    function setDemoEye(style, btn) {
+      demoFace.classList.remove('kawaii', 'cyber');
+      if (style !== 'classic') demoFace.classList.add(style);
+      document.querySelectorAll('.demo-controls .chip-btn').forEach((b, i) => { if (i < 3) b.classList.toggle('active', b === btn); });
+    }
+    function toggleDemoLight(btn) {
+      const wrap = document.getElementById('demo-wrap');
+      const isLight = wrap.classList.toggle('demo-light');
+      btn.classList.toggle('active', isLight);
+    }
+
+    // === DETECTOR AUTOMÁTICO DA ÚLTIMA RELEASE NO GITHUB ===
+    (async function fetchLatestRelease() {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
+        if (!res.ok) return;
+        const rel = await res.json();
+        if (rel.tag_name) document.getElementById('ver-label').textContent = rel.tag_name;
+        const exe = (rel.assets || []).find((a) => a.name.endsWith('-setup.exe') || a.name.endsWith('.exe'));
+        if (exe?.browser_download_url) {
+          ['nav-dl', 'hero-dl', 'free-dl'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.href = exe.browser_download_url;
+          });
+        }
+      } catch (_) {}
+    })();
+
+    // === CHECKOUT MERCADO PAGO + ENTREGA AUTOMÁTICA DA CHAVE ===
+    async function startProCheckout() {
+      const btn = document.getElementById('buy-pro-btn');
+      btn.disabled = true;
+      btn.textContent = 'Abrindo Mercado Pago...';
+      try {
+        const res = await fetch(`${API_BASE}/checkout`, { method: 'POST' });
+        const data = await res.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+          return;
+        }
+        alert(data.error || 'Não foi possível iniciar o pagamento agora.');
+      } catch (e) {
+        alert('Erro de conexão ao abrir o checkout.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ativar Lumo Pro (Pix ou Cartão)';
+      }
+    }
+
+    function showKeyModal(title, desc, key = '') {
+      document.getElementById('km-title').textContent = title;
+      document.getElementById('km-desc').textContent = desc;
+      const box = document.getElementById('km-key-box');
+      const copyBtn = document.getElementById('km-copy-btn');
+      if (key) {
+        box.textContent = key;
+        box.style.display = 'block';
+        copyBtn.style.display = 'inline-flex';
+      } else {
+        box.style.display = 'none';
+        copyBtn.style.display = 'none';
+      }
+      document.getElementById('key-modal').classList.add('show');
+    }
+
+    function closeKeyModal() {
+      document.getElementById('key-modal').classList.remove('show');
+    }
+
+    function copyLicenseKey() {
+      const key = document.getElementById('km-key-box').textContent.trim();
+      if (!key) return;
+      navigator.clipboard?.writeText(key);
+      const btn = document.getElementById('km-copy-btn');
+      btn.textContent = 'Chave Copiada ✓';
+      setTimeout(() => { btn.textContent = 'Copiar Chave'; }, 2200);
+    }
+
+    (async function checkOrderReturn() {
+      const qs = new URLSearchParams(window.location.search);
+      const order = qs.get('order');
+      const checkout = qs.get('checkout');
+      const paymentId = qs.get('payment_id') || qs.get('collection_id') || '';
+      if (!order) return;
+      if (checkout === 'fail') {
+        showKeyModal('Pagamento não concluído', 'O pagamento foi cancelado ou recusado. Você pode tentar novamente quando quiser.');
+        return;
+      }
+
+      showKeyModal('Confirmando seu Lumo Pro...', 'Aguarde um instante enquanto validamos seu pagamento e geramos sua chave vitalícia.');
+      for (let i = 0; i < 12; i++) {
+        try {
+          const url = `${API_BASE}/order-status?order=${encodeURIComponent(order)}&payment_id=${encodeURIComponent(paymentId)}`;
+          const data = await fetch(url).then((r) => r.json());
+          if (data.status === 'approved' && data.key) {
+            showKeyModal('Lumo Pro liberado!', 'Guarde sua chave vitalícia abaixo e cole em Configurações → Plano dentro do Lumo:', data.key);
+            return;
+          }
+        } catch (_) {}
+        await new Promise((r) => setTimeout(r, 2500));
+      }
+      showKeyModal('Pagamento pendente', 'Se você pagou via Pix ou boleto, aguarde alguns instantes e recarregue esta página para ver sua chave.');
+    })();
+  </script>
 </body>
 </html>
