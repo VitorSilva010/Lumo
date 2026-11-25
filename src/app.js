@@ -488,6 +488,7 @@ async function pollWindowsLoop() {
       document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
 
       if (isHiddenInGame) {
+        if (typeof evaluateUniversalGame === 'function') evaluateUniversalGame(st);
         if (st.cursor_x >= st.screen_w - 25 && st.cursor_y <= 25) wakeFromGame();
       } else {
         const dxMouse = st.cursor_x - lastCursorX;
@@ -505,19 +506,19 @@ async function pollWindowsLoop() {
           setTimeout(() => restoreIdleExpression(), 2400);
         }
 
-        const ignored = ['sobreposição', 'captura', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
-        if (!trayOnlyMode && document.getElementById('autohide-toggle').checked && !ignored && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-          const norm = s => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
-          const nt = norm(title);
-          const game = gameTipsDB.find(g => g.keys.some(k => nt.includes(norm(k))));
-          if (game) {
-            activeGamePendingHide = true;
-            const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
-            setExpression('focused'); hopPill();
-            if (isExpanded) await togglePanel(false);
-            say(`${game.name}: ${tip}`, 5000, true, null, true);
-            setTimeout(() => { activeGamePendingHide = false; hideForGame('', 150); }, 5000);
-          }
+        const gRes = typeof evaluateUniversalGame === 'function'
+          ? evaluateUniversalGame(st)
+          : { detected: false, name: '', tipGame: null };
+        if (gRes.detected && !trayOnlyMode && document.getElementById('autohide-toggle').checked && !activeGamePendingHide && Date.now() > manualSummonUntil) {
+          activeGamePendingHide = true;
+          const msg = gRes.tipGame
+            ? `${gRes.tipGame.name}: ${gRes.tipGame.tips[Math.floor(Math.random() * gRes.tipGame.tips.length)]}`
+            : `Bom jogo em ${gRes.name || 'tela cheia'}! Vou pro cantinho 🎮`;
+          const waitMs = gRes.tipGame ? 5000 : 3400;
+          setExpression('focused'); hopPill();
+          if (isExpanded) await togglePanel(false);
+          say(msg, waitMs, true, null, true);
+          setTimeout(() => { activeGamePendingHide = false; hideForGame('', 150); }, waitMs);
         }
       }
     } catch (_) {}
@@ -1061,17 +1062,23 @@ async function checkForUpdates(silent = true) {
         ? `Atualização crítica v${newVer} obrigatória`
         : `Nova versão v${newVer} disponível`;
 
+      const inGame = typeof isGameSessionActive === 'function' ? isGameSessionActive() : isHiddenInGame;
       if (mandatory) {
+        if (inGame) {
+          pendingAutoUpdate = newVer;
+          window.pendingUpdateMandatory = true;
+          return;
+        }
         say(`Atualização importante v${newVer}! Instalando em instantes...`, 3600, true);
         setTimeout(() => installRealUpdate(true, newVer, true), 3500);
         return;
       }
 
-      const canAutoNow = autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded && !timerInterval;
+      const canAutoNow = autoInstallUpdates && !inGame && !isThinking && !isExpanded && !timerInterval;
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.8.1 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.9.0 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1080,7 +1087,12 @@ async function checkForUpdates(silent = true) {
 async function manualCheckUpdate() { document.getElementById('update-cfg-status').textContent = 'Verificando no GitHub...'; await checkForUpdates(false); }
 async function installRealUpdate(autoMode = false, verLabel = '', mandatory = false) {
   if (!invoke || isUpdating) return;
-  isUpdating = true; pendingAutoUpdate = null;
+  if (autoMode && typeof isGameSessionActive === 'function' && isGameSessionActive()) {
+    pendingAutoUpdate = verLabel || pendingAutoUpdate || 'nova';
+    if (mandatory) window.pendingUpdateMandatory = true;
+    return;
+  }
+  isUpdating = true; pendingAutoUpdate = null; window.pendingUpdateMandatory = false;
   const btn = document.getElementById('update-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Atualizando...'; }
   document.getElementById('update-cfg-status').textContent = 'Baixando atualização...';
   if (autoMode && !mandatory) say(`Atualizando para v${verLabel}... volto já!`, 3800, true);
@@ -1282,7 +1294,7 @@ setInterval(async () => {
 
 setInterval(() => {
   if (isShuttingDown) return;
-  if (pendingAutoUpdate && autoInstallUpdates && !isUpdating && !isHiddenInGame && !isThinking && !isExpanded && !timerInterval) installRealUpdate(true, pendingAutoUpdate);
+  if (pendingAutoUpdate && (autoInstallUpdates || window.pendingUpdateMandatory) && !isUpdating && !(typeof isGameSessionActive === 'function' ? isGameSessionActive() : isHiddenInGame) && !isThinking && !isExpanded && !timerInterval) installRealUpdate(true, pendingAutoUpdate, Boolean(window.pendingUpdateMandatory));
   const f = document.getElementById('lumo-face');
   if (f && !isHiddenInGame && !['blink','happy','sleepy','goodbye','dizzy','love','thinking'].some(c => f.classList.contains(c)) && Math.random() < 0.3) {
     f.classList.add('wink'); setTimeout(() => f.classList.remove('wink'), 240);

@@ -36,6 +36,9 @@ pub struct DesktopState {
     pub win_center_x: i32,
     pub win_y: i32,
     pub screen_w: i32,
+    pub is_game: bool,
+    pub game_name: String,
+    pub active_exe: String,
 }
 
 #[tauri::command]
@@ -61,7 +64,7 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
             (0, 0, 0, 1920)
         };
 
-    let (cursor_x, cursor_y, active_window) = get_windows_context();
+    let (cursor_x, cursor_y, active_window, is_game, game_name, active_exe) = get_windows_context();
     let pos = window
         .outer_position()
         .unwrap_or(tauri::PhysicalPosition::new(0, 0));
@@ -79,6 +82,9 @@ fn get_desktop_state(window: tauri::WebviewWindow, state: State<'_, AppState>) -
         win_center_x: pos.x + (size.width as i32) / 2,
         win_y: pos.y,
         screen_w,
+        is_game,
+        game_name,
+        active_exe,
     }
 }
 
@@ -539,11 +545,185 @@ fn watch_hotkey(app: tauri::AppHandle) {
 #[cfg(not(windows))]
 fn watch_hotkey(_app: tauri::AppHandle) {}
 
+struct GameDetectCache {
+    pid: u32,
+    checked_at: Instant,
+    is_game: bool,
+    game_name: String,
+    exe_name: String,
+}
+
+static GAME_CACHE: std::sync::OnceLock<Mutex<GameDetectCache>> = std::sync::OnceLock::new();
+
 #[cfg(windows)]
-fn get_windows_context() -> (i32, i32, String) {
-    use windows::Win32::Foundation::POINT;
+fn clean_game_title(title: &str, exe_path: &str, exe_name: &str) -> String {
+    let t = title.trim();
+    let tl = t.to_lowercase();
+    if !t.is_empty() && t.len() <= 48 && !tl.contains("google chrome") && !tl.contains("microsoft edge") && !tl.contains("mozilla firefox") {
+        return t.chars().take(36).collect();
+    }
+    let lower_path = exe_path.to_lowercase();
+    for marker in ["\\steamapps\\common\\", "\\epic games\\", "\\gog games\\", "\\xboxgames\\", "\\riot games\\"] {
+        if let Some(idx) = lower_path.find(marker) {
+            let after = &exe_path[idx + marker.len()..];
+            if let Some(folder) = after.split('\\').next() {
+                if !folder.is_empty() {
+                    return folder.chars().take(36).collect();
+                }
+            }
+        }
+    }
+    let stem = exe_name
+        .trim_end_matches(".exe")
+        .replace("-win64-shipping", "")
+        .replace("-win32-shipping", "")
+        .replace("-gdk-shipping", "")
+        .replace('_', " ")
+        .replace('-', " ");
+    let clean = stem.trim();
+    if clean.is_empty() { "Jogo".to_string() } else { clean.chars().take(36).collect() }
+}
+
+#[cfg(windows)]
+fn detect_universal_game(exe_path: &str, title: &str, is_d3d_fs: bool, is_fs: bool) -> (bool, String, String) {
+    let path_obj = std::path::Path::new(exe_path);
+    let exe_name = path_obj
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+    if exe_name.is_empty() {
+        return (false, String::new(), String::new());
+    }
+
+    let tl = title.to_lowercase();
+
+    // 1. Nunca marcar apps do sistema, IDEs, players de vídeo ou comunicação
+    const NON_GAMES: &[&str] = &[
+        "lumo.exe", "explorer.exe", "dwm.exe", "shellexperiencehost.exe", "searchhost.exe",
+        "startmenuexperiencehost.exe", "applicationframehost.exe", "lockapp.exe", "taskmgr.exe",
+        "cmd.exe", "powershell.exe", "pwsh.exe", "windowsterminal.exe", "code.exe", "devenv.exe",
+        "discord.exe", "spotify.exe", "obs64.exe", "obs32.exe", "vlc.exe", "mpv.exe",
+        "potplayermini64.exe", "whatsapp.exe", "telegram.exe", "slack.exe", "teams.exe",
+        "ms-teams.exe", "zoom.exe", "winword.exe", "excel.exe", "powerpnt.exe", "acrobat.exe",
+        "snippingtool.exe", "screenclippinghost.exe", "notepad.exe", "notepad++.exe",
+        "steam.exe", "steamwebhelper.exe", "epicgameslauncher.exe", "battle.net.exe",
+        "riotclientservices.exe", "riotclientux.exe", "eadesktop.exe", "ubisoftconnect.exe",
+        "upc.exe", "galaxyclient.exe", "curseforge.exe", "modrinth app.exe", "prismlauncher.exe",
+        "xboxpcapp.exe", "playnite.desktopapp.exe", "nvidia app.exe", "radeonsoftware.exe"
+    ];
+    if NON_GAMES.contains(&exe_name.as_str()) {
+        return (false, String::new(), exe_name);
+    }
+
+    // 2. Navegadores: apenas Cloud Gaming confirmado (nunca YouTube/Netflix/Twitch)
+    const BROWSERS: &[&str] = &[
+        "chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe", "opera_gx.exe", "vivaldi.exe", "arc.exe"
+    ];
+    if BROWSERS.contains(&exe_name.as_str()) {
+        for (kw, label) in [
+            ("boosteroid", "Boosteroid Cloud"),
+            ("geforce now", "GeForce NOW"),
+            ("xbox cloud gaming", "Xbox Cloud Gaming"),
+            ("xbox.com/play", "Xbox Cloud Gaming"),
+            ("amazon luna", "Amazon Luna"),
+        ] {
+            if tl.contains(kw) {
+                return (true, label.to_string(), exe_name);
+            }
+        }
+        return (false, String::new(), exe_name);
+    }
+
+    // 3. Executáveis diretos de jogos, engines, Minecraft/Java e emuladores
+    let is_direct_exe = exe_name.ends_with("-win64-shipping.exe")
+        || exe_name.ends_with("-win32-shipping.exe")
+        || exe_name.ends_with("-gdk-shipping.exe")
+        || matches!(
+            exe_name.as_str(),
+            "robloxplayerbeta.exe" | "minecraft.windows.exe" | "boosteroid.exe" | "geforcenow.exe"
+            | "retroarch.exe" | "dolphin.exe" | "pcsx2.exe" | "pcsx2-qt.exe" | "rpcs3.exe"
+            | "yuzu.exe" | "ryujinx.exe" | "cemu.exe" | "ppssppwindows64.exe"
+            | "hd-player.exe" | "dnplayer.exe"
+        )
+        || ((exe_name == "javaw.exe" || exe_name == "java.exe")
+            && (tl.contains("minecraft") || tl.contains("neoforge") || tl.contains("forge") || tl.contains("fabric") || tl.contains("lunar") || tl.contains("badlion")));
+
+    if is_direct_exe {
+        return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+    }
+
+    // 4. Pastas padrão de bibliotecas de jogos
+    let pl = exe_path.to_lowercase();
+    const GAME_DIRS: &[&str] = &[
+        "\\steamapps\\common\\", "\\epic games\\", "\\riot games\\", "\\xboxgames\\",
+        "\\ubisoft\\ubisoft game launcher\\games\\", "\\ea games\\", "\\gog games\\",
+        "\\gog galaxy\\games\\", "\\battle.net\\", "\\roblox\\versions\\",
+        "\\.minecraft\\", "\\curseforge\\minecraft\\", "\\prismlauncher\\",
+        "\\modrinthapp\\", "\\rockstar games\\", "\\hoyoverse\\", "\\genshin impact\\",
+        "\\wuthering waves\\", "\\itch\\apps\\"
+    ];
+    if GAME_DIRS.iter().any(|d| pl.contains(d)) {
+        return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+    }
+
+    // 5. Assinaturas de Engine/SDK (Unity, Steamworks, EOS, Unreal, FMOD, Bink, Anti-Cheat, DLSS/FSR)
+    const ENGINE_MARKERS: &[&str] = &[
+        "UnityPlayer.dll", "GameAssembly.dll", "steam_api64.dll", "steam_api.dll",
+        "EOSSDK-Win64-Shipping.dll", "bink2w64.dll", "fmod.dll", "fmodstudio.dll",
+        "nvngx_dlss.dll", "amd_fidelityfx_dx12.dll", "PhysX3_x64.dll", "PhysX_64.dll",
+        "EasyAntiCheat_EOS.dll", "tier0.dll", "CrySystem.dll"
+    ];
+    if let Some(dir) = path_obj.parent() {
+        let mut check_dirs = vec![dir];
+        if let Some(p1) = dir.parent() {
+            check_dirs.push(p1);
+            if let Some(p2) = p1.parent() {
+                check_dirs.push(p2);
+            }
+        }
+        for d in check_dirs {
+            if ENGINE_MARKERS.iter().any(|m| d.join(m).exists()) {
+                return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+            }
+        }
+        // Jogos Godot (.pck ao lado do .exe)
+        if let Some(stem) = path_obj.file_stem().and_then(|s| s.to_str()) {
+            if dir.join(format!("{}.pck", stem)).exists() {
+                return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+            }
+        }
+    }
+
+    // 6. Direct3D Fullscreen confirmado pelo próprio Windows (ou SDL2 em tela cheia)
+    if is_d3d_fs {
+        return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+    }
+    if is_fs {
+        if let Some(dir) = path_obj.parent() {
+            if dir.join("SDL2.dll").exists() || dir.join("SDL3.dll").exists() {
+                return (true, clean_game_title(title, exe_path, &exe_name), exe_name);
+            }
+        }
+    }
+
+    (false, String::new(), exe_name)
+}
+
+#[cfg(windows)]
+fn get_windows_context() -> (i32, i32, String, bool, String, String) {
+    use windows::core::PWSTR;
+    use windows::Win32::Foundation::{CloseHandle, POINT, RECT};
+    use windows::Win32::Graphics::Gdi::{
+        GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST,
+    };
+    use windows::Win32::System::Threading::{
+        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+        PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+    use windows::Win32::UI::Shell::{SHQueryUserNotificationState, QUNS_RUNNING_D3D_FULL_SCREEN};
     use windows::Win32::UI::WindowsAndMessaging::{
-        GetCursorPos, GetForegroundWindow, GetWindowTextW,
+        GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId,
     };
 
     unsafe {
@@ -559,13 +739,83 @@ fn get_windows_context() -> (i32, i32, String) {
             String::new()
         };
 
-        (point.x, point.y, title)
+        let mut pid: u32 = 0;
+        GetWindowThreadProcessId(hwnd, Some(&mut pid));
+
+        let cache_mutex = GAME_CACHE.get_or_init(|| {
+            Mutex::new(GameDetectCache {
+                pid: 0,
+                checked_at: Instant::now() - Duration::from_secs(10),
+                is_game: false,
+                game_name: String::new(),
+                exe_name: String::new(),
+            })
+        });
+
+        let mut is_game = false;
+        let mut game_name = String::new();
+        let mut exe_name = String::new();
+
+        if let Ok(mut cache) = cache_mutex.lock() {
+            if pid != 0 && (cache.pid != pid || cache.checked_at.elapsed() >= Duration::from_millis(1200)) {
+                let mut exe_path = String::new();
+                if let Ok(handle) = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) {
+                    let mut pbuf = [0u16; 1024];
+                    let mut plen = pbuf.len() as u32;
+                    if QueryFullProcessImageNameW(
+                        handle,
+                        PROCESS_NAME_WIN32,
+                        PWSTR(pbuf.as_mut_ptr()),
+                        &mut plen,
+                    )
+                    .is_ok()
+                        && plen > 0
+                    {
+                        exe_path = String::from_utf16_lossy(&pbuf[..plen as usize]);
+                    }
+                    let _ = CloseHandle(handle);
+                }
+
+                let is_d3d_fs = SHQueryUserNotificationState()
+                    .map(|s| s == QUNS_RUNNING_D3D_FULL_SCREEN)
+                    .unwrap_or(false);
+
+                let mut is_fs = false;
+                let mut wr = RECT::default();
+                if GetWindowRect(hwnd, &mut wr).is_ok() {
+                    let hmon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+                    let mut mi = MONITORINFO {
+                        cbSize: std::mem::size_of::<MONITORINFO>() as u32,
+                        ..Default::default()
+                    };
+                    if GetMonitorInfoW(hmon, &mut mi).as_bool() {
+                        let mr = mi.rcMonitor;
+                        is_fs = wr.left <= mr.left
+                            && wr.top <= mr.top
+                            && wr.right >= mr.right
+                            && wr.bottom >= mr.bottom;
+                    }
+                }
+
+                let (g, gn, en) = detect_universal_game(&exe_path, &title, is_d3d_fs, is_fs);
+                cache.pid = pid;
+                cache.checked_at = Instant::now();
+                cache.is_game = g;
+                cache.game_name = gn;
+                cache.exe_name = en;
+            }
+            is_game = cache.is_game;
+            game_name = cache.game_name.clone();
+            exe_name = cache.exe_name.clone();
+        }
+
+        (point.x, point.y, title, is_game, game_name, exe_name)
     }
 }
 
 #[cfg(not(windows))]
-fn get_windows_context() -> (i32, i32, String) {
-    (0, 0, String::from("Desktop"))
+fn get_windows_context() -> (i32, i32, String, bool, String, String) {
+    (0, 0, String::from("Desktop"), false, String::new(), String::new())
 }
 
 
