@@ -105,7 +105,13 @@
           </div>
           <div class="tile-sub" id="ping-strip-sub">Chat com amigos</div>
         </div>`;
-      gameTile.replaceWith(pingTile);
+      const iaTile = document.getElementById('tile-ia');
+      if (iaTile) {
+        iaTile.insertAdjacentElement('afterend', pingTile);
+        gameTile.remove();
+      } else {
+        gameTile.replaceWith(pingTile);
+      }
     }
   }
   const cfgView = document.getElementById('view-config');
