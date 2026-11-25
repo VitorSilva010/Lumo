@@ -956,6 +956,229 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
     Err("Sem resposta da IA no momento. Tente novamente.".to_string())
 }
 
+
+#[derive(Serialize, Clone)]
+pub struct ActiveDownload {
+    pub name: String,
+    pub bytes: u64,
+    pub speed_bps: u64,
+    pub ext: String,
+}
+
+#[derive(Serialize)]
+pub struct DownloadStatus {
+    pub active: Vec<ActiveDownload>,
+    pub completed: Vec<String>,
+}
+
+struct TrackedDownload {
+    bytes: u64,
+    last_growth: Instant,
+    last_seen: Instant,
+    speed_bps: u64,
+    clean_name: String,
+}
+
+static DOWNLOAD_TRACKER: std::sync::OnceLock<Mutex<std::collections::HashMap<String, TrackedDownload>>> =
+    std::sync::OnceLock::new();
+
+#[cfg(windows)]
+fn get_downloads_dir() -> PathBuf {
+    use winreg::enums::*;
+    use winreg::RegKey;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    if let Ok(key) = hkcu.open_subkey(r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") {
+        if let Ok(raw) = key.get_value::<String, _>("{374DE290-123F-4565-9164-39C4925E467B}") {
+            let expanded = if raw.contains("%USERPROFILE%") {
+                let up = std::env::var("USERPROFILE").unwrap_or_default();
+                raw.replace("%USERPROFILE%", &up)
+            } else {
+                raw
+            };
+            let p = PathBuf::from(expanded.trim());
+            if p.is_dir() {
+                return p;
+            }
+        }
+    }
+    if let Ok(up) = std::env::var("USERPROFILE") {
+        let p = PathBuf::from(up).join("Downloads");
+        if p.is_dir() {
+            return p;
+        }
+    }
+    PathBuf::from(".")
+}
+
+#[cfg(not(windows))]
+fn get_downloads_dir() -> PathBuf {
+    if let Ok(home) = std::env::var("HOME") {
+        let p = PathBuf::from(home).join("Downloads");
+        if p.is_dir() {
+            return p;
+        }
+    }
+    PathBuf::from(".")
+}
+
+fn match_temp_download_ext(lower_name: &str) -> Option<&'static str> {
+    const EXTS: &[&str] = &[".crdownload", ".part", ".opdownload", ".download", ".!qb", ".!ut"];
+    EXTS.iter().copied().find(|e| lower_name.ends_with(e))
+}
+
+fn clean_download_name(file_name: &str, ext: &str) -> String {
+    let cut = file_name.len().saturating_sub(ext.len());
+    let base = if file_name.is_char_boundary(cut) {
+        &file_name[..cut]
+    } else {
+        file_name
+    };
+    let trimmed = base.trim();
+    if trimmed.is_empty() || trimmed.to_lowercase().starts_with("unconfirmed ") {
+        "Download em andamento".to_string()
+    } else {
+        trimmed.chars().take(72).collect()
+    }
+}
+
+#[tauri::command]
+fn get_active_downloads() -> DownloadStatus {
+    let dir = get_downloads_dir();
+    let now = Instant::now();
+    let tracker_mutex = DOWNLOAD_TRACKER.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
+
+    let mut active: Vec<ActiveDownload> = Vec::new();
+    let mut completed: Vec<String> = Vec::new();
+    let mut seen_keys: Vec<String> = Vec::new();
+    let mut recent_final_file: Option<(Duration, String)> = None;
+
+    if let Ok(entries) = fs::read_dir(&dir) {
+        if let Ok(mut map) = tracker_mutex.lock() {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let Ok(meta) = entry.metadata() else { continue };
+                if !meta.is_file() {
+                    continue;
+                }
+                let Some(fname) = path.file_name().and_then(|s| s.to_str()) else { continue };
+                let lower = fname.to_lowercase();
+                let age = meta
+                    .modified()
+                    .ok()
+                    .and_then(|m| m.elapsed().ok())
+                    .unwrap_or(Duration::ZERO);
+
+                if let Some(ext) = match_temp_download_ext(&lower) {
+                    // Ignora arquivos temporários abandonados há mais de 90 segundos
+                    if age > Duration::from_secs(90) {
+                        continue;
+                    }
+                    let key = path.to_string_lossy().to_string();
+                    let bytes = meta.len();
+                    let clean_name = clean_download_name(fname, ext);
+                    seen_keys.push(key.clone());
+
+                    let speed_bps = if let Some(prev) = map.get_mut(&key) {
+                        prev.last_seen = now;
+                        prev.clean_name = clean_name.clone();
+                        if bytes > prev.bytes {
+                            let dt_ms = prev.last_growth.elapsed().as_millis().max(150) as u64;
+                            let inst = (bytes - prev.bytes).saturating_mul(1000) / dt_ms;
+                            prev.speed_bps = if prev.speed_bps == 0 {
+                                inst
+                            } else {
+                                (prev.speed_bps.saturating_mul(2).saturating_add(inst)) / 3
+                            };
+                            prev.bytes = bytes;
+                            prev.last_growth = now;
+                        } else if prev.last_growth.elapsed() > Duration::from_secs(4) {
+                            prev.speed_bps = 0;
+                        }
+                        prev.speed_bps
+                    } else {
+                        map.insert(
+                            key,
+                            TrackedDownload {
+                                bytes,
+                                last_growth: now,
+                                last_seen: now,
+                                speed_bps: 0,
+                                clean_name: clean_name.clone(),
+                            },
+                        );
+                        0
+                    };
+
+                    active.push(ActiveDownload {
+                        name: clean_name,
+                        bytes,
+                        speed_bps,
+                        ext: ext.to_string(),
+                    });
+                } else if age <= Duration::from_secs(12) && meta.len() > 0 && !lower.ends_with(".tmp") && !lower.ends_with(".ini") {
+                    match &recent_final_file {
+                        Some((best_age, _)) if age >= *best_age => {}
+                        _ => recent_final_file = Some((age, fname.to_string())),
+                    }
+                }
+            }
+
+            // Detecta downloads que terminaram desde a última checagem
+            let vanished: Vec<String> = map
+                .keys()
+                .filter(|k| !seen_keys.contains(k))
+                .cloned()
+                .collect();
+
+            for k in vanished {
+                if let Some(prev) = map.remove(&k) {
+                    if prev.last_seen.elapsed() <= Duration::from_secs(20) {
+                        if prev.clean_name != "Download em andamento" && dir.join(&prev.clean_name).is_file() {
+                            completed.push(prev.clean_name);
+                        } else if let Some((_, ref newest_name)) = recent_final_file {
+                            completed.push(newest_name.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    active.sort_by(|a, b| b.speed_bps.cmp(&a.speed_bps).then(b.bytes.cmp(&a.bytes)));
+    DownloadStatus { active, completed }
+}
+
+#[tauri::command]
+fn open_downloads_folder(file_name: Option<String>) -> Result<(), String> {
+    let dir = get_downloads_dir();
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        if let Some(fname) = file_name {
+            let clean = fname.trim();
+            if !clean.is_empty() && !clean.contains('\\') && !clean.contains('/') && !clean.contains("..") {
+                let target = dir.join(clean);
+                if target.exists() {
+                    std::process::Command::new("explorer")
+                        .raw_arg(format!("/select,\"{}\"", target.display()))
+                        .spawn()
+                        .map_err(|e| e.to_string())?;
+                    return Ok(());
+                }
+            }
+        }
+        std::process::Command::new("explorer")
+            .arg(&dir)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (dir, file_name);
+    }
+    Ok(())
+}
+
 pub fn run() {
     let lock = match TcpListener::bind("127.0.0.1:48291") {
         Ok(listener) => Some(listener),
@@ -1026,6 +1249,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_active_downloads,
+            open_downloads_folder,
             get_desktop_state,
             set_window_mode,
             start_drag,

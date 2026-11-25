@@ -1,0 +1,152 @@
+/* === LUMO v2.9.7 — MONITOR DE DOWNLOADS NA CÁPSULA === */
+
+#lumo-pill.dl-active {
+  border-color: var(--accent);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.68), 0 0 28px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+#lumo-pill.dl-active #pill-hud {
+  display: none !important;
+}
+
+#pill-dl-chip {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  color: var(--text);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.15px;
+  white-space: nowrap;
+  cursor: pointer;
+  animation: dlChipIn 0.24s cubic-bezier(0.22, 1.25, 0.36, 1) both;
+}
+#lumo-pill.dl-active #pill-dl-chip {
+  display: inline-flex;
+}
+#pill-dl-chip .dl-arrow {
+  display: inline-block;
+  color: var(--accent);
+  font-weight: 900;
+  animation: dlBounce 0.9s ease-in-out infinite;
+  will-change: transform;
+}
+#pill-dl-chip .dl-speed {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+#pill-dl-chip .dl-size {
+  opacity: 0.86;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes dlChipIn {
+  from { opacity: 0; transform: scale(0.82) translateX(-4px); }
+  to   { opacity: 1; transform: scale(1) translateX(0); }
+}
+@keyframes dlBounce {
+  0%, 100% { transform: translateY(-1.5px); }
+  50%      { transform: translateY(2px); }
+}
+
+/* Barra líquida 100% GPU na borda inferior da cápsula */
+#pill-dl-track {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 2px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+#lumo-pill.dl-active #pill-dl-track {
+  opacity: 1;
+}
+#pill-dl-bar {
+  width: 44%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--accent), #ffffff, var(--accent), transparent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  will-change: transform;
+  animation: dlLiquidFlow 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes dlLiquidFlow {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(240%); }
+}
+
+#lumo-pill.dl-done {
+  border-color: #4ade80 !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 32px rgba(74, 222, 128, 0.55) !important;
+}
+
+/* Card compacto de Download no Resumo (só aparece quando há download ativo ou recém-concluído) */
+#resumo-dl-card {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  margin-bottom: 8px;
+}
+#resumo-dl-card.show {
+  display: flex;
+  animation: dlChipIn 0.24s ease both;
+}
+.dl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.dl-card-name {
+  font-size: 11.4px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dl-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.3px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.dl-card-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.dl-card-bar-fill {
+  width: 45%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: dlLiquidFlow 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+body.lumo-eco #pill-dl-chip .dl-arrow,
+body.lumo-eco #pill-dl-bar,
+body.lumo-eco .dl-card-bar-fill,
+body.reduced-motion #pill-dl-chip .dl-arrow,
+body.reduced-motion #pill-dl-bar {
+  animation-play-state: paused !important;
+}
