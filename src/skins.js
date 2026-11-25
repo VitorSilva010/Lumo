@@ -25,21 +25,26 @@
   if (face && !document.getElementById('acc-cat')) {
     const svgWrap = `
       <svg id="acc-cat" class="acc-extra" viewBox="0 0 72 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round">
-        <path d="M9 21 L15 4 L27 17 Z" fill="var(--bg-pill)" />
-        <path d="M13 18 L16 8.5 L23 16 Z" fill="currentColor" opacity="0.32" stroke="none" />
-        <path d="M63 21 L57 4 L45 17 Z" fill="var(--bg-pill)" />
-        <path d="M59 18 L56 8.5 L49 16 Z" fill="currentColor" opacity="0.32" stroke="none" />
+        <path d="M9 21 L15 4 L27 17 Z" fill="#12141a" />
+        <path d="M13 18 L16 8.5 L23 16 Z" fill="currentColor" opacity="0.48" stroke="none" />
+        <path d="M63 21 L57 4 L45 17 Z" fill="#12141a" />
+        <path d="M59 18 L56 8.5 L49 16 Z" fill="currentColor" opacity="0.48" stroke="none" />
       </svg>
-      <svg id="acc-cyber" class="acc-extra" viewBox="0 0 72 26" fill="none">
-        <path d="M5 7 L14 4 L58 4 L67 7 L64 20 L48 22 L36 18 L24 22 L8 20 Z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" />
-        <line class="visor-shine" x1="16" y1="11" x2="56" y2="11" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.55" />
+      <svg id="acc-cyber" class="acc-extra" viewBox="0 0 76 32" fill="none">
+        <path d="M4 8 L13 3 L63 3 L72 8 L69 25 L51 29 L38 24 L25 29 L7 25 Z" fill="#0c0e14" fill-opacity="0.46" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+        <path d="M9 10 L67 10" stroke="currentColor" stroke-opacity="0.28" stroke-width="1" />
+        <line class="visor-shine" x1="17" y1="9" x2="59" y2="9" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.55" />
       </svg>
-      <svg id="acc-crown" class="acc-extra" viewBox="0 0 40 22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
-        <path d="M5 19 L3 7 L12 13 L20 3 L28 13 L37 7 L35 19 Z" fill="currentColor" fill-opacity="0.28" />
-        <circle cx="20" cy="3" r="1.6" fill="currentColor" stroke="none" />
+      <svg id="acc-crown" class="acc-extra" viewBox="0 0 42 22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
+        <path d="M5 19 L3 7 L13 13 L21 3 L29 13 L39 7 L37 19 Z" fill="#12141a" />
+        <path d="M5 19 L3 7 L13 13 L21 3 L29 13 L39 7 L37 19 Z" fill="currentColor" fill-opacity="0.42" />
+        <circle cx="21" cy="3" r="1.7" fill="currentColor" stroke="none" />
+        <circle cx="3" cy="7" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="39" cy="7" r="1.3" fill="currentColor" stroke="none" />
       </svg>
-      <svg id="acc-halo" class="acc-extra" viewBox="0 0 52 16" fill="none" stroke="currentColor" stroke-width="2.6">
-        <ellipse cx="26" cy="8" rx="20" ry="4.6" />
+      <svg id="acc-halo" class="acc-extra" viewBox="0 0 54 16" fill="none" stroke="currentColor" stroke-width="2.8">
+        <ellipse cx="27" cy="8" rx="20" ry="4.5" stroke="#12141a" stroke-width="4.8" opacity="0.65" />
+        <ellipse cx="27" cy="8" rx="20" ry="4.5" />
       </svg>`;
     face.insertAdjacentHTML('afterbegin', svgWrap);
   }

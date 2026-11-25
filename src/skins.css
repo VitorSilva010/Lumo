@@ -80,7 +80,7 @@ body.skin-glasses #acc-glasses {
 
 /* 3. Orelhinhas de Gato */
 #acc-cat {
-  top: -19px;
+  top: -18px;
   width: 68px;
   height: 22px;
   transform: translateX(-50%) scale(0.75) translateY(5px);
@@ -92,14 +92,14 @@ body.skin-cat #acc-cat {
 
 /* 4. Visor Cyber (Pro) */
 #acc-cyber {
-  top: -3px;
-  width: 66px;
-  height: 24px;
-  transform: translateX(-50%) scale(0.8);
+  top: 50%;
+  width: 74px;
+  height: 30px;
+  transform: translate(-50%, -50%) scale(0.84);
 }
 body.skin-cyber #acc-cyber {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 body.skin-cyber #acc-cyber .visor-shine {
   animation: visorScan 2.8s ease-in-out infinite;
@@ -111,10 +111,10 @@ body.skin-cyber #acc-cyber .visor-shine {
 
 /* 5. Coroa Flutuante (Pro) */
 #acc-crown {
-  top: -20px;
-  width: 36px;
+  top: -19px;
+  width: 38px;
   height: 20px;
-  transform: translateX(-50%) scale(0.7) translateY(6px);
+  transform: translateX(-50%) scale(0.75) translateY(5px);
 }
 body.skin-crown #acc-crown {
   opacity: 1;
@@ -124,10 +124,10 @@ body.skin-crown #acc-crown {
 
 /* 6. Auréola Flutuante (Pro) */
 #acc-halo {
-  top: -19px;
-  width: 48px;
+  top: -18px;
+  width: 50px;
   height: 15px;
-  transform: translateX(-50%) scale(0.7) translateY(6px);
+  transform: translateX(-50%) scale(0.75) translateY(5px);
 }
 body.skin-halo #acc-halo {
   opacity: 1;

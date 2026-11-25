@@ -1,0 +1,172 @@
+/* === LUMO v2.5.0 — BANHO DE DESIGN MINIMALISTA === */
+
+/* 1. Cabeçalho limpo: remove as 7 caixinhas pesadas mantendo os ícones acessíveis */
+.topbar {
+  padding: 10px 13px 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.topbar .icon-actions {
+  gap: 3px !important;
+}
+.topbar .circle-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--muted) !important;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease !important;
+}
+.topbar .circle-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text) !important;
+}
+.topbar .circle-btn.active {
+  background: var(--accent-soft) !important;
+  border-color: rgba(246, 185, 116, 0.35) !important;
+  color: var(--accent) !important;
+}
+.topbar .circle-btn.danger:hover {
+  background: rgba(248, 113, 113, 0.14) !important;
+  color: #f87171 !important;
+}
+
+/* 2. Resumo com mais respiro e menos bordas competindo */
+#view-resumo {
+  gap: 9px !important;
+}
+.hero-bento {
+  padding: 12px 13px !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(255, 255, 255, 0.028) !important;
+}
+.hero-bento .stat-box,
+.hero-bento .metric-box,
+.hero-bento .sys-pill {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Mensagem do Dia calma e editorial (para de brigar com o player) */
+.motd-card {
+  padding: 9px 12px !important;
+  background: rgba(255, 255, 255, 0.024) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-left: 2.5px solid var(--accent) !important;
+  box-shadow: none !important;
+}
+.motd-card .motd-text,
+.motd-card p {
+  font-size: 11.4px !important;
+  line-height: 1.42 !important;
+  opacity: 0.92;
+}
+
+/* 4. Mini-player: discreto quando parado, destaque suave só quando tocando */
+.mini-media-strip {
+  padding: 8px 10px !important;
+  background: rgba(255, 255, 255, 0.028) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  transition: border-color 0.22s ease, background 0.22s ease !important;
+}
+.mini-media-strip.playing {
+  background: var(--accent-soft) !important;
+  border-color: rgba(246, 185, 116, 0.4) !important;
+}
+
+/* 5. Grade 3x2 compacta (todos os 6 atalhos cabem limpos sem cortar no scroll) */
+.hub-grid {
+  gap: 7px !important;
+}
+.hub-tile {
+  padding: 9px 9px !important;
+  min-height: 0 !important;
+  gap: 6px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.028) !important;
+  border: 1px solid rgba(255, 255, 255, 0.065) !important;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease !important;
+}
+.hub-tile:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--accent) !important;
+  transform: translateY(-1px) !important;
+}
+.hub-tile .tile-icon {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border: none !important;
+}
+.hub-tile .tile-title {
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+}
+.hub-tile .tile-sub {
+  font-size: 9.7px !important;
+  opacity: 0.72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 6. Cards gerais e Notícias com bordas sutis */
+.card,
+.news-card {
+  border: 1px solid rgba(255, 255, 255, 0.068) !important;
+  background: rgba(255, 255, 255, 0.024) !important;
+  padding: 11px 12px !important;
+}
+.news-item {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 8px !important;
+  padding: 7px 6px !important;
+}
+.news-item:last-child { border-bottom-color: transparent !important; }
+.news-item:hover {
+  background: rgba(255, 255, 255, 0.045) !important;
+}
+
+/* 7. Barra de comandos /... oculta em repouso — abre suave ao focar o input da IA */
+.quick-ai-dock {
+  padding: 8px 12px 10px !important;
+  gap: 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+.quick-ai-dock .cmd-chips {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition: max-height 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease, margin-bottom 0.22s ease !important;
+}
+.quick-ai-dock:focus-within .cmd-chips {
+  max-height: 36px !important;
+  opacity: 1 !important;
+  margin-bottom: 7px !important;
+  overflow-x: auto !important;
+  pointer-events: auto !important;
+}
+
+/* 8. Compatibilidade total com Modo Claro */
+body.surface-light .topbar { border-bottom-color: rgba(15, 23, 42, 0.08) !important; }
+body.surface-light .topbar .circle-btn:hover { background: rgba(15, 23, 42, 0.07) !important; }
+body.surface-light .hero-bento,
+body.surface-light .motd-card,
+body.surface-light .mini-media-strip,
+body.surface-light .hub-tile,
+body.surface-light .card,
+body.surface-light .news-card {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.09) !important;
+}
+body.surface-light .motd-card { border-left: 2.5px solid var(--accent) !important; }
+body.surface-light .hub-tile .tile-icon { background: rgba(15, 23, 42, 0.055) !important; }
+body.surface-light .news-item { border-bottom-color: rgba(15, 23, 42, 0.07) !important; }
+body.surface-light .news-item:hover { background: rgba(15, 23, 42, 0.05) !important; }
+body.surface-light .quick-ai-dock { border-top-color: rgba(15, 23, 42, 0.09) !important; }
