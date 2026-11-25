@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./polish.css" />
   <link rel="stylesheet" href="./custom.css" />
   <link rel="stylesheet" href="./alive.css" />
+  <link rel="stylesheet" href="./player.css" />
 </head>
 <body>
   <div id="app">
@@ -337,6 +338,60 @@
           </div>
         </div>
         <div class="card">
+          <div class="label-xs">
+            <span>Player do Lumo</span>
+            <span style="color:var(--ok);">Sem navegador</span>
+          </div>
+          <div class="player-tabs">
+            <button type="button" class="ptab-btn active" data-ptab="radio" onclick="switchPlayerTab('radio')">📻 Rádios</button>
+            <button type="button" class="ptab-btn" data-ptab="local" onclick="switchPlayerTab('local')">🎵 Músicas</button>
+            <button type="button" class="ptab-btn" data-ptab="favs" onclick="switchPlayerTab('favs')">★ Favoritas</button>
+          </div>
+
+          <div class="player-now-bar" id="player-now-bar">
+            <div class="pnow-top">
+              <div class="pnow-info">
+                <div class="pnow-title" id="pnow-title">—</div>
+                <div class="pnow-sub" id="pnow-sub">Player Lumo</div>
+              </div>
+              <button type="button" class="btn-ghost" style="padding:3px 8px; font-size:10.5px;" onclick="stopInternalPlayer(false)">Parar</button>
+            </div>
+            <div class="pnow-seek-row" id="pnow-seek-row">
+              <span id="pnow-cur">0:00</span>
+              <input type="range" id="pnow-seek" min="0" max="1000" value="0" oninput="seekInternalTrack(this.value)" />
+              <span id="pnow-dur">0:00</span>
+            </div>
+          </div>
+
+          <div id="radio-tools-wrap" style="display:flex; flex-direction:column; gap:7px;">
+            <form class="inline-form" onsubmit="searchRadios(event)">
+              <input type="text" id="radio-search-input" placeholder="Buscar rádio (ex: lofi, mpb, synthwave)..." />
+              <button type="submit" class="btn-primary" style="padding:0 11px;">Ir</button>
+            </form>
+            <div class="genre-row">
+              <button type="button" class="genre-chip active" data-genre="lofi" onclick="loadRadioGenre('lofi', this)">Lo-fi</button>
+              <button type="button" class="genre-chip" data-genre="synthwave" onclick="loadRadioGenre('synthwave', this)">Synth</button>
+              <button type="button" class="genre-chip" data-genre="mpb" onclick="loadRadioGenre('mpb', this)">MPB</button>
+              <button type="button" class="genre-chip" data-genre="chillout" onclick="loadRadioGenre('chillout', this)">Chill</button>
+              <button type="button" class="genre-chip" data-genre="rock" onclick="loadRadioGenre('rock', this)">Rock</button>
+              <button type="button" class="genre-chip" data-genre="anime" onclick="loadRadioGenre('anime', this)">Anime</button>
+            </div>
+          </div>
+
+          <div id="local-tools-wrap" style="display:none; flex-direction:column; gap:6px;">
+            <button type="button" class="btn-primary" onclick="openLocalMusicPicker()">+ Adicionar Músicas do PC (.mp3 / .wav / .ogg)</button>
+            <input type="file" id="local-music-picker" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" multiple style="display:none;" onchange="onLocalMusicPicked(this.files)" />
+          </div>
+
+          <div class="station-list" id="station-list"></div>
+
+          <div class="pvol-row">
+            <span>Vol</span>
+            <input type="range" id="pvol-slider" min="0" max="100" value="65" oninput="setInternalVolume(this.value)" />
+            <span id="pvol-val" style="min-width:30px; text-align:right; font-weight:600; color:var(--accent);">65%</span>
+          </div>
+        </div>
+        <div class="card">
           <div class="label-xs"><span>Som Ambiente Offline</span><span class="pro-badge" id="ambient-pro-badge">PRO</span></div>
           <p style="font-size:11px; color:var(--muted);">Áudio sintetizado em 0 MB extras — ativa fones animados.</p>
           <div class="ambient-grid">
@@ -475,7 +530,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v2.1.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v2.2.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -611,7 +666,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.1.0</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.2.0</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -624,5 +679,6 @@
   <script src="./custom.js"></script>
   <script src="./docs.js"></script>
   <script src="./alive.js"></script>
+  <script src="./player.js"></script>
 </body>
 </html>

@@ -1,0 +1,161 @@
+/* === LUMO v2.2.0 — PLAYER INTERNO (RÁDIOS AO VIVO + MÚSICAS LOCAIS) === */
+.player-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 2px;
+}
+.ptab-btn {
+  padding: 6px 4px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10.8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.ptab-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.18); }
+.ptab-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.genre-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.genre-chip {
+  padding: 3.5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 10.2px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.genre-chip:hover,
+.genre-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.station-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 158px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.station-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.station-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.station-item.playing {
+  background: var(--accent-soft);
+  border-color: rgba(246, 185, 116, 0.45);
+}
+.st-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.st-name {
+  font-size: 11.4px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-meta {
+  font-size: 9.8px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-fav {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.st-fav.on { color: var(--accent); }
+
+.player-now-bar {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(246, 185, 116, 0.35);
+}
+.player-now-bar.show { display: flex; }
+.pnow-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pnow-info { min-width: 0; flex: 1; }
+.pnow-title {
+  font-size: 11.6px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pnow-sub { font-size: 10px; color: var(--accent); }
+
+.pnow-seek-row {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.8px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pnow-seek-row.show { display: flex; }
+.pnow-seek-row input[type="range"] { flex: 1; accent-color: var(--accent); height: 4px; }
+
+.pvol-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.pvol-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+
+/* Contraste Modo Claro */
+body.surface-light .genre-chip { background: rgba(15, 23, 42, 0.05); color: #334155; }
+body.surface-light .station-item { background: rgba(15, 23, 42, 0.035); }
+body.surface-light .station-item:hover { background: rgba(15, 23, 42, 0.075); }
+body.surface-light .pnow-sub { filter: brightness(0.76) saturate(1.2); }

@@ -205,6 +205,65 @@ fn open_url_os(_url: &str) -> Result<(), String> {
     Ok(())
 }
 
+
+#[derive(serde::Serialize)]
+struct MediaInfo {
+    title: String,
+    artist: String,
+    app_name: String,
+    is_playing: bool,
+}
+
+#[cfg(windows)]
+fn read_windows_media_info() -> Option<MediaInfo> {
+    use windows::Media::Control::{
+        GlobalSystemMediaTransportControlsSessionManager,
+        GlobalSystemMediaTransportControlsSessionPlaybackStatus,
+    };
+
+    let manager = GlobalSystemMediaTransportControlsSessionManager::RequestAsync()
+        .ok()?
+        .get()
+        .ok()?;
+    let session = manager.GetCurrentSession().ok()?;
+    let props = session.TryGetMediaPropertiesAsync().ok()?.get().ok()?;
+    let title = props.Title().ok().map(|s| s.to_string()).unwrap_or_default();
+    if title.trim().is_empty() {
+        return None;
+    }
+    let artist = props.Artist().ok().map(|s| s.to_string()).unwrap_or_default();
+    let app_name = session
+        .SourceAppUserModelId()
+        .ok()
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    let is_playing = session
+        .GetPlaybackInfo()
+        .and_then(|i| i.PlaybackStatus())
+        .map(|s| s == GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing)
+        .unwrap_or(false);
+
+    Some(MediaInfo {
+        title,
+        artist,
+        app_name,
+        is_playing,
+    })
+}
+
+#[cfg(not(windows))]
+fn read_windows_media_info() -> Option<MediaInfo> {
+    None
+}
+
+#[tauri::command]
+async fn get_media_info() -> Option<MediaInfo> {
+    tauri::async_runtime::spawn_blocking(read_windows_media_info)
+        .await
+        .ok()
+        .flatten()
+}
+
 #[tauri::command]
 fn media_control(action: String) {
     send_media_key(&action);
@@ -678,6 +737,7 @@ pub fn run() {
             install_update,
             open_external_url,
             media_control,
+            get_media_info,
             get_clipboard_text,
             set_clipboard_text,
             save_file_bytes,
