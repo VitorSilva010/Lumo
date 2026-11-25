@@ -1052,7 +1052,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.3.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.3.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

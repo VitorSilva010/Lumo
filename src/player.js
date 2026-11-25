@@ -8,7 +8,6 @@
 
   const audio = new Audio();
   audio.preload = 'none';
-  audio.crossOrigin = 'anonymous';
 
   let savedVol = parseInt(localStorage.getItem('lumo_player_vol') || '65', 10);
   if (Number.isNaN(savedVol) || savedVol < 0 || savedVol > 100) savedVol = 65;
@@ -408,7 +407,7 @@
           <span class="st-name">${isCur && internal.playing ? '▶ ' : ''}${esc(st.name)}</span>
           <span class="st-meta">${esc(st.meta)}</span>
         </div>
-        <button type="button" class="st-fav ${isFav ? 'on' : ''}" title="Favoritar" onclick="toggleFavStation('${esc(st.id)}', event)">${isFav ? '★' : '☆'}</button>`;
+        <button type="button" class="st-fav ${isFav ? 'on' : ''}" title="Favoritar" onclick="toggleFavStation('${esc(st.id).replace(/'/g, '&#39;')}', event)">${isFav ? '★' : '☆'}</button>`;
       list.appendChild(row);
     });
   }
@@ -417,12 +416,16 @@
   async function pollWindowsMedia() {
     if (typeof invoke !== 'function' || !invoke) return;
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
-    if (internal.active || (typeof activeAmbient !== 'undefined' && activeAmbient)) return;
+    if ((internal.active && internal.playing) || (typeof activeAmbient !== 'undefined' && activeAmbient)) return;
     if (typeof trayOnlyMode !== 'undefined' && trayOnlyMode && typeof isExpanded !== 'undefined' && !isExpanded) return;
 
     try {
       const info = await invoke('get_media_info');
       if (info && info.title) {
+        if (internal.active && !internal.playing) {
+          if (!info.is_playing) return;
+          stopInternalPlayer(true);
+        }
         hasGsmtcData = true;
         const appName = prettifyAppName(info.app_name);
         const fullTitle = info.artist ? `${info.title} — ${info.artist}` : info.title;
@@ -441,6 +444,14 @@
   }
 
   // === INTEGRAÇÃO LIMPA COM APP.JS ===
+  const _origToggleAmbient = window.toggleAmbient;
+  if (typeof _origToggleAmbient === 'function') {
+    window.toggleAmbient = function (type) {
+      if (internal.active) stopInternalPlayer(true);
+      return _origToggleAmbient(type);
+    };
+  }
+
   const _origSendMedia = window.sendMedia;
   window.sendMedia = async function (action) {
     if (internal.active) {

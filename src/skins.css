@@ -80,7 +80,7 @@ body.skin-glasses #acc-glasses {
 
 /* 3. Orelhinhas de Gato */
 #acc-cat {
-  top: -22px;
+  top: -19px;
   width: 68px;
   height: 22px;
   transform: translateX(-50%) scale(0.75) translateY(5px);
@@ -111,7 +111,7 @@ body.skin-cyber #acc-cyber .visor-shine {
 
 /* 5. Coroa Flutuante (Pro) */
 #acc-crown {
-  top: -24px;
+  top: -20px;
   width: 36px;
   height: 20px;
   transform: translateX(-50%) scale(0.7) translateY(6px);
@@ -124,7 +124,7 @@ body.skin-crown #acc-crown {
 
 /* 6. Auréola Flutuante (Pro) */
 #acc-halo {
-  top: -23px;
+  top: -19px;
   width: 48px;
   height: 15px;
   transform: translateX(-50%) scale(0.7) translateY(6px);
@@ -145,3 +145,6 @@ body.skin-halo #acc-halo {
 .face.goodbye .acc-extra {
   opacity: 0 !important;
 }
+
+/* Folga extra no topo para skins altas nunca cortarem no pulinho */
+#app { padding-top: 22px; }

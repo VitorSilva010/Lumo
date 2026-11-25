@@ -93,13 +93,9 @@
       return _origReset();
     };
   }
-  if (typeof window.applyProUI === 'function') {
-    const _origProUI = window.applyProUI;
-    window.applyProUI = function () {
-      const r = _origProUI();
-      syncProBodyClass();
-      return r;
-    };
+  const planBadge = document.getElementById('plan-status-badge');
+  if (planBadge) {
+    new MutationObserver(syncProBodyClass).observe(planBadge, { childList: true, characterData: true, subtree: true });
   }
 
   syncProBodyClass();

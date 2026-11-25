@@ -187,7 +187,8 @@
       if (typeof setEyeTarget === 'function') setEyeTarget(dir, -1.5);
       setTimeout(() => {
         faceEl.classList.remove('curious');
-        if (typeof setEyeTarget === 'function' && cursorIdleMs > 3000) setEyeTarget(0, 0);
+        const nowIdle = typeof lastCursorMoveMs !== 'undefined' ? Date.now() - lastCursorMoveMs : 9999;
+        if (typeof setEyeTarget === 'function' && nowIdle > 2500) setEyeTarget(0, 0);
       }, 1150);
     }
   }, 13000);
