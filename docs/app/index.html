@@ -65,11 +65,7 @@
       background: var(--bg);
       flex-shrink: 0;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; }
     .mini-pill {
       width: 54px;
       height: 28px;
@@ -84,6 +80,16 @@
       transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
     }
     .mini-pill.hop { transform: translateY(-4px) scale(1.06); }
+    .mini-pill.msg-arrive {
+      border-color: var(--msg-color, var(--accent));
+      animation: mMsgArrive 0.72s cubic-bezier(0.22, 1.32, 0.36, 1);
+    }
+    @keyframes mMsgArrive {
+      0%   { transform: scale(1) rotate(0deg); box-shadow: 0 4px 14px rgba(0,0,0,0.45), 0 0 0 0 var(--msg-color, var(--accent)); }
+      25%  { transform: translateY(-5px) scale(1.1, 0.94) rotate(-4deg); box-shadow: 0 8px 18px rgba(0,0,0,0.5), 0 0 18px 4px var(--msg-color, var(--accent)); }
+      55%  { transform: translateY(1px) scale(0.97, 1.05) rotate(3deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
     .m-eye {
       width: 7px;
       height: 11px;
@@ -109,24 +115,11 @@
       color: var(--muted);
       cursor: pointer;
     }
-    .pair-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #64748b;
-    }
-    .pair-dot.on {
-      background: #4ade80;
-      box-shadow: 0 0 8px rgba(74, 222, 128, 0.85);
-    }
+    .pair-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; }
+    .pair-dot.on { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.85); }
 
     /* Main / Tabs */
-    main {
-      flex: 1;
-      min-height: 0;
-      position: relative;
-      overflow: hidden;
-    }
+    main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
     .tab {
       display: none;
       flex-direction: column;
@@ -135,11 +128,9 @@
       overflow-y: auto;
       padding: 12px 14px 18px;
     }
-    .tab.active {
-      display: flex;
-      animation: tabFade 0.18s ease both;
-    }
+    .tab.active { display: flex; animation: tabFade 0.18s ease both; }
     @keyframes tabFade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
 
     /* Cards e botões */
     .card {
@@ -196,17 +187,8 @@
       transition: transform 0.14s ease, border-color 0.16s ease, background 0.16s ease;
     }
     .btn:active { transform: scale(0.96); }
-    .btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #0b0e14;
-      font-weight: 700;
-    }
-    .btn.soft {
-      background: var(--accent-soft);
-      border-color: var(--accent-glow);
-      color: var(--accent);
-    }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0e14; font-weight: 700; }
+    .btn.soft { background: var(--accent-soft); border-color: var(--accent-glow); color: var(--accent); }
     .btn.sm { padding: 7px 10px; font-size: 11.5px; border-radius: 10px; }
 
     /* Clipboard do PC */
@@ -248,20 +230,13 @@
     }
     .task-item.done .chk { background: var(--accent); border-color: var(--accent); color: #0b0e14; }
     .task-item.done span { text-decoration: line-through; color: var(--muted); }
-    .del {
-      border: none;
-      background: none;
-      color: var(--muted);
-      font-size: 18px;
-      cursor: pointer;
-      padding: 0 5px;
-    }
+    .del { border: none; background: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 5px; }
 
     /* Chat IA & Ping */
     .chat-tab { padding-bottom: 10px; }
     .feed {
       flex: 1;
-      min-height: 160px;
+      min-height: 150px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -279,7 +254,9 @@
       white-space: pre-wrap;
       word-break: break-word;
       align-self: flex-start;
+      animation: msgPop 0.18s ease both;
     }
+    @keyframes msgPop { from { opacity: 0; transform: translateY(5px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .msg.user, .msg.me {
       align-self: flex-end;
       border-radius: 15px 15px 4px 15px;
@@ -296,13 +273,7 @@
       border-style: dashed;
       text-align: center;
     }
-    .msg-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 10.5px;
-      margin-bottom: 3px;
-    }
+    .msg-head { display: flex; justify-content: space-between; gap: 10px; font-size: 10.5px; margin-bottom: 3px; }
     .msg-copy {
       margin-top: 7px;
       padding: 4px 9px;
@@ -316,7 +287,110 @@
     .link-bar { display: none; gap: 6px; }
     .link-bar.show { display: flex; }
 
-    /* Ping chips */
+    /* Ping Subtabs & Amigos */
+    .subtabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .subtab {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .subtab.active {
+      background: var(--accent-soft);
+      border-color: var(--accent-glow);
+      color: var(--accent);
+    }
+    .mini-badge {
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #0b0e14;
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-badge.show { display: inline-flex; }
+    .ping-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      min-height: 0;
+    }
+    .friend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .friend-item, .req-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .friend-item { cursor: pointer; transition: transform 0.14s ease, border-color 0.16s ease; }
+    .friend-item:active { transform: scale(0.98); }
+    .friend-item.offline { opacity: 0.72; }
+    .friend-item.has-unread { border-color: var(--accent); background: var(--accent-soft); opacity: 1; }
+    .avatar-wrap {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0b0e14;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 2px solid var(--surface);
+      background: #64748b;
+    }
+    .status-dot.online { background: #4ade80; box-shadow: 0 0 7px rgba(74, 222, 128, 0.85); }
+    .status-dot.playing { background: #a78bfa; box-shadow: 0 0 8px rgba(167, 139, 250, 0.9); }
+    .f-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .f-sub.online { color: #86efac; }
+    .f-sub.playing { color: #c4b5fd; font-weight: 600; }
+    body.surface-light .f-sub.online { color: #16a34a; }
+    body.surface-light .f-sub.playing { color: #7c3aed; }
+
     .room-pill {
       display: inline-flex;
       align-items: center;
@@ -351,45 +425,15 @@
       background: var(--surface-2);
       border: 1px solid var(--border);
     }
-    .pocket-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .pocket-name {
-      font-size: 12.8px;
-      font-weight: 700;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .pocket-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pocket-name { font-size: 12.8px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .pocket-meta { font-size: 10.5px; color: var(--muted); }
-    .pocket-preview {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 70px;
-      overflow: hidden;
-    }
-    .pocket-img {
-      max-width: 100%;
-      max-height: 150px;
-      border-radius: 10px;
-      object-fit: cover;
-      border: 1px solid var(--border);
-    }
+    .pocket-preview { font-size: 12px; color: var(--muted); white-space: pre-wrap; word-break: break-word; max-height: 70px; overflow: hidden; }
+    .pocket-img { max-width: 100%; max-height: 150px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
 
     /* Dots de cor + RGB */
     .dots { display: flex; flex-wrap: wrap; gap: 10px; }
-    .dot {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-    }
+    .dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
     .dot.active { border-color: var(--text); transform: scale(1.12); }
     .dot.rgb { background: conic-gradient(#ff6b8b, #f6b974, #4ade80, #38bdf8, #a78bfa, #ff6b8b); }
     .surf-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -467,7 +511,7 @@
         </div>
         <div>
           <div class="brand-title">Lumo Mobile</div>
-          <div class="brand-sub">v2.8 · PC, Ping & Bolso</div>
+          <div class="brand-sub">v2.9 · PC, Amigos & Bolso</div>
         </div>
       </div>
       <button type="button" class="pair-chip" onclick="switchTab('cfg')">
@@ -549,20 +593,33 @@
         </form>
       </section>
 
-      <!-- === ABA 3: LUMO PING (CHAT ENTRE AMIGOS) === -->
+      <!-- === ABA 3: LUMO PING (AMIGOS + SALAS) === -->
       <section class="tab chat-tab" id="tab-ping">
-        <div class="card" id="ping-head-card"></div>
-        <div class="grid-4" id="ping-nudges" style="display:none;">
-          <button type="button" class="btn sm" onclick="sendPingNudge('wave')">👋 Oi</button>
-          <button type="button" class="btn sm" onclick="sendPingNudge('love')">❤️ Carinho</button>
-          <button type="button" class="btn sm" onclick="sendPingNudge('break')">☕ Pausa</button>
-          <button type="button" class="btn sm" onclick="sendPingNudge('alert')">⚡ Atenção</button>
+        <div class="subtabs">
+          <button type="button" class="subtab active" data-sub="friends" onclick="setPingSub('friends')">
+            Amigos <span class="mini-badge" id="sub-friends-badge">0</span>
+          </button>
+          <button type="button" class="subtab" data-sub="rooms" onclick="setPingSub('rooms')">
+            Salas <span class="mini-badge" id="sub-rooms-badge">0</span>
+          </button>
         </div>
-        <div class="feed" id="ping-feed"></div>
-        <form class="row" id="ping-form" onsubmit="submitPing(event)" style="display:none;">
-          <input type="text" id="ping-input" placeholder="Mensagem rápida..." maxlength="380" autocomplete="off" />
-          <button type="submit" class="btn primary">Enviar</button>
-        </form>
+
+        <div class="ping-pane" id="m-friends-pane"></div>
+
+        <div class="ping-pane hidden" id="m-rooms-pane">
+          <div class="card" id="ping-head-card"></div>
+          <div class="grid-4" id="ping-nudges" style="display:none;">
+            <button type="button" class="btn sm" onclick="sendPingNudge('wave')">👋 Oi</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('love')">❤️ Carinho</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('break')">☕ Pausa</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('alert')">⚡ Atenção</button>
+          </div>
+          <div class="feed" id="ping-feed"></div>
+          <form class="row" id="ping-form" onsubmit="submitPing(event)" style="display:none;">
+            <input type="text" id="ping-input" placeholder="Mensagem rápida..." maxlength="380" autocomplete="off" />
+            <button type="submit" class="btn primary">Enviar</button>
+          </form>
+        </div>
       </section>
 
       <!-- === ABA 4: BOLSO SINCRONIZADO (CELULAR <-> PC) === -->
@@ -674,16 +731,27 @@
     let lastTasksTs = 0, lastNotesTs = 0, lastClipTs = 0;
     let notesTimer = null, toastTimer = null, deferredInstall = null;
     let activeTab = 'pc';
+    let pingSub = 'friends';
 
     // Estado do RGB
     let rgbTimer = null, rgbHue = 150;
 
-    // Estado do Lumo Ping
+    // Identidade única do Lumo Ping (Amigos + Salas)
     let myPingId = localStorage.getItem('lm_ping_uid');
     if (!myPingId) {
       myPingId = 'm_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
       localStorage.setItem('lm_ping_uid', myPingId);
     }
+    let myTag = localStorage.getItem('lm_ping_tag') || '';
+
+    // Estado de Amigos & DM
+    let friends = [], friendReqs = [], activeFriend = null;
+    let dmMsgs = [], dmSeen = new Set(), dmLastId = 0, dmTimer = null;
+    let dmReadMap = {};
+    try { dmReadMap = JSON.parse(localStorage.getItem('lm_dm_read_map') || '{}'); } catch (_) {}
+    let dmAlerted = new Set(), friendsInit = false;
+
+    // Estado de Salas por Código
     let pingRoom = (localStorage.getItem('lm_ping_room') || '').toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16);
     let pingRecents = [];
     try { pingRecents = JSON.parse(localStorage.getItem('lm_ping_recents') || '[]'); } catch (_) { pingRecents = []; }
@@ -702,22 +770,45 @@
     function fmtTime(ts) {
       try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
     }
+    function fmtLastSeen(ts) {
+      if (!ts) return 'Offline';
+      const diff = Math.max(1, Math.floor((Date.now() - ts) / 60000));
+      if (diff < 2) return 'Offline · agora';
+      if (diff < 60) return `Offline · há ${diff} min`;
+      const h = Math.floor(diff / 60);
+      if (h < 24) return `Offline · há ${h}h`;
+      return `Offline · há ${Math.floor(h / 24)}d`;
+    }
     function fmtBytes(n) {
       if (n < 1024) return n + ' B';
       if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
       return (n / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+    function getAccentHex() {
+      const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#4ade80';
     }
     function toast(msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 2300);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
     }
     function hopMascot() {
       const p = document.getElementById('m-face');
       p.classList.add('hop');
       setTimeout(() => p.classList.remove('hop'), 260);
+    }
+    function animateIncomingMsg(color, isNudge) {
+      const p = document.getElementById('m-face');
+      const col = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : getAccentHex();
+      p.style.setProperty('--msg-color', col);
+      p.classList.remove('msg-arrive');
+      void p.offsetWidth;
+      p.classList.add('msg-arrive');
+      setTimeout(() => p.classList.remove('msg-arrive'), 760);
+      if (navigator.vibrate) navigator.vibrate(isNudge ? [60, 40, 60] : 40);
     }
 
     function switchTab(id) {
@@ -729,14 +820,33 @@
         box.scrollTop = box.scrollHeight;
       }
       if (id === 'ping') {
-        pingUnread = 0;
-        updatePingBadge();
+        if (pingSub === 'rooms') { pingUnread = 0; }
+        updateAllPingBadges();
+        renderFriendsPane();
         renderPingHead();
         renderPingFeed();
+        pollFriends();
         pollPing();
         restartPingTimer();
       }
       if (id === 'bolso') loadPocket(false);
+    }
+
+    function setPingSub(sub) {
+      pingSub = sub === 'rooms' ? 'rooms' : 'friends';
+      document.querySelectorAll('.subtab').forEach((b) => b.classList.toggle('active', b.dataset.sub === pingSub));
+      document.getElementById('m-friends-pane').classList.toggle('hidden', pingSub !== 'friends');
+      document.getElementById('m-rooms-pane').classList.toggle('hidden', pingSub !== 'rooms');
+      if (pingSub === 'rooms') {
+        pingUnread = 0;
+        renderPingHead();
+        renderPingFeed();
+        pollPing();
+      } else {
+        renderFriendsPane();
+        pollFriends();
+      }
+      updateAllPingBadges();
     }
 
     // === TEMAS & MODO RGB ===
@@ -748,7 +858,6 @@
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', s === 'light' ? '#eef2f7' : s === 'oled' ? '#000000' : '#0b0c12');
     }
-
     function hslToRgb(h, s, l) {
       const c = (1 - Math.abs(2 * l - 1)) * s;
       const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
@@ -759,12 +868,7 @@
       else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
       return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
     }
-
-    function stopRgb() {
-      clearInterval(rgbTimer);
-      rgbTimer = null;
-    }
-
+    function stopRgb() { clearInterval(rgbTimer); rgbTimer = null; }
     function setAccent(id) {
       stopRgb();
       if (id === 'rgb') {
@@ -778,11 +882,7 @@
           document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.42)`);
         };
         paint();
-        rgbTimer = setInterval(() => {
-          if (document.hidden) return;
-          rgbHue = (rgbHue + 2) % 360;
-          paint();
-        }, 120);
+        rgbTimer = setInterval(() => { if (!document.hidden) { rgbHue = (rgbHue + 2) % 360; paint(); } }, 120);
         return;
       }
       const t = ACCENTS.find((a) => a.id === id) || ACCENTS[0];
@@ -792,7 +892,6 @@
       localStorage.setItem('lm_accent', t.id);
       document.querySelectorAll('#theme-dots .dot').forEach((d) => d.classList.toggle('active', d.dataset.id === t.id));
     }
-
     function buildAccentDots() {
       const box = document.getElementById('theme-dots');
       box.innerHTML = '';
@@ -802,7 +901,7 @@
         d.className = 'dot';
         d.dataset.id = a.id;
         d.style.background = a.hex;
-        d.onclick = () => setAccent(a.id);
+        d.onclick = () => { setAccent(a.id); sendFriendsHeartbeat(); };
         box.appendChild(d);
       });
       const rgb = document.createElement('button');
@@ -843,6 +942,7 @@
       userName = document.getElementById('name-input').value.trim();
       localStorage.setItem('lm_name', userName);
       renderPingHead();
+      sendFriendsHeartbeat();
       toast('Nome salvo ✓');
     }
 
@@ -862,8 +962,7 @@
       if (ok) { hopMascot(); toast('Comando enviado ao PC ✓'); }
     }
     async function sendTextToPc(asUrl) {
-      const inp = document.getElementById('clip-input');
-      const val = inp.value.trim();
+      const inp = document.getElementById('clip-input'), val = inp.value.trim();
       if (!val) return;
       const action = asUrl ? 'open_url' : 'set_clip';
       const target = asUrl && !/^https?:\/\//i.test(val) ? 'https://' + val : val;
@@ -876,7 +975,6 @@
       navigator.clipboard?.writeText(txt);
       toast('Copiado ✓');
     }
-
     async function pollSync() {
       if (!pairToken || document.visibilityState !== 'visible') return;
       try {
@@ -933,20 +1031,14 @@
     }
     function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(true); }
     function delTask(i) { tasks.splice(i, 1); renderTasks(true); }
-
     function onNotesInput(val) {
       localStorage.setItem('lm_notes', val);
       const st = document.getElementById('notes-saved');
       st.textContent = 'Salvando...';
       clearTimeout(notesTimer);
       notesTimer = setTimeout(async () => {
-        if (pairToken) {
-          lastNotesTs = Date.now();
-          await postSync({ notes: val });
-          st.textContent = 'Sincronizado ✓';
-        } else {
-          st.textContent = 'Salvo local';
-        }
+        if (pairToken) { lastNotesTs = Date.now(); await postSync({ notes: val }); st.textContent = 'Sincronizado ✓'; }
+        else st.textContent = 'Salvo local';
       }, 900);
     }
 
@@ -1058,12 +1150,383 @@
       finally { setAiBusy(false); }
     }
 
-    // === LUMO PING (CHAT ENTRE AMIGOS COMPATÍVEL COM O PC) ===
-    function updatePingBadge() {
-      const b = document.getElementById('nav-ping-badge');
-      b.textContent = pingUnread > 9 ? '9+' : String(pingUnread);
-      b.classList.toggle('show', pingUnread > 0);
+    // === LUMO PING: LISTA DE AMIGOS, STATUS & DM ===
+    function countFriendsUnread() {
+      let n = friendReqs.length;
+      for (const f of friends) {
+        if (f.last_msg_id && f.last_sender_uid !== myPingId && (dmReadMap[f.room_code] || 0) < f.last_msg_id) n++;
+      }
+      return n;
     }
+    function updateAllPingBadges() {
+      const fCount = countFriendsUnread();
+      const rCount = pingUnread;
+      const total = fCount + rCount;
+
+      const fb = document.getElementById('sub-friends-badge');
+      fb.textContent = fCount > 9 ? '9+' : String(fCount);
+      fb.classList.toggle('show', fCount > 0);
+
+      const rb = document.getElementById('sub-rooms-badge');
+      rb.textContent = rCount > 9 ? '9+' : String(rCount);
+      rb.classList.toggle('show', rCount > 0);
+
+      const nb = document.getElementById('nav-ping-badge');
+      nb.textContent = total > 9 ? '9+' : String(total);
+      nb.classList.toggle('show', total > 0);
+    }
+
+    function renderFriendsPane() {
+      const pane = document.getElementById('m-friends-pane');
+      if (!pane) return;
+
+      if (activeFriend) {
+        const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
+        const stText = f.online
+          ? (f.playing ? `🎮 Jogando ${f.playing}` : '● Online agora')
+          : fmtLastSeen(f.last_seen);
+        const stCls = f.online ? (f.playing ? 'playing' : 'online') : '';
+        pane.innerHTML = `
+          <div class="card" style="padding:10px 11px;">
+            <div class="row" style="justify-content:space-between;">
+              <div class="row" style="min-width:0; flex:1;">
+                <button type="button" class="btn sm" onclick="closeFriendDm()">←</button>
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(f.display_name)}</div>
+                  <div class="f-sub ${stCls}" id="m-dm-status">${esc(stText)}</div>
+                </div>
+              </div>
+              <button type="button" class="btn sm" onclick="removeFriend('${esc(f.uid)}')">Remover</button>
+            </div>
+          </div>
+          <div class="grid-4">
+            <button type="button" class="btn sm" onclick="sendFriendNudge('wave')">👋 Oi</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('love')">❤️ Carinho</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('break')">☕ Pausa</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('alert')">⚡ Atenção</button>
+          </div>
+          <div class="feed" id="m-dm-feed"></div>
+          <form class="row" onsubmit="submitFriendDm(event)">
+            <input type="text" id="m-dm-input" placeholder="Mensagem para ${esc(f.display_name)}..." maxlength="380" autocomplete="off" />
+            <button type="submit" class="btn primary">Enviar</button>
+          </form>`;
+        renderFriendDmFeed();
+        return;
+      }
+
+      const reqHtml = friendReqs.length
+        ? `<div class="card-title" style="padding:0 2px;"><span>Pedidos Pendentes (${friendReqs.length})</span></div>` +
+          friendReqs.map((r) => `
+            <div class="req-item">
+              <div style="min-width:0; flex:1;">
+                <div style="font-size:13px; font-weight:700;">${esc(r.display_name)}</div>
+                <div class="f-sub">${esc(r.tag)} quer te adicionar</div>
+              </div>
+              <div class="row">
+                <button type="button" class="btn sm primary" onclick="respondFriendReq(${r.id}, true)">Aceitar</button>
+                <button type="button" class="btn sm" onclick="respondFriendReq(${r.id}, false)">×</button>
+              </div>
+            </div>`).join('')
+        : '';
+
+      const listHtml = friends.length
+        ? friends.map((f) => {
+            const unread = Boolean(f.last_msg_id && f.last_sender_uid !== myPingId && (dmReadMap[f.room_code] || 0) < f.last_msg_id);
+            const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
+            const subText = unread && f.last_body
+              ? `💬 ${f.last_body}`
+              : (f.online ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
+            const subCls = unread ? 'online' : (f.online ? (f.playing ? 'playing' : 'online') : '');
+            const init = (f.display_name || '?').trim().charAt(0).toUpperCase();
+            return `
+              <div class="friend-item ${f.online ? '' : 'offline'} ${unread ? 'has-unread' : ''}" onclick="openFriendDm('${esc(f.uid)}')">
+                <div class="avatar-wrap" style="background:${esc(f.color || '#4ade80')};">
+                  ${esc(init)}
+                  <span class="status-dot ${dotCls}"></span>
+                </div>
+                <div style="min-width:0; flex:1;">
+                  <div class="row" style="gap:6px;">
+                    <span style="font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(f.display_name)}</span>
+                    <span style="font-size:10.5px; color:var(--muted);">${esc(f.tag)}</span>
+                  </div>
+                  <div class="f-sub ${subCls}">${esc(subText)}</div>
+                </div>
+                ${unread ? '<span class="mini-badge show">!</span>' : '<span style="color:var(--muted); font-size:16px;">›</span>'}
+              </div>`;
+          }).join('')
+        : `<div class="card" style="text-align:center; color:var(--muted); font-size:12.5px; padding:22px 14px;">
+            Nenhum amigo ainda.<br>Copie sua <strong>Lumo Tag</strong> acima ou cole a Tag do seu PC / amigo para mandar mensagens e cutucões!
+          </div>`;
+
+      pane.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <div style="font-size:10.5px; color:var(--muted);">Sua Lumo Tag (Mobile)</div>
+              <div style="font-size:15px; font-weight:800; color:var(--accent); letter-spacing:0.4px;" id="m-my-tag">${esc(myTag || 'Gerando...')}</div>
+            </div>
+            <button type="button" class="btn sm soft" onclick="copyMyTag()">Copiar Tag</button>
+          </div>
+          <form class="row" onsubmit="addFriendByTag(event)">
+            <input type="text" id="m-add-tag" placeholder="Adicionar (ex: NOME#4K2P)" style="text-transform:uppercase;" maxlength="20" autocomplete="off" />
+            <button type="submit" class="btn primary">+ Add</button>
+          </form>
+        </div>
+        <div class="friend-list">
+          ${reqHtml}
+          ${listHtml}
+        </div>`;
+    }
+
+    function renderFriendDmFeed() {
+      const feed = document.getElementById('m-dm-feed');
+      if (!feed || !activeFriend) return;
+      if (!dmMsgs.length) {
+        feed.innerHTML = `<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Mande um oi ou cutucão para <strong>${esc(activeFriend.display_name)}</strong>!</div>`;
+        return;
+      }
+      feed.innerHTML = dmMsgs.map((m) => {
+        const isMe = m.sender_uid === myPingId;
+        if (m.kind === 'nudge') {
+          return `<div class="msg nudge"><strong style="color:${esc(m.sender_color)}">${esc(m.sender_name)}</strong> ${esc(m.body)} <span style="font-size:10px; color:var(--muted);">${fmtTime(m.created_at)}</span></div>`;
+        }
+        return `<div class="msg ${isMe ? 'me' : ''}">
+          <div class="msg-head">
+            <strong style="color:${isMe ? 'var(--accent)' : esc(m.sender_color)}">${isMe ? 'Você' : esc(m.sender_name)}</strong>
+            <span style="color:var(--muted);">${fmtTime(m.created_at)}</span>
+          </div>
+          <div>${esc(m.body)}</div>
+        </div>`;
+      }).join('');
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    async function sendFriendsHeartbeat() {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await fetch(`${API_BASE}/friends`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+          body: JSON.stringify({
+            action: 'heartbeat',
+            uid: myPingId,
+            name: (userName || 'Mobile').slice(0, 24),
+            color: getAccentHex(),
+            playing: ''
+          })
+        });
+        const data = await res.json();
+        if (data.tag && data.tag !== myTag) {
+          myTag = data.tag;
+          localStorage.setItem('lm_ping_tag', myTag);
+          const el = document.getElementById('m-my-tag');
+          if (el) el.textContent = myTag;
+        }
+      } catch (_) {}
+    }
+
+    async function pollFriends() {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await fetch(`${API_BASE}/friends?uid=${encodeURIComponent(myPingId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.me?.tag) {
+          myTag = data.me.tag;
+          localStorage.setItem('lm_ping_tag', myTag);
+        }
+        const prevReqs = friendReqs.length;
+        friendReqs = Array.isArray(data.requests) ? data.requests : [];
+        friends = Array.isArray(data.friends) ? data.friends : [];
+
+        for (const f of friends) {
+          if (!f.last_msg_id) continue;
+          const key = `${f.room_code}:${f.last_msg_id}`;
+          if (!friendsInit) { dmAlerted.add(key); continue; }
+          if (f.last_sender_uid !== myPingId && !dmAlerted.has(key)) {
+            dmAlerted.add(key);
+            const reading = activeTab === 'ping' && pingSub === 'friends' && activeFriend && activeFriend.uid === f.uid;
+            if (reading) {
+              dmReadMap[f.room_code] = f.last_msg_id;
+              localStorage.setItem('lm_dm_read_map', JSON.stringify(dmReadMap));
+              pollFriendDm();
+            } else {
+              animateIncomingMsg(f.color, f.last_kind === 'nudge');
+              toast(`💬 ${f.display_name}: ${String(f.last_body || '').slice(0, 40)}`);
+            }
+          }
+        }
+        if (friendsInit && friendReqs.length > prevReqs && friendReqs[0]) {
+          animateIncomingMsg(friendReqs[0].color, true);
+          toast(`${friendReqs[0].display_name} quer ser seu amigo!`);
+        }
+
+        friendsInit = true;
+        updateAllPingBadges();
+
+        if (activeTab === 'ping' && pingSub === 'friends') {
+          if (!activeFriend) {
+            const focusedAdd = document.activeElement && document.activeElement.id === 'm-add-tag';
+            if (!focusedAdd) renderFriendsPane();
+          } else {
+            const upd = friends.find((x) => x.uid === activeFriend.uid);
+            if (upd) {
+              activeFriend = upd;
+              const stEl = document.getElementById('m-dm-status');
+              if (stEl) {
+                stEl.textContent = upd.online ? (upd.playing ? `🎮 Jogando ${upd.playing}` : '● Online agora') : fmtLastSeen(upd.last_seen);
+                stEl.className = 'f-sub ' + (upd.online ? (upd.playing ? 'playing' : 'online') : '');
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function pollFriendDm() {
+      if (!activeFriend || document.visibilityState !== 'visible') return;
+      try {
+        const res = await fetch(`${API_BASE}/friends?room=${encodeURIComponent(activeFriend.room_code)}&since=${dmLastId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const incoming = Array.isArray(data.messages) ? data.messages : [];
+        let changed = false;
+        for (const m of incoming) {
+          if (dmSeen.has(m.id)) continue;
+          dmSeen.add(m.id);
+          dmMsgs.push(m);
+          if (m.id > dmLastId) dmLastId = m.id;
+          dmAlerted.add(`${activeFriend.room_code}:${m.id}`);
+          changed = true;
+          if (m.sender_uid !== myPingId) {
+            dmReadMap[activeFriend.room_code] = dmLastId;
+            localStorage.setItem('lm_dm_read_map', JSON.stringify(dmReadMap));
+            animateIncomingMsg(m.sender_color, m.kind === 'nudge');
+          }
+        }
+        if (dmMsgs.length > 60) dmMsgs = dmMsgs.slice(-60);
+        if (changed) { renderFriendDmFeed(); updateAllPingBadges(); }
+      } catch (_) {}
+    }
+
+    function copyMyTag() {
+      if (!myTag) return;
+      navigator.clipboard?.writeText(myTag);
+      toast(`Tag ${myTag} copiada ✓`);
+    }
+    async function addFriendByTag(e) {
+      e.preventDefault();
+      const inp = document.getElementById('m-add-tag'), target = (inp?.value || '').trim().toUpperCase();
+      if (!target) return;
+      await sendFriendsHeartbeat();
+      try {
+        const res = await fetch(`${API_BASE}/friends`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+          body: JSON.stringify({ action: 'request', uid: myPingId, target_tag: target })
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          inp.value = '';
+          hopMascot();
+          toast(data.accepted ? `Agora você e ${data.name} são amigos! 🎉` : `Pedido enviado para ${data.name} ✓`);
+          pollFriends();
+        } else toast(data.error || 'Tag não encontrada.');
+      } catch (_) { toast('Sem conexão.'); }
+    }
+    async function respondFriendReq(reqId, accept) {
+      await fetch(`${API_BASE}/friends`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+        body: JSON.stringify({ action: 'respond', uid: myPingId, request_id: reqId, accept })
+      }).catch(() => {});
+      pollFriends();
+    }
+    async function removeFriend(fUid) {
+      await fetch(`${API_BASE}/friends`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+        body: JSON.stringify({ action: 'remove', uid: myPingId, friend_uid: fUid })
+      }).catch(() => {});
+      closeFriendDm();
+      pollFriends();
+    }
+    function openFriendDm(fUid) {
+      const f = friends.find((x) => x.uid === fUid);
+      if (!f) return;
+      activeFriend = f;
+      dmMsgs = []; dmSeen = new Set(); dmLastId = 0;
+      if (f.last_msg_id) {
+        dmReadMap[f.room_code] = f.last_msg_id;
+        localStorage.setItem('lm_dm_read_map', JSON.stringify(dmReadMap));
+      }
+      updateAllPingBadges();
+      renderFriendsPane();
+      pollFriendDm();
+      clearInterval(dmTimer);
+      dmTimer = setInterval(pollFriendDm, 3000);
+    }
+    function closeFriendDm() {
+      activeFriend = null;
+      clearInterval(dmTimer);
+      dmTimer = null;
+      renderFriendsPane();
+      pollFriends();
+    }
+    async function sendFriendDm(kind, body) {
+      if (!activeFriend || !body) return;
+      const payload = {
+        action: 'send_dm',
+        uid: myPingId,
+        room_code: activeFriend.room_code,
+        name: (userName || 'Mobile').slice(0, 24),
+        color: getAccentHex(),
+        kind,
+        body
+      };
+      try {
+        const res = await fetch(`${API_BASE}/friends`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          const msg = {
+            id: data.id || Date.now(),
+            room_code: activeFriend.room_code,
+            sender_uid: myPingId,
+            sender_name: payload.name,
+            sender_color: payload.color,
+            kind,
+            body,
+            created_at: data.created_at || Date.now()
+          };
+          if (!dmSeen.has(msg.id)) {
+            dmSeen.add(msg.id);
+            dmMsgs.push(msg);
+            if (msg.id > dmLastId) dmLastId = msg.id;
+            dmReadMap[activeFriend.room_code] = dmLastId;
+            localStorage.setItem('lm_dm_read_map', JSON.stringify(dmReadMap));
+            renderFriendDmFeed();
+          }
+        }
+      } catch (_) { toast('Sem conexão ao enviar.'); }
+    }
+    function sendFriendNudge(type) {
+      const n = NUDGES[type] || NUDGES.wave;
+      hopMascot();
+      sendFriendDm('nudge', n.text);
+    }
+    function submitFriendDm(e) {
+      e.preventDefault();
+      const inp = document.getElementById('m-dm-input'), v = inp.value.trim();
+      if (!v) return;
+      inp.value = '';
+      sendFriendDm('text', v);
+    }
+
+    // === LUMO PING: SALAS POR CÓDIGO ===
     function savePingRecent(code) {
       pingRecents = [code, ...pingRecents.filter((r) => r !== code)].slice(0, 3);
       localStorage.setItem('lm_ping_recents', JSON.stringify(pingRecents));
@@ -1079,14 +1542,14 @@
           ? `<div class="recents"><span style="font-size:11px; color:var(--muted);">Recentes:</span>${pingRecents.map((r) => `<button type="button" class="chip" onclick="joinPingRoom('${esc(r)}')">${esc(r)}</button>`).join('')}</div>`
           : '';
         card.innerHTML = `
-          <div class="card-title"><span>Lumo Ping · Chat Ultraleve</span></div>
-          <div style="font-size:12px; color:var(--muted);">Converse e mande cutucões para o Lumo no PC ou celular de amigos. Mensagens expiram em 24h.</div>
+          <div class="card-title"><span>Salas Rápidas por Código</span></div>
+          <div style="font-size:12px; color:var(--muted);">Converse em grupo usando um código de sala. Mensagens expiram em 24h.</div>
           <div class="row">
             <input type="text" id="ping-room-inp" placeholder="Código (ex: LUMO-4K2P)" style="text-transform:uppercase;" />
             <button type="button" class="btn primary" onclick="joinPingFromInput()">Entrar</button>
           </div>
           <div class="row" style="justify-content:space-between;">
-            <button type="button" class="btn sm soft" onclick="createPingRoom()">✨ Criar nova sala</button>
+            <button type="button" class="btn sm soft" onclick="createPingRoom()">✨ Criar sala</button>
             <span style="font-size:11px; color:var(--muted);">Você: <strong style="color:var(--text);">${esc(userName || 'Mobile')}</strong></span>
           </div>
           ${recHtml}`;
@@ -1106,11 +1569,11 @@
     function renderPingFeed() {
       const feed = document.getElementById('ping-feed');
       if (!pingRoom) {
-        feed.innerHTML = '<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Entre em uma sala ou crie um código acima para começar.</div>';
+        feed.innerHTML = '<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Entre em uma sala ou crie um código acima para conversar em grupo.</div>';
         return;
       }
       if (!pingMsgs.length) {
-        feed.innerHTML = `<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Sala <strong>${esc(pingRoom)}</strong> pronta!<br>Envie o código para seu amigo ou abra no PC.</div>`;
+        feed.innerHTML = `<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Sala <strong>${esc(pingRoom)}</strong> pronta!</div>`;
         return;
       }
       feed.innerHTML = pingMsgs.map((m) => {
@@ -1144,11 +1607,10 @@
           if (m.id > pingLastId) pingLastId = m.id;
           changed = true;
           if (pingReady && m.sender_id !== myPingId) {
-            hopMascot();
-            if (navigator.vibrate) navigator.vibrate(m.kind === 'nudge' ? [60, 40, 60] : 40);
-            if (activeTab !== 'ping') {
+            animateIncomingMsg(m.sender_color, m.kind === 'nudge');
+            if (!(activeTab === 'ping' && pingSub === 'rooms')) {
               pingUnread++;
-              updatePingBadge();
+              updateAllPingBadges();
               toast(`${m.sender_name}: ${m.body.slice(0, 42)}`);
             }
           }
@@ -1162,16 +1624,15 @@
       clearInterval(pingTimer);
       pingTimer = null;
       if (!pingRoom) return;
-      pingTimer = setInterval(pollPing, activeTab === 'ping' ? 3000 : 8000);
+      pingTimer = setInterval(pollPing, (activeTab === 'ping' && pingSub === 'rooms') ? 3000 : 8000);
     }
     async function sendPing(kind, body) {
       if (!pingRoom || !body) return;
-      const accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
       const payload = {
         room: pingRoom,
         sender_id: myPingId,
         sender_name: (userName || 'Mobile').slice(0, 24),
-        sender_color: /^#[0-9a-fA-F]{6}$/.test(accentHex) ? accentHex : '#4ade80',
+        sender_color: getAccentHex(),
         kind,
         body
       };
@@ -1200,7 +1661,7 @@
       localStorage.setItem('lm_ping_room', pingRoom);
       savePingRecent(pingRoom);
       pingMsgs = []; pingSeen = new Set(); pingLastId = 0; pingUnread = 0; pingReady = false;
-      updatePingBadge();
+      updateAllPingBadges();
       renderPingHead();
       renderPingFeed();
       pollPing();
@@ -1224,7 +1685,7 @@
       localStorage.removeItem('lm_ping_room');
       pingMsgs = []; pingSeen = new Set(); pingLastId = 0; pingUnread = 0; pingReady = false;
       clearInterval(pingTimer);
-      updatePingBadge();
+      updateAllPingBadges();
       renderPingHead();
       renderPingFeed();
     }
@@ -1257,7 +1718,7 @@
         renderPocketList();
         if (showToast) toast('Bolso atualizado ✓');
       } catch (_) {
-        list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Não foi possível carregar o Bolso Nuvem. Verifique se a rota /pocket foi publicada no Worker.</div>';
+        list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Não foi possível carregar o Bolso Nuvem.</div>';
       }
     }
     function renderPocketList() {
@@ -1344,9 +1805,7 @@
     }
     function copyPocketItem(id) {
       const it = pocketItems.find((x) => x.id === id);
-      if (!it) return;
-      navigator.clipboard?.writeText(it.content);
-      toast('Copiado ✓');
+      if (it) { navigator.clipboard?.writeText(it.content); toast('Copiado ✓'); }
     }
     function openPocketItem(id) {
       const it = pocketItems.find((x) => x.id === id);
@@ -1399,16 +1858,20 @@
 
       updatePairUI();
       renderTasks(false);
+      renderFriendsPane();
       renderPingHead();
       renderPingFeed();
       pollSync();
+      sendFriendsHeartbeat().then(pollFriends);
       if (pingRoom) { pollPing(); restartPingTimer(); }
       if (pairToken) loadPocket(false);
 
       setInterval(pollSync, 6000);
+      setInterval(sendFriendsHeartbeat, 25000);
+      setInterval(pollFriends, 7000);
       setInterval(() => { if (activeTab === 'bolso' && pairToken && document.visibilityState === 'visible') loadPocket(false); }, 7000);
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') { pollSync(); pollPing(); }
+        if (document.visibilityState === 'visible') { pollSync(); sendFriendsHeartbeat(); pollFriends(); pollPing(); }
       });
 
       if ('serviceWorker' in navigator) {
