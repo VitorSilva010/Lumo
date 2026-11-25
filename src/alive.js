@@ -226,17 +226,4 @@
       }
     };
   }
-
-  // 9. Aura sutil de chuva no chip do clima
-  const wText = document.getElementById('weather-text');
-  if (wText) {
-    const syncWeatherAura = () => {
-      const chip = wText.closest('.weather-chip');
-      if (!chip) return;
-      const t = (wText.textContent || '').toLowerCase();
-      chip.classList.toggle('rain-aura', t.includes('chuva') || t.includes('tempestade'));
-    };
-    syncWeatherAura();
-    new MutationObserver(syncWeatherAura).observe(wText, { childList: true, characterData: true, subtree: true });
-  }
 })();

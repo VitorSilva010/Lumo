@@ -240,7 +240,7 @@ svg.ic-lg { width: 18px; height: 18px; }
 .hero-greet { font-size: 13px; font-weight: 600; margin-top: 5px; }
 .hero-date { font-size: 10.6px; color: var(--muted); text-transform: capitalize; margin-top: 1px; }
 .hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.weather-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid rgba(246,185,116,0.25); padding: 4px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.weather-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-glow); padding: 4px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; max-width: 215px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .uptime-chip { font-size: 10px; color: var(--muted); }
 
 .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

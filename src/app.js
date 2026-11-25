@@ -374,8 +374,40 @@ function refreshSummaryNow() {
   if (Date.now() - lastWeatherFetch > 900000) fetchWeather(false);
 }
 
+const FAMOUS_QUOTES = [
+  '“A imaginação é mais importante que o conhecimento.” — Albert Einstein',
+  '“No meio da dificuldade encontra-se a oportunidade.” — Albert Einstein',
+  '“A simplicidade é o último grau de sofisticação.” — Leonardo da Vinci',
+  '“Não é porque as coisas são difíceis que não ousamos; é porque não ousamos que são difíceis.” — Sêneca',
+  '“Sofremos mais na imaginação do que na realidade.” — Sêneca',
+  '“A única maneira de fazer um ótimo trabalho é amar o que você faz.” — Steve Jobs',
+  '“Nada na vida deve ser temido, somente compreendido.” — Marie Curie',
+  '“O presente é deles; o futuro, pelo qual realmente trabalhei, é meu.” — Nikola Tesla',
+  '“Em algum lugar, algo incrível está esperando para ser descoberto.” — Carl Sagan',
+  '“Somos o que fazemos repetidamente. A excelência não é um ato, mas um hábito.” — Aristóteles',
+  '“Sempre parece impossível até que seja feito.” — Nelson Mandela',
+  '“A disciplina é a ponte entre metas e realizações.” — Jim Rohn',
+  '“Quem olha para fora sonha; quem olha para dentro desperta.” — Carl Jung',
+  '“A vida encolhe ou se expande na proporção da sua coragem.” — Anaïs Nin',
+  '“A persistência é o caminho do êxito.” — Charles Chaplin',
+  '“O segredo de seguir em frente é começar.” — Mark Twain',
+  '“A criatividade é a inteligência se divertindo.” — Albert Einstein',
+  '“A melhor forma de prever o futuro é criá-lo.” — Peter Drucker',
+  '“Liberdade é pouco. O que eu desejo ainda não tem nome.” — Clarice Lispector',
+  '“O tempo é um tecido invisível em que se pode bordar tudo.” — Machado de Assis'
+];
+
+function pickStartupQuote() {
+  const last = parseInt(localStorage.getItem('lumo_last_quote') || '-1', 10);
+  let idx = Math.floor(Math.random() * FAMOUS_QUOTES.length);
+  if (idx === last) idx = (idx + 1) % FAMOUS_QUOTES.length;
+  localStorage.setItem('lumo_last_quote', String(idx));
+  return FAMOUS_QUOTES[idx];
+}
+
 async function fetchWeather(manual = false) {
-  if (manual) document.getElementById('weather-text').textContent = '...';
+  const el = document.getElementById('weather-text');
+  if (manual && el) el.textContent = '...';
   try {
     const geo = await fetch('https://get.geojs.io/v1/ip/geo.json').then(r => r.json());
     const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current=temperature_2m,weather_code&timezone=auto`).then(r => r.json());
@@ -384,11 +416,17 @@ async function fetchWeather(manual = false) {
       lastWeatherFetch = Date.now();
       const c = w.current.weather_code;
       const desc = c === 0 ? 'Limpo' : c <= 3 ? 'Nublado' : (c >= 51 && c <= 82) ? 'Chuva' : c >= 95 ? 'Tempestade' : 'Ameno';
-      document.getElementById('weather-text').textContent = `${temp}°C · ${desc}`;
+      const city = String(geo.city || '').trim();
+      const label = city ? `${city} · ${temp}°C · ${desc}` : `${temp}°C · ${desc}`;
+      if (el) {
+        el.textContent = label;
+        const chip = el.closest('.weather-chip');
+        if (chip) chip.title = label + ' (clique para atualizar)';
+      }
       return;
     }
   } catch (_) {}
-  document.getElementById('weather-text').textContent = 'Offline';
+  if (el) el.textContent = 'Offline';
 }
 
 // === LOOP PRINCIPAL DO WINDOWS (CPU/RAM + OLHOS + AUTO-COLLAPSE + MÍDIA + JOGOS) ===
@@ -1014,7 +1052,7 @@ async function checkForUpdates(silent = true) {
       if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.2.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.2.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1260,9 +1298,8 @@ setInterval(() => {
       return;
     }
     if (trayOnlyMode) return;
-    setExpression('happy'); hopPill(); playChirp(460, 820, 0.24);
-    const msg = userName ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.` : `${getGreetingBase()}! Clique em mim para começarmos.`;
-    say(msg, 4600, true, null, true);
-    setTimeout(() => restoreIdleExpression(), 1500);
+    setExpression('happy');
+    playChirp(420, 740, 0.25);
+    say(pickStartupQuote(), 6800, true);
   }, 450);
 })();

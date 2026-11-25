@@ -82,7 +82,7 @@ async function loadNews(cat = currentNewsCat, force = false) {
   if (cached?.items?.length) {
     renderNewsList(cached.items);
   } else {
-    list.innerHTML = '<div style="font-size:11px; color:var(--muted); padding:4px;">Adicione a rota /news no Worker da Cloudflare para ver manchetes ao vivo.</div>';
+    list.innerHTML = '<div style="font-size:11px; color:var(--muted); padding:4px;">Não foi possível carregar manchetes agora. Toque em ↻ para tentar novamente.</div>';
   }
 }
 

@@ -81,13 +81,3 @@
   55%  { transform: scale(1.32); }
   100% { transform: scale(1); }
 }
-
-/* 6. Clima com pulso suave ao atualizar */
-.weather-chip.rain-aura {
-  border-color: rgba(103, 232, 249, 0.42);
-  color: #67e8f9;
-}
-body.surface-light .weather-chip.rain-aura {
-  color: #0284c7;
-  border-color: rgba(2, 132, 199, 0.35);
-}
