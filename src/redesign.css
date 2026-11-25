@@ -170,3 +170,110 @@ body.surface-light .hub-tile .tile-icon { background: rgba(15, 23, 42, 0.055) !i
 body.surface-light .news-item { border-bottom-color: rgba(15, 23, 42, 0.07) !important; }
 body.surface-light .news-item:hover { background: rgba(15, 23, 42, 0.05) !important; }
 body.surface-light .quick-ai-dock { border-top-color: rgba(15, 23, 42, 0.09) !important; }
+
+/* === LUMO v2.5.1 — BOLINHA SEM RECORTE + MOTOR DE FLUIDEZ (60FPS) === */
+
+/* 1. Corrige o brilho quadrado da bolinha no cabeçalho */
+.nav-left,
+.brand-title {
+  overflow: visible !important;
+}
+#topbar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.brand-dot {
+  width: 8px !important;
+  height: 8px !important;
+  box-shadow: 0 0 8px var(--accent-glow), 0 0 3px var(--accent) !important;
+  animation: brandDotPulse 3.2s ease-in-out infinite;
+}
+@keyframes brandDotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50%      { transform: scale(1.18); opacity: 1; }
+}
+
+/* 2. Painel com abertura/fechamento spring mais sedoso */
+#panel {
+  will-change: transform, opacity;
+}
+#panel.open {
+  animation: panelFluidIn 0.34s cubic-bezier(0.22, 1.15, 0.36, 1) forwards !important;
+}
+#panel.closing {
+  animation: panelFluidOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+@keyframes panelFluidIn {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes panelFluidOut {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+
+/* 3. Balão de fala com entrada pop elástica e altura ajustada */
+#speech-bubble {
+  top: 82px !important;
+  transform: translateX(-50%) translateY(-8px) scale(0.9) !important;
+  transition: opacity 0.24s ease, transform 0.32s cubic-bezier(0.34, 1.48, 0.64, 1) !important;
+  will-change: transform, opacity;
+}
+#speech-bubble.show {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) scale(1) !important;
+}
+
+/* 4. Física tátil (micro-bounce) em todos os controles clicáveis */
+.hub-tile,
+.media-btn,
+.circle-btn,
+.btn-primary,
+.btn-ghost,
+.skin-btn,
+.ptab-btn,
+.genre-chip,
+.ambient-btn,
+.cmd-chip,
+.station-item,
+.weather-chip,
+.back-btn {
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.2s ease !important;
+}
+.hub-tile:active,
+.media-btn:active,
+.circle-btn:active,
+.btn-primary:active,
+.btn-ghost:active,
+.skin-btn:active,
+.ptab-btn:active,
+.genre-chip:active,
+.ambient-btn:active,
+.cmd-chip:active,
+.station-item:active,
+.weather-chip:active,
+.back-btn:active {
+  transform: scale(0.945) !important;
+}
+
+/* 5. Olhos e scroll mais macios */
+.eye {
+  will-change: transform, height;
+  transition:
+    height 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.18s ease,
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.25s ease !important;
+}
+.view,
+.station-list,
+.chat-messages {
+  scroll-behavior: smooth;
+}

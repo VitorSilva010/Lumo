@@ -228,3 +228,18 @@
     };
   }
 })();
+
+// === LUMO v2.5.1 — TILT MAGNÉTICO SUAVE NA PÍLULA ===
+(function lumoTiltInit() {
+  const pill = document.getElementById('lumo-pill');
+  if (!pill) return;
+  pill.addEventListener('mousemove', (e) => {
+    const r = pill.getBoundingClientRect();
+    const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
+    const deg = Math.max(-3.5, Math.min(3.5, nx * 3.5));
+    pill.style.setProperty('--tilt', deg.toFixed(2) + 'deg');
+  });
+  pill.addEventListener('mouseleave', () => {
+    pill.style.setProperty('--tilt', '0deg');
+  });
+})();
