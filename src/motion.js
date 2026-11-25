@@ -1,28 +1,6 @@
 // === LUMO v2.5.3 — TRANSIÇÕES DE TELA, REAÇÕES E MICRO-INTERAÇÕES ===
 (function initLumoMotion() {
-  // 1. Transição suave (slide + fade) ao trocar de aba
-  if (typeof window.openView === 'function') {
-    let _lastView = 'resumo';
-    const _origOpenView = window.openView;
-    window.openView = function (name, ...rest) {
-      const changed = name !== _lastView;
-      _lastView = name;
-      const res = _origOpenView.call(this, name, ...rest);
-      if (!changed) return res;
-      requestAnimationFrame(() => {
-        const target =
-          document.getElementById('view-' + name) ||
-          Array.from(document.querySelectorAll('.view')).find(
-            (v) => getComputedStyle(v).display !== 'none'
-          );
-        if (!target) return;
-        target.classList.remove('view-enter');
-        void target.offsetWidth;
-        target.classList.add('view-enter');
-      });
-      return res;
-    };
-  }
+  // 1. Transição de abas unificada em alive.css + pill-hud.css (sem conflito/reflow)
 
   // 2. Evita que clicar num chip (/resumir, /cor, etc.) feche a barra antes do onclick disparar
   document.addEventListener('mousedown', (e) => {

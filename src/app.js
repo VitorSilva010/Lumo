@@ -33,7 +33,7 @@ let colorHistory = JSON.parse(localStorage.getItem('lumo_colors') || '["#F6B974"
 let pocketFiles = [];
 
 const viewTitles = {
-  resumo: 'Lumo', kit: 'Kit Rápido', midia: 'Mídia & Ambiente',
+  resumo: 'Lumo', kit: 'Kit Rápido', midia: 'Mídia',
   bolso: 'Bandeja Mágica', ia: 'IA Lumo', util: 'Foco & PC',
   mobile: 'Lumo Celular', config: 'Configurações'
 };
@@ -1071,7 +1071,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.7.1 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.7.2 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

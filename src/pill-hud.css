@@ -42,8 +42,7 @@ body.surface-light #panel ::-webkit-scrollbar-thumb {
 .hub-tile,
 .hero-bento,
 .motd-card,
-.mini-media-strip,
-.card {
+.mini-media-strip {
   position: relative;
   overflow: hidden;
 }
@@ -175,4 +174,69 @@ body.surface-light .hud-mode-btn.active-btn {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: #0f172a;
+}
+
+/* === LUMO v2.7.2 — FAXINA DE ANIMAÇÕES (ZERO CONFLITO / ZERO FLICKER) === */
+
+/* Impede re-animação interna das views quando o painel abre (mantém só o slide ao trocar de aba) */
+.view.active {
+  animation: none !important;
+  will-change: transform, opacity;
+}
+.view.active.slide-forward {
+  animation: lumoSlideFwd 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+.view.active.slide-back {
+  animation: lumoSlideBack 0.2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+@keyframes lumoSlideFwd {
+  from { opacity: 0; transform: translate3d(14px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes lumoSlideBack {
+  from { opacity: 0; transform: translate3d(-14px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Remove o repintura infinita de box-shadow (pillBreath) que pesava na GPU */
+#lumo-pill {
+  animation: pillBoot 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1 !important;
+  will-change: transform;
+}
+#lumo-pill.hop {
+  animation: hopBounce 0.42s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+#lumo-pill.gulp {
+  animation: pillGulp 0.52s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+#lumo-pill.wake-stretch {
+  animation: wakeStretch 0.5s cubic-bezier(0.22, 1.3, 0.36, 1) !important;
+}
+#lumo-pill.thinking,
+#lumo-pill.ai-working {
+  animation: pillAuraPulse 1.4s ease-in-out infinite alternate !important;
+}
+
+/* Botões e listas de Mídia & Som Ambiente mais fluidos */
+.ambient-btn,
+.station-item,
+.ptab-btn,
+.genre-chip {
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease !important;
+}
+.ambient-btn:hover {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+.ambient-btn:active,
+.station-item:active {
+  transform: scale(0.97);
+}
+.player-now-bar.show {
+  animation: lumoFadeSoft 0.2s ease both;
+}
+@keyframes lumoFadeSoft {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
