@@ -62,16 +62,19 @@
     resumoView.insertAdjacentElement('afterbegin', dlCard);
   }
 
-  // 3. Injeta toggle nas Configurações (logo após reduced-motion-toggle ou autohide-toggle)
+  // 3. Injeta toggle no padrão exato dos outros switches (.card-row + .switch)
   const anchorChk = document.getElementById('reduced-motion-toggle') || document.getElementById('autohide-toggle');
-  const anchorRow = anchorChk ? anchorChk.closest('label, .toggle-row, div') : null;
+  const anchorRow = anchorChk ? anchorChk.closest('.card-row') : null;
   if (anchorRow && !document.getElementById('dl-monitor-toggle')) {
     anchorRow.insertAdjacentHTML(
       'afterend',
-      `<label style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:11.5px; cursor:pointer;">
-        <span>Monitorar downloads na cápsula</span>
-        <input type="checkbox" id="dl-monitor-toggle" ${enabled ? 'checked' : ''} onchange="setDownloadMonitor(this.checked)" />
-      </label>`
+      `<div class="card-row">
+        <div>
+          <div style="font-size:12px; font-weight:600;">Monitorar downloads na cápsula</div>
+          <div style="font-size:10.5px; color:var(--muted);">Mostra progresso e velocidade dos downloads na tela</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="dl-monitor-toggle" ${enabled ? 'checked' : ''} onchange="setDownloadMonitor(this.checked)" /><span class="slider"></span></label>
+      </div>`
     );
   }
 

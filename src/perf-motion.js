@@ -91,16 +91,19 @@
     setTimeout(() => pill.classList.remove('clip-flash'), 440);
   };
 
-  // 5. Toggle "Modo Ultra-Leve" nas Configurações
+  // 5. Toggle "Modo Ultra-Leve" no padrão exato dos outros switches (.card-row + .switch)
   const autoHide = document.getElementById('autohide-toggle');
-  const cfgRow = autoHide ? autoHide.closest('.toggle-row, label, div') : null;
+  const cfgRow = autoHide ? autoHide.closest('.card-row') : null;
   if (cfgRow && !document.getElementById('reduced-motion-toggle')) {
     cfgRow.insertAdjacentHTML(
       'afterend',
-      `<label style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:11.5px; cursor:pointer;">
-        <span>Modo Ultra-Leve <span style="color:var(--muted); font-size:10px;">(menos animações)</span></span>
-        <input type="checkbox" id="reduced-motion-toggle" ${reducedMotion ? 'checked' : ''} onchange="setReducedMotion(this.checked)" />
-      </label>`
+      `<div class="card-row">
+        <div>
+          <div style="font-size:12px; font-weight:600;">Modo Ultra-Leve</div>
+          <div style="font-size:10.5px; color:var(--muted);">Reduz animações para economizar ainda mais CPU</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="reduced-motion-toggle" ${reducedMotion ? 'checked' : ''} onchange="setReducedMotion(this.checked)" /><span class="slider"></span></label>
+      </div>`
     );
   }
 })();
