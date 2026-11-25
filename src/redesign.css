@@ -309,3 +309,77 @@ body.pos-bottom #speech-bubble.show {
   opacity: 1 !important;
   transform: translateX(-50%) translateY(0) scale(1) !important;
 }
+
+/* === LUMO v2.5.3 — TRANSIÇÕES, AURA DA IA E REVISÃO DO MODO CLARO === */
+
+/* 1. Entrada suave das abas internas */
+.view-enter {
+  animation: viewSlideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes viewSlideIn {
+  0%   { opacity: 0; transform: translateY(7px) scale(0.992); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 2. Brilho rápido ao concluir uma tarefa */
+.task-celebrate {
+  animation: taskFlash 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes taskFlash {
+  0%   { border-color: var(--accent) !important; box-shadow: 0 0 0 0 var(--accent-glow); }
+  40%  { border-color: var(--accent) !important; box-shadow: 0 0 18px var(--accent-soft); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* 3. Aura viva na pílula quando a IA está trabalhando */
+#lumo-pill.thinking,
+#lumo-pill.ai-working {
+  animation: pillAuraPulse 1.35s ease-in-out infinite alternate !important;
+}
+@keyframes pillAuraPulse {
+  0% {
+    border-color: var(--accent);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 18px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+  100% {
+    border-color: var(--accent);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.72), 0 0 36px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+}
+
+/* 4. Transição suave de cores ao alternar tema */
+body.theme-morphing #panel,
+body.theme-morphing #lumo-pill,
+body.theme-morphing .card,
+body.theme-morphing .hub-tile,
+body.theme-morphing .hero-bento,
+body.theme-morphing .motd-card,
+body.theme-morphing .mini-media-strip {
+  transition: background-color 0.28s ease, border-color 0.28s ease, color 0.22s ease, box-shadow 0.28s ease !important;
+}
+
+/* 5. Contraste refinado no Modo Claro */
+body.surface-light .topbar .circle-btn { color: rgba(15, 23, 42, 0.64) !important; }
+body.surface-light .topbar .circle-btn:hover { color: #0f172a !important; }
+body.surface-light .cmd-chip,
+body.surface-light .genre-chip,
+body.surface-light .skin-btn,
+body.surface-light .ptab-btn {
+  background: rgba(15, 23, 42, 0.045) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+}
+body.surface-light .cmd-chip:hover,
+body.surface-light .genre-chip:hover,
+body.surface-light .skin-btn:hover,
+body.surface-light .ptab-btn:hover {
+  background: rgba(15, 23, 42, 0.085) !important;
+  color: #0f172a !important;
+}
+body.surface-light .station-item {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+body.surface-light .mini-media-strip.playing {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+}
