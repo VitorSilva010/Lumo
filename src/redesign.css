@@ -277,3 +277,35 @@ body.surface-light .quick-ai-dock { border-top-color: rgba(15, 23, 42, 0.09) !im
 .chat-messages {
   scroll-behavior: smooth;
 }
+
+/* === LUMO v2.5.2 — CORREÇÃO DO MODO RELÓGIO (body.pos-bottom) === */
+body.pos-bottom #app {
+  padding-top: 0 !important;
+  padding-bottom: 18px !important;
+}
+body.pos-bottom #panel {
+  transform-origin: bottom center !important;
+}
+body.pos-bottom #panel.open {
+  animation: panelFluidInBottom 0.34s cubic-bezier(0.22, 1.15, 0.36, 1) forwards !important;
+}
+body.pos-bottom #panel.closing {
+  animation: panelFluidOutBottom 0.16s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+@keyframes panelFluidInBottom {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes panelFluidOutBottom {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+body.pos-bottom #speech-bubble {
+  top: auto !important;
+  bottom: 84px !important;
+  transform: translateX(-50%) translateY(8px) scale(0.9) !important;
+}
+body.pos-bottom #speech-bubble.show {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) scale(1) !important;
+}

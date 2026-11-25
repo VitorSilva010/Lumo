@@ -115,7 +115,35 @@ function stopAiLoading(tb) {
 }
 
 // === 1. RESUMIR PÁGINA WEB OU TEXTO ===
+function extractFirstUrl(raw) {
+  const s = String(raw || '').trim();
+  const m = s.match(/(https?:\/\/[^\s]+|www\.[^\s]+|(?:m\.)?(?:youtube\.com|youtu\.be)\/[^\s]+)/i);
+  if (!m) return '';
+  const cleaned = m[1].replace(/[.,;!?)]+$/, '');
+  return /^https?:\/\//i.test(cleaned) ? cleaned : 'https://' + cleaned;
+}
+
+async function handleSummarizeInput(rawArg) {
+  let arg = String(rawArg || '').trim();
+  if (!arg && invoke) {
+    arg = (await invoke('get_clipboard_text').catch(() => '')) || '';
+  }
+  if (!arg) {
+    say('Cole um link depois de /resumo ou copie uma URL no Ctrl+C!', 3400, true);
+    return;
+  }
+  const url = extractFirstUrl(arg);
+  if (url) {
+    await summarizeWebOrText({ url });
+  } else if (arg.length >= 60) {
+    await summarizeWebOrText({ text: arg, title: 'Texto do Ctrl+C', userLabel: 'Resumir texto do Ctrl+C' });
+  } else {
+    say('Informe uma URL completa (YouTube/site) ou um texto maior para resumir.', 3200, true);
+  }
+}
+
 async function summarizeWebOrText({ url = '', text = '', title = '', question = '', userLabel = '' }) {
+  if (typeof openView === 'function') openView('ia');
   const tb = startAiLoading(userLabel || (url ? `Resumir: ${url}` : `Resumir: ${title || 'texto'}`));
   try {
     const res = await fetch(`${API_BASE}/summarize`, {
@@ -123,9 +151,13 @@ async function summarizeWebOrText({ url = '', text = '', title = '', question = 
       headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
       body: JSON.stringify({ url, text, title, question })
     });
-    const data = await res.json();
+    const rawBody = await res.text();
+    let data = {};
+    try { data = JSON.parse(rawBody); } catch (_) {
+      data = { error: `Resposta inválida do servidor (HTTP ${res.status}).` };
+    }
     stopAiLoading(tb);
-    if (data.summary) {
+    if (res.ok && data.summary) {
       const header = data.title && !question ? `📌 ${data.title}\n\n` : '';
       appendMsg(header + data.summary, 'ai');
       hopPill();
@@ -378,6 +410,22 @@ window.renderPocket = function () {
 // Perguntas no chat usam automaticamente o documento/áudio em contexto, se houver
 const _baseExecutePrompt = window.executePrompt;
 window.executePrompt = async function (prompt) {
+  const raw = String(prompt || '').trim();
+  const resMatch = raw.match(/^\/resum(?:ir|o)(?:\s+([\s\S]*))?$/i);
+  if (resMatch) {
+    await handleSummarizeInput(resMatch[1] || '');
+    return;
+  }
+  const ytUrl = extractFirstUrl(raw);
+  if (ytUrl && /(?:youtube\.com|youtu\.be)/i.test(ytUrl) && !activeDocCtx) {
+    const ask = raw.replace(ytUrl, '').trim();
+    await summarizeWebOrText({
+      url: ytUrl,
+      question: ask.length >= 4 && !/^resum/i.test(ask) ? ask : '',
+      userLabel: raw
+    });
+    return;
+  }
   if (activeDocCtx) {
     await summarizeWebOrText({
       title: activeDocCtx.title,
@@ -390,33 +438,33 @@ window.executePrompt = async function (prompt) {
   return _baseExecutePrompt(prompt);
 };
 
-// Comandos /resumir e /doc na barra rápida
+// Comandos /resumir, /resumo e /doc na barra rápida
 const _baseQuickCommand = window.quickCommand;
 window.quickCommand = async function (e) {
   const input = document.getElementById('quick-ai-input');
   const raw = (input?.value || '').trim();
   const lower = raw.toLowerCase();
 
-  if (lower === '/resumir' || lower.startsWith('/resumir ')) {
+  const resMatch = raw.match(/^\/resum(?:ir|o)(?:\s+([\s\S]*))?$/i);
+  if (resMatch) {
     e.preventDefault();
     stopTypingLook();
     input.value = '';
-    let arg = raw.replace(/^\/resumir\s*/i, '').trim();
-    if (!arg && invoke) {
-      arg = (await invoke('get_clipboard_text').catch(() => '')) || '';
-    }
-    if (!arg) {
-      say('Cole um link depois de /resumir ou copie uma URL no Ctrl+C!', 3400, true);
-      return;
-    }
-    if (/^(https?:\/\/|www\.)/i.test(arg)) {
-      const url = /^https?:\/\//i.test(arg) ? arg : 'https://' + arg;
-      await summarizeWebOrText({ url });
-    } else if (arg.length >= 60) {
-      await summarizeWebOrText({ text: arg, title: 'Texto do Ctrl+C', userLabel: 'Resumir texto do Ctrl+C' });
-    } else {
-      say('Informe uma URL completa ou um texto maior para resumir.', 3000, true);
-    }
+    await handleSummarizeInput(resMatch[1] || '');
+    return;
+  }
+
+  const directUrl = extractFirstUrl(raw);
+  if (directUrl && /(?:youtube\.com|youtu\.be)/i.test(directUrl) && !lower.startsWith('/')) {
+    e.preventDefault();
+    stopTypingLook();
+    input.value = '';
+    const ask = raw.replace(directUrl, '').trim();
+    await summarizeWebOrText({
+      url: directUrl,
+      question: ask.length >= 4 && !/^resum/i.test(ask) ? ask : '',
+      userLabel: raw
+    });
     return;
   }
 
