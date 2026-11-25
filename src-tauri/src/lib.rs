@@ -156,11 +156,27 @@ fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+#[derive(serde::Serialize)]
+struct UpdateInfo {
+    version: String,
+    notes: String,
+    mandatory: bool,
+}
+
 #[tauri::command]
-async fn check_update(app: tauri::AppHandle) -> Result<Option<String>, String> {
+async fn check_update(app: tauri::AppHandle) -> Result<Option<UpdateInfo>, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
     match updater.check().await {
-        Ok(Some(update)) => Ok(Some(update.version)),
+        Ok(Some(update)) => {
+            let notes = update.body.unwrap_or_default();
+            let upper = notes.to_uppercase();
+            let mandatory = upper.contains("[OBRIGATORIA]") || upper.contains("[OBRIGATÓRIA]");
+            Ok(Some(UpdateInfo {
+                version: update.version,
+                notes,
+                mandatory,
+            }))
+        }
         Ok(None) => Ok(None),
         Err(e) => Err(e.to_string()),
     }

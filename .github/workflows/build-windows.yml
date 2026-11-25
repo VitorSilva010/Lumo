@@ -54,7 +54,7 @@ jobs:
             $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$ver/$($exe.Name)"
             $manifest = @{
               version = $ver
-              notes = "Atualização Lumo v$ver"
+              notes = ($(git log -1 --pretty=%s 2>$null) -replace "`r|`n", " ")
               pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
               platforms = @{
                 "windows-x86_64" = @{

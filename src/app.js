@@ -1044,27 +1044,41 @@ function toggleAutoUpdate(v) { autoInstallUpdates = v; localStorage.setItem('lum
 async function checkForUpdates(silent = true) {
   if (!invoke || isUpdating || isShuttingDown) return;
   try {
-    const newVer = await invoke('check_update');
-    if (newVer) {
-      document.getElementById('update-text').textContent = `Lumo v${newVer} pronto!`;
+    const res = await invoke('check_update');
+    if (res) {
+      const newVer = typeof res === 'string' ? res : res.version;
+      const mandatory = Boolean(typeof res === 'object' && res.mandatory);
+      document.getElementById('update-text').textContent = mandatory
+        ? `Atualização obrigatória v${newVer}!`
+        : `Lumo v${newVer} pronto!`;
       document.getElementById('update-banner').classList.add('show');
-      document.getElementById('update-cfg-status').textContent = `Nova versão v${newVer} disponível`;
-      if (autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded) await installRealUpdate(true, newVer);
+      document.getElementById('update-cfg-status').textContent = mandatory
+        ? `Atualização crítica v${newVer} obrigatória`
+        : `Nova versão v${newVer} disponível`;
+
+      if (mandatory) {
+        say(`Atualização importante v${newVer}! Instalando em instantes...`, 3600, true);
+        setTimeout(() => installRealUpdate(true, newVer, true), 3500);
+        return;
+      }
+
+      const canAutoNow = autoInstallUpdates && !isHiddenInGame && !isThinking && !isExpanded && !timerInterval;
+      if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.3.1 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.4.0 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
   }
 }
 async function manualCheckUpdate() { document.getElementById('update-cfg-status').textContent = 'Verificando no GitHub...'; await checkForUpdates(false); }
-async function installRealUpdate(autoMode = false, verLabel = '') {
+async function installRealUpdate(autoMode = false, verLabel = '', mandatory = false) {
   if (!invoke || isUpdating) return;
   isUpdating = true; pendingAutoUpdate = null;
   const btn = document.getElementById('update-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Atualizando...'; }
   document.getElementById('update-cfg-status').textContent = 'Baixando atualização...';
-  if (autoMode) say(`Atualizando para v${verLabel}... volto já!`, 3800, true);
+  if (autoMode && !mandatory) say(`Atualizando para v${verLabel}... volto já!`, 3800, true);
   try { await invoke('install_update'); }
   catch (err) { isUpdating = false; if (btn) { btn.disabled = false; btn.textContent = 'Tentar de novo'; } document.getElementById('update-cfg-status').textContent = 'Falha: ' + String(err).slice(0, 50); }
 }
@@ -1249,7 +1263,7 @@ setInterval(async () => {
 
 setInterval(() => {
   if (isShuttingDown) return;
-  if (pendingAutoUpdate && autoInstallUpdates && !isUpdating && !isHiddenInGame && !isThinking && !isExpanded) installRealUpdate(true, pendingAutoUpdate);
+  if (pendingAutoUpdate && autoInstallUpdates && !isUpdating && !isHiddenInGame && !isThinking && !isExpanded && !timerInterval) installRealUpdate(true, pendingAutoUpdate);
   const f = document.getElementById('lumo-face');
   if (f && !isHiddenInGame && !['blink','happy','sleepy','goodbye','dizzy','love','thinking'].some(c => f.classList.contains(c)) && Math.random() < 0.3) {
     f.classList.add('wink'); setTimeout(() => f.classList.remove('wink'), 240);
