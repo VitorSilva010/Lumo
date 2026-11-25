@@ -277,7 +277,7 @@ async function togglePanel(forceState) {
   if (isShuttingDown || isClosing) return;
   lastInteraction = Date.now();
   const _f = document.getElementById('lumo-face');
-  if (_f && (_f.classList.contains('sleepy') || _f.classList.contains('bored'))) {
+  if (_f && (_f.classList.contains('sleepy') || _f.classList.contains('bored') || _f.classList.contains('happy'))) {
     restoreIdleExpression();
   }
   if (typeof syncFreePosDirection === 'function') syncFreePosDirection();
@@ -1071,7 +1071,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.7.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.7.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1334,5 +1334,11 @@ setInterval(() => {
     setExpression('happy');
     playChirp(420, 740, 0.25);
     say(pickStartupQuote(), 6800, true);
+    setTimeout(() => {
+      const f = document.getElementById('lumo-face');
+      if (f && f.classList.contains('happy') && !isThinking && !isShuttingDown) {
+        restoreIdleExpression();
+      }
+    }, 3600);
   }, 450);
 })();
