@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0b0c12" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -11,423 +11,780 @@
   <link rel="icon" type="image/svg+xml" href="./icon.svg" />
   <style>
     :root {
-      --bg: #07080d;
-      --panel: #10121a;
-      --surface: rgba(255, 255, 255, 0.045);
-      --surface-2: rgba(255, 255, 255, 0.08);
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f3f4f6;
-      --muted: #94a3b8;
-      --accent: #f6b974;
-      --accent-soft: rgba(246, 185, 116, 0.15);
-      --accent-glow: rgba(246, 185, 116, 0.36);
-      --ok: #34d399;
-      --danger: #f87171;
+      --bg: #0b0c12;
+      --surface: #131621;
+      --surface-2: rgba(255, 255, 255, 0.045);
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #f3f5fa;
+      --muted: #8f97ad;
+      --accent: #4ade80;
+      --accent-soft: rgba(74, 222, 128, 0.14);
+      --accent-glow: rgba(74, 222, 128, 0.36);
+      --radius: 16px;
     }
-
     body.surface-oled {
       --bg: #000000;
-      --panel: #050507;
-      --surface: rgba(255, 255, 255, 0.035);
-      --border: rgba(255, 255, 255, 0.13);
+      --surface: #0a0b0f;
+      --surface-2: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.11);
     }
-
     body.surface-light {
-      --bg: #eef1f7;
-      --panel: #ffffff;
-      --surface: rgba(15, 23, 42, 0.045);
-      --surface-2: rgba(15, 23, 42, 0.08);
-      --border: rgba(15, 23, 42, 0.12);
+      --bg: #eef2f7;
+      --surface: #ffffff;
+      --surface-2: rgba(15, 23, 42, 0.045);
+      --border: rgba(15, 23, 42, 0.11);
       --text: #0f172a;
-      --muted: #475569;
+      --muted: #64748b;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    html, body { height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
-
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
     .app-shell {
-      height: 100dvh; max-width: 520px; margin: 0 auto;
-      display: flex; flex-direction: column;
-      background: radial-gradient(ellipse 90% 28% at 50% -4%, var(--accent-soft), transparent 72%), var(--bg);
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 520px;
+      margin: 0 auto;
     }
 
-    /* HEADER */
-    .hdr {
-      flex-shrink: 0; padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    /* Header com pílula mascote */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
       border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
     }
-    #m-pill {
-      display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 999px;
-      background: var(--panel); border: 1px solid var(--border);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28), 0 0 18px var(--accent-soft);
-      cursor: pointer; transition: transform 0.18s ease;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    #m-pill:active { transform: scale(0.95); }
-    #m-face { display: flex; align-items: center; gap: 9px; }
+    .mini-pill {
+      width: 54px;
+      height: 28px;
+      border-radius: 999px;
+      background: #0d1018;
+      border: 1.5px solid var(--accent-glow);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 12px var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+    }
+    .mini-pill.hop { transform: translateY(-4px) scale(1.06); }
     .m-eye {
-      width: 8px; height: 12px; border-radius: 999px; background: var(--accent);
-      box-shadow: 0 0 10px var(--accent-glow); transition: all 0.14s ease;
+      width: 7px;
+      height: 11px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      transition: transform 0.2s ease, height 0.16s ease;
     }
-    #m-face.happy .m-eye {
-      height: 7px; width: 10px; background: transparent; box-shadow: none;
-      border-top: 2.5px solid var(--accent); border-radius: 50% 50% 0 0; transform: translateY(2px);
-    }
-    #m-face.thinking .m-eye { animation: mPulse 0.7s infinite alternate ease-in-out; }
-    @keyframes mPulse { from { opacity: 0.5; transform: scaleY(0.75); } to { opacity: 1; transform: scaleY(1.15); } }
-    .hdr-title { font-size: 13.5px; font-weight: 700; }
-
-    .pair-badge {
-      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
-      background: var(--surface); border: 1px solid var(--border); font-size: 11.5px; font-weight: 600; color: var(--muted);
+    .mini-pill.thinking .m-eye { animation: mThink 0.7s infinite alternate ease-in-out; }
+    @keyframes mThink { from { transform: scaleY(0.7); opacity: 0.7; } to { transform: scaleY(1.15); opacity: 1; } }
+    .brand-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; }
+    .brand-sub { font-size: 10.5px; color: var(--muted); }
+    .pair-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
       cursor: pointer;
     }
-    #pair-dot { width: 7.5px; height: 7.5px; border-radius: 50%; background: var(--muted); }
-    #pair-dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+    .pair-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #64748b;
+    }
+    .pair-dot.on {
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.85);
+    }
 
-    /* TABS */
-    .main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+    /* Main / Tabs */
+    main {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
     .tab {
-      display: none; height: 100%; overflow-y: auto; padding: 14px 15px 22px;
-      flex-direction: column; gap: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 11px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 12px 14px 18px;
     }
-    .tab.active { display: flex; }
-    #tab-ia { padding-bottom: 10px; overflow: hidden; }
+    .tab.active {
+      display: flex;
+      animation: tabFade 0.18s ease both;
+    }
+    @keyframes tabFade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* Cards e botões */
     .card {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 18px;
-      padding: 13px 14px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
     }
-    .card-hd {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--accent);
+    .card-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+    .row { display: flex; gap: 7px; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
 
-    /* BUTTONS & INPUTS */
+    input[type="text"], input[type="url"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 82px; }
+
     .btn {
-      border: 1px solid var(--border); background: var(--surface); color: var(--text);
-      border-radius: 12px; padding: 10px 13px; font-size: 13px; font-weight: 600;
-      cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      transition: transform 0.14s ease, border-color 0.15s ease, background 0.15s ease;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.14s ease, border-color 0.16s ease, background 0.16s ease;
     }
-    .btn:active { transform: scale(0.95); }
-    .btn-primary { background: var(--accent); color: #111318; border-color: var(--accent); }
-    .btn-danger { color: var(--danger); border-color: rgba(248, 113, 113, 0.35); }
-    .btn-sm { padding: 7px 11px; font-size: 12px; border-radius: 10px; }
-
-    input[type="text"], textarea {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 10px 12px; color: var(--text); font-size: 13.5px; outline: none;
+    .btn:active { transform: scale(0.96); }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b0e14;
+      font-weight: 700;
     }
-    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: none; min-height: 112px; line-height: 1.45; }
-
-    .row { display: flex; gap: 8px; align-items: center; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-
-    /* MEDIA */
-    .media-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 0; }
-    .m-ctrl {
-      width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border);
-      background: var(--surface); color: var(--text); font-size: 17px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+    .btn.soft {
+      background: var(--accent-soft);
+      border-color: var(--accent-glow);
+      color: var(--accent);
     }
-    .m-ctrl:active { transform: scale(0.92); }
-    .m-ctrl.play { width: 62px; height: 62px; background: var(--accent); color: #111318; border: none; font-size: 21px; box-shadow: 0 0 22px var(--accent-glow); }
+    .btn.sm { padding: 7px 10px; font-size: 11.5px; border-radius: 10px; }
 
-    /* PC CLIPBOARD */
-    #pc-clip-wrap {
-      display: none; padding: 10px 12px; border-radius: 12px;
-      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.35);
-      flex-direction: column; gap: 7px;
+    /* Clipboard do PC */
+    .pc-clip-box {
+      display: none;
+      padding: 9px 11px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-glow);
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
     }
-    #pc-clip-wrap.show { display: flex; }
-    #pc-clip-text { font-size: 12.5px; word-break: break-word; max-height: 82px; overflow: hidden; }
+    .pc-clip-box.show { display: flex; }
 
-    /* TASKS */
-    .task-list { display: flex; flex-direction: column; gap: 7px; }
+    /* Tarefas */
     .task-item {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      background: var(--surface-2);
+      font-size: 13px;
     }
-    .task-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: pointer; font-size: 13.5px; }
-    .task-left span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .task-left { display: flex; align-items: center; gap: 9px; flex: 1; cursor: pointer; }
     .chk {
-      width: 19px; height: 19px; border-radius: 50%; border: 1.8px solid var(--muted); flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; font-size: 11px;
+      width: 19px;
+      height: 19px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
     }
-    .task-item.done .chk { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 800; }
+    .task-item.done .chk { background: var(--accent); border-color: var(--accent); color: #0b0e14; }
     .task-item.done span { text-decoration: line-through; color: var(--muted); }
-    .del { background: none; border: none; color: var(--muted); font-size: 19px; padding: 0 4px; cursor: pointer; }
-
-    /* IA TAB */
-    .ia-tools { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
-    .tool-chip {
-      flex: 1; min-width: 110px; padding: 8px 10px; border-radius: 11px;
-      border: 1px solid var(--border); background: var(--panel); color: var(--text);
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    .del {
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 5px;
     }
-    .tool-chip:active { transform: scale(0.96); }
-    .tool-chip.accent { border-color: rgba(246, 185, 116, 0.4); color: var(--accent); background: var(--accent-soft); }
 
-    #link-bar { display: none; gap: 7px; flex-shrink: 0; }
-    #link-bar.show { display: flex; }
-
-    #chat-box {
-      flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 9px;
+    /* Chat IA & Ping */
+    .chat-tab { padding-bottom: 10px; }
+    .feed {
+      flex: 1;
+      min-height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       padding: 4px 2px;
     }
     .msg {
-      padding: 10px 13px; border-radius: 15px; font-size: 13.5px; line-height: 1.45;
-      max-width: 90%; white-space: pre-wrap; word-break: break-word;
+      max-width: 86%;
+      padding: 10px 12px;
+      border-radius: 15px 15px 15px 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 13.5px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      align-self: flex-start;
     }
-    .msg.user { align-self: flex-end; background: var(--accent-soft); border: 1px solid var(--accent-glow); }
-    .msg.ai { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); }
+    .msg.user, .msg.me {
+      align-self: flex-end;
+      border-radius: 15px 15px 4px 15px;
+      background: var(--accent-soft);
+      border-color: var(--accent-glow);
+    }
+    .msg.nudge {
+      align-self: center;
+      max-width: 94%;
+      border-radius: 999px;
+      padding: 6px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      border-style: dashed;
+      text-align: center;
+    }
+    .msg-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 10.5px;
+      margin-bottom: 3px;
+    }
     .msg-copy {
-      display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 600;
-      color: var(--accent); background: var(--accent-soft); border: none;
-      padding: 3px 9px; border-radius: 7px; cursor: pointer;
+      margin-top: 7px;
+      padding: 4px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 10.5px;
+      cursor: pointer;
     }
-    .chat-form { flex-shrink: 0; display: flex; gap: 7px; padding-top: 6px; }
+    .link-bar { display: none; gap: 6px; }
+    .link-bar.show { display: flex; }
 
-    /* CONFIG */
-    .dots { display: flex; gap: 10px; flex-wrap: wrap; }
+    /* Ping chips */
+    .room-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(74, 222, 128, 0.12);
+      border: 1px solid rgba(74, 222, 128, 0.34);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .recents { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Bolso sincronizado */
+    .pocket-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 11px;
+      border-radius: 13px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+    .pocket-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pocket-name {
+      font-size: 12.8px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pocket-meta { font-size: 10.5px; color: var(--muted); }
+    .pocket-preview {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 70px;
+      overflow: hidden;
+    }
+    .pocket-img {
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    /* Dots de cor + RGB */
+    .dots { display: flex; flex-wrap: wrap; gap: 10px; }
     .dot {
-      width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
     }
     .dot.active { border-color: var(--text); transform: scale(1.12); }
-    .surf-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-    .surf-btn {
-      padding: 9px 6px; border-radius: 11px; border: 1px solid var(--border);
-      background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer;
-    }
+    .dot.rgb { background: conic-gradient(#ff6b8b, #f6b974, #4ade80, #38bdf8, #a78bfa, #ff6b8b); }
     .surf-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
-    /* BOTTOM NAV */
-    .bnav {
-      flex-shrink: 0; display: grid; grid-template-columns: repeat(4, 1fr);
-      padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
-      background: var(--panel); border-top: 1px solid var(--border); gap: 6px;
+    /* Bottom Nav */
+    nav {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 6px 4px calc(7px + env(safe-area-inset-bottom));
+      flex-shrink: 0;
     }
     .nav-btn {
-      background: none; border: none; color: var(--muted); padding: 7px 4px; border-radius: 12px;
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      font-size: 11px; font-weight: 600; cursor: pointer;
+      position: relative;
+      border: none;
+      background: none;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 4px 2px;
+      cursor: pointer;
     }
-    .nav-btn .ni { font-size: 17px; line-height: 1; }
-    .nav-btn.active { background: var(--accent-soft); color: var(--accent); }
+    .nav-btn.active { color: var(--accent); }
+    .nav-badge {
+      position: absolute;
+      top: 0;
+      right: 16%;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #0b0e14;
+      font-size: 9.5px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-badge.show { display: inline-flex; }
 
-    /* TOAST */
+    /* Toast */
     #toast {
-      position: fixed; top: calc(68px + env(safe-area-inset-top)); left: 50%;
-      transform: translateX(-50%) translateY(-10px);
-      background: var(--panel); border: 1px solid var(--accent); color: var(--text);
-      padding: 8px 15px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; z-index: 80;
-      transition: opacity 0.2s ease, transform 0.2s ease; max-width: 90vw; text-align: center;
+      position: fixed;
+      left: 50%;
+      bottom: calc(74px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(14px);
+      background: #161a26;
+      color: #fff;
+      border: 1px solid var(--accent-glow);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 90;
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
-<body>
-  <div id="toast"></div>
-
+<body class="surface-obsidian">
   <div class="app-shell">
-    <header class="hdr">
-      <div id="m-pill" onclick="petLumo()">
-        <div id="m-face"><div class="m-eye"></div><div class="m-eye"></div></div>
-        <span class="hdr-title">Lumo</span>
+    <header>
+      <div class="brand">
+        <div class="mini-pill" id="m-face">
+          <div class="m-eye"></div>
+          <div class="m-eye"></div>
+        </div>
+        <div>
+          <div class="brand-title">Lumo Mobile</div>
+          <div class="brand-sub">v2.8 · PC, Ping & Bolso</div>
+        </div>
       </div>
-      <button type="button" class="pair-badge" onclick="switchTab('cfg')">
-        <span id="pair-dot"></span>
+      <button type="button" class="pair-chip" onclick="switchTab('cfg')">
+        <span class="pair-dot" id="pair-dot"></span>
         <span id="pair-status">Sem PC</span>
       </button>
     </header>
 
-    <main class="main">
-      <!-- TAB 1: REMOTO -->
-      <section class="tab active" id="tab-remote">
+    <main>
+      <!-- === ABA 1: CONTROLE DO PC === -->
+      <section class="tab active" id="tab-pc">
         <div class="card">
-          <div class="card-hd"><span>Controle de Mídia</span><span>Spotify · YouTube</span></div>
-          <div class="media-row">
-            <button class="m-ctrl" type="button" onclick="sendCmd('media','prev')">⏮</button>
-            <button class="m-ctrl play" type="button" onclick="sendCmd('media','play_pause')">⏯</button>
-            <button class="m-ctrl" type="button" onclick="sendCmd('media','next')">⏭</button>
+          <div class="card-title"><span>Mídia & Energia do PC</span></div>
+          <div class="grid-3">
+            <button type="button" class="btn" onclick="sendCmd('media','prev')">⏮ Ant.</button>
+            <button type="button" class="btn primary" onclick="sendCmd('media','play_pause')">⏯ Play</button>
+            <button type="button" class="btn" onclick="sendCmd('media','next')">⏭ Próx.</button>
           </div>
           <div class="grid-3">
-            <button class="btn btn-sm" type="button" onclick="sendCmd('media','vol_down')">🔉 Vol −</button>
-            <button class="btn btn-sm" type="button" onclick="sendCmd('media','mute')">🔇 Mudo</button>
-            <button class="btn btn-sm" type="button" onclick="sendCmd('media','vol_up')">🔊 Vol +</button>
+            <button type="button" class="btn sm" onclick="sendCmd('keep_awake','toggle')">☕ Café</button>
+            <button type="button" class="btn sm" onclick="sendCmd('sleep_pc', 30)">🌙 30 min</button>
+            <button type="button" class="btn sm" onclick="sendCmd('cancel_sleep', 1)">✕ Cancelar</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-hd"><span>Ponte de Texto & Links</span><span>PC ⇄ Celular</span></div>
-          <input type="text" id="clip-input" placeholder="Cole um texto ou link para enviar ao PC..." />
+          <div class="card-title"><span>Ctrl+C & Links Rápidos</span></div>
+          <div class="pc-clip-box" id="pc-clip-wrap">
+            <div style="min-width:0; flex:1;">
+              <div style="font-size:10px; color:var(--accent); font-weight:700;">Do seu PC:</div>
+              <div id="pc-clip-text" style="font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+            </div>
+            <button type="button" class="btn sm primary" onclick="copyPcClip()">Copiar</button>
+          </div>
+          <input type="text" id="clip-input" placeholder="Cole texto ou link para mandar ao PC..." />
           <div class="grid-2">
-            <button class="btn btn-primary btn-sm" type="button" onclick="sendTextToPc(false)">Enviar pro Ctrl+C</button>
-            <button class="btn btn-sm" type="button" onclick="sendTextToPc(true)">Abrir Link no PC</button>
-          </div>
-          <div id="pc-clip-wrap">
-            <div style="font-size:10.5px; font-weight:700; color:var(--accent);">RECEBIDO DO PC</div>
-            <div id="pc-clip-text"></div>
-            <button class="btn btn-primary btn-sm" type="button" onclick="copyPcClip()">Copiar no Celular</button>
+            <button type="button" class="btn" onclick="sendTextToPc(false)">📋 Enviar Ctrl+C</button>
+            <button type="button" class="btn soft" onclick="sendTextToPc(true)">🌐 Abrir no PC</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-hd"><span>Energia do PC</span><span>Remoto</span></div>
-          <div class="grid-2">
-            <button class="btn btn-sm" type="button" onclick="sendCmd('keep_awake', true)">☕ Alternar Modo Café</button>
-            <button class="btn btn-sm" type="button" onclick="sendCmd('sleep_pc', 30)">🌙 Desligar em 30m</button>
-            <button class="btn btn-sm" type="button" onclick="sendCmd('sleep_pc', 60)">🌙 Desligar em 1h</button>
-            <button class="btn btn-sm btn-danger" type="button" onclick="sendCmd('cancel_sleep', true)">✕ Cancelar Soneca</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 2: TAREFAS & NOTAS -->
-      <section class="tab" id="tab-tasks">
-        <div class="card">
-          <div class="card-hd"><span>Tarefas de Hoje</span><span id="task-count">0/0</span></div>
-          <div class="task-list" id="task-list"></div>
+          <div class="card-title"><span>Tarefas Sincronizadas</span><span id="task-count">0/0</span></div>
           <form class="row" onsubmit="addTask(event)">
-            <input type="text" id="new-task" placeholder="+ Nova tarefa sincronizada..." />
-            <button class="btn btn-primary btn-sm" type="submit">Add</button>
+            <input type="text" id="new-task" placeholder="Nova tarefa..." />
+            <button type="submit" class="btn primary">+</button>
           </form>
+          <div id="task-list" style="display:flex; flex-direction:column; gap:6px;"></div>
         </div>
 
         <div class="card">
-          <div class="card-hd"><span>Bloco de Notas</span><span id="notes-saved" style="color:var(--muted); font-weight:500;">Sincronizado</span></div>
-          <textarea id="notes-input" placeholder="Suas anotações aparecem no PC também..." oninput="onNotesInput(this.value)"></textarea>
+          <div class="card-title"><span>Notas Rápidas</span><span id="notes-saved" style="color:var(--muted); text-transform:none; font-weight:500;">Sincronizado</span></div>
+          <textarea id="notes-input" placeholder="Suas notas sincronizam com o Lumo do Windows..." oninput="onNotesInput(this.value)"></textarea>
         </div>
       </section>
 
-      <!-- TAB 3: IA, RESUMIR LINKS & TRANSCREVER ÁUDIOS -->
-      <section class="tab" id="tab-ia">
-        <div class="ia-tools">
-          <button type="button" class="tool-chip accent" onclick="toggleLinkBar()">🔗 Resumir Link</button>
-          <button type="button" class="tool-chip accent" onclick="document.getElementById('audio-picker').click()">🎙️ Transcrever Áudio</button>
-          <button type="button" class="tool-chip" style="flex:0; min-width:auto;" onclick="clearChat()">Limpar</button>
-          <input type="file" id="audio-picker" accept="audio/*,.ogg,.opus,.mp3,.wav,.m4a" style="display:none;" onchange="handleMobileAudio(this)" />
+      <!-- === ABA 2: IA LUMO === -->
+      <section class="tab chat-tab" id="tab-ia">
+        <div class="row" style="justify-content:space-between;">
+          <div class="row">
+            <button type="button" class="btn sm" onclick="toggleLinkBar()">🔗 Resumir Link</button>
+            <label class="btn sm" style="cursor:pointer;">
+              🎙️ Áudio
+              <input type="file" accept="audio/*" style="display:none;" onchange="handleMobileAudio(this)" />
+            </label>
+          </div>
+          <button type="button" class="btn sm" onclick="clearChat()">Limpar</button>
         </div>
-
-        <form id="link-bar" onsubmit="submitMobileLink(event)">
-          <input type="text" id="link-url-input" placeholder="Cole o link da notícia ou página..." />
-          <button type="submit" class="btn btn-primary btn-sm">Resumir</button>
+        <form class="link-bar" id="link-bar" onsubmit="submitMobileLink(event)">
+          <input type="url" id="link-url-input" placeholder="Cole URL de site ou YouTube..." />
+          <button type="submit" class="btn primary sm">Resumir</button>
         </form>
-
-        <div id="chat-box">
-          <div class="msg ai">Oi! Pergunte qualquer coisa, cole um link com <strong>/resumir</strong> ou envie um áudio do WhatsApp para transcrever.</div>
+        <div class="feed" id="chat-box">
+          <div class="msg ai">Oi! Pergunte qualquer coisa, cole um link do YouTube ou envie um áudio para transcrever.</div>
         </div>
-
-        <form class="chat-form" onsubmit="sendAiPrompt(event)">
-          <input type="text" id="ai-input" placeholder="Pergunte ou digite /resumir URL..." />
-          <button type="submit" class="btn btn-primary btn-sm" id="ai-btn">Enviar</button>
+        <form class="row" onsubmit="sendAiPrompt(event)">
+          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo ou cole um link..." autocomplete="off" />
+          <button type="submit" class="btn primary" id="ai-btn">Enviar</button>
         </form>
       </section>
 
-      <!-- TAB 4: CONFIGURAÇÕES -->
+      <!-- === ABA 3: LUMO PING (CHAT ENTRE AMIGOS) === -->
+      <section class="tab chat-tab" id="tab-ping">
+        <div class="card" id="ping-head-card"></div>
+        <div class="grid-4" id="ping-nudges" style="display:none;">
+          <button type="button" class="btn sm" onclick="sendPingNudge('wave')">👋 Oi</button>
+          <button type="button" class="btn sm" onclick="sendPingNudge('love')">❤️ Carinho</button>
+          <button type="button" class="btn sm" onclick="sendPingNudge('break')">☕ Pausa</button>
+          <button type="button" class="btn sm" onclick="sendPingNudge('alert')">⚡ Atenção</button>
+        </div>
+        <div class="feed" id="ping-feed"></div>
+        <form class="row" id="ping-form" onsubmit="submitPing(event)" style="display:none;">
+          <input type="text" id="ping-input" placeholder="Mensagem rápida..." maxlength="380" autocomplete="off" />
+          <button type="submit" class="btn primary">Enviar</button>
+        </form>
+      </section>
+
+      <!-- === ABA 4: BOLSO SINCRONIZADO (CELULAR <-> PC) === -->
+      <section class="tab" id="tab-bolso">
+        <div class="card">
+          <div class="card-title"><span>Enviar para o PC</span><span style="color:var(--muted); text-transform:none; font-weight:500;">Expira em 24h</span></div>
+          <input type="text" id="pocket-text-input" placeholder="Texto, link ou código para o Bolso do PC..." />
+          <div class="grid-2">
+            <button type="button" class="btn primary" onclick="sendPocketText()">Enviar Texto/Link</button>
+            <label class="btn soft" style="cursor:pointer;">
+              📎 Enviar Arquivo
+              <input type="file" id="pocket-file-input" style="display:none;" onchange="sendPocketFile(this)" />
+            </label>
+          </div>
+          <div style="font-size:10.5px; color:var(--muted);">Fotos, PDFs ou documentos leves até 1,5 MB chegam direto na aba Bolso do Windows.</div>
+        </div>
+
+        <div class="card" style="flex:1; min-height:0;">
+          <div class="card-title">
+            <span>Bolso Nuvem</span>
+            <button type="button" class="btn sm" style="padding:3px 8px; font-size:10px;" onclick="loadPocket(true)">↻ Atualizar</button>
+          </div>
+          <div id="pocket-list" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto;"></div>
+        </div>
+      </section>
+
+      <!-- === ABA 5: AJUSTES === -->
       <section class="tab" id="tab-cfg">
-        <div class="card">
-          <div class="card-hd"><span>Parear com Lumo PC</span><span>v2.0</span></div>
-          <p style="font-size:12px; color:var(--muted);">No Lumo PC, clique no ícone de celular, ative <strong>Sincronizar com celular</strong> e escaneie o QR ou digite o código abaixo.</p>
-          <div class="row">
-            <input type="text" id="pair-input" placeholder="Ex: LUMO-AB12CD" autocapitalize="characters" />
-            <button class="btn btn-primary btn-sm" type="button" onclick="savePairCode()">Conectar</button>
+        <div class="card" id="install-card" style="display:none; flex-direction:row; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:13px; font-weight:700;">Instalar Lumo no Celular</div>
+            <div style="font-size:11px; color:var(--muted);">Abre em tela cheia como app nativo</div>
           </div>
-          <button class="btn btn-sm btn-danger" id="unpair-btn" type="button" style="display:none;" onclick="unpairPc()">Desconectar PC</button>
+          <button type="button" class="btn primary sm" onclick="triggerInstall()">Instalar</button>
         </div>
 
         <div class="card">
-          <div class="card-hd"><span>Seu Nome</span></div>
+          <div class="card-title"><span>Pareamento com o Windows</span></div>
           <div class="row">
-            <input type="text" id="name-input" placeholder="Como devo te chamar?" maxlength="24" />
-            <button class="btn btn-primary btn-sm" type="button" onclick="saveName()">Salvar</button>
+            <input type="text" id="pair-input" placeholder="Código LUMO-XXXXXX" style="text-transform:uppercase;" />
+            <button type="button" class="btn primary" onclick="savePairCode()">Conectar</button>
+          </div>
+          <button type="button" class="btn sm" id="unpair-btn" style="display:none; align-self:flex-start;" onclick="unpairPc()">Desconectar PC</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Seu Nome (IA & Ping)</span></div>
+          <div class="row">
+            <input type="text" id="name-input" placeholder="Como o Lumo deve te chamar?" />
+            <button type="button" class="btn primary" onclick="saveName()">Salvar</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-hd"><span>Aparência</span></div>
-          <div class="surf-row">
-            <button type="button" class="surf-btn" data-s="obsidian" onclick="setSurface('obsidian')">Obsidian</button>
-            <button type="button" class="surf-btn" data-s="oled" onclick="setSurface('oled')">OLED</button>
-            <button type="button" class="surf-btn" data-s="light" onclick="setSurface('light')">Modo Claro</button>
+          <div class="card-title"><span>Aparência & Cor</span></div>
+          <div class="grid-3">
+            <button type="button" class="btn sm surf-btn" data-s="obsidian" onclick="setSurface('obsidian')">Obsidian</button>
+            <button type="button" class="btn sm surf-btn" data-s="oled" onclick="setSurface('oled')">OLED</button>
+            <button type="button" class="btn sm surf-btn" data-s="light" onclick="setSurface('light')">Claro</button>
           </div>
           <div class="dots" id="theme-dots"></div>
-        </div>
-
-        <div class="card" id="install-card" style="display:none;">
-          <div class="card-hd"><span>Instalar como App</span></div>
-          <p style="font-size:12px; color:var(--muted);">Adicione o Lumo na tela inicial do celular para abrir em tela cheia.</p>
-          <button class="btn btn-primary btn-sm" type="button" onclick="triggerInstall()">Instalar Lumo Mobile</button>
         </div>
       </section>
     </main>
 
-    <nav class="bnav">
-      <button type="button" class="nav-btn active" data-t="remote" onclick="switchTab('remote')"><span class="ni">🎛️</span>Remoto</button>
-      <button type="button" class="nav-btn" data-t="tasks" onclick="switchTab('tasks')"><span class="ni">✓</span>Tarefas</button>
-      <button type="button" class="nav-btn" data-t="ia" onclick="switchTab('ia')"><span class="ni">✦</span>IA & Docs</button>
-      <button type="button" class="nav-btn" data-t="cfg" onclick="switchTab('cfg')"><span class="ni">⚙️</span>Ajustes</button>
+    <nav>
+      <button type="button" class="nav-btn active" data-t="pc" onclick="switchTab('pc')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>PC</span>
+      </button>
+      <button type="button" class="nav-btn" data-t="ia" onclick="switchTab('ia')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/></svg>
+        <span>IA</span>
+      </button>
+      <button type="button" class="nav-btn" data-t="ping" onclick="switchTab('ping')">
+        <span class="nav-badge" id="nav-ping-badge">0</span>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Ping</span>
+      </button>
+      <button type="button" class="nav-btn" data-t="bolso" onclick="switchTab('bolso')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Bolso</span>
+      </button>
+      <button type="button" class="nav-btn" data-t="cfg" onclick="switchTab('cfg')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Ajustes</span>
+      </button>
     </nav>
   </div>
+
+  <div id="toast"></div>
 
   <script>
     const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
     const ACCENTS = [
-      { id: 'amber', hex: '#f6b974', soft: 'rgba(246,185,116,0.16)', glow: 'rgba(246,185,116,0.36)' },
-      { id: 'cyan', hex: '#67e8f9', soft: 'rgba(103,232,249,0.16)', glow: 'rgba(103,232,249,0.36)' },
-      { id: 'violet', hex: '#a78bfa', soft: 'rgba(167,139,250,0.16)', glow: 'rgba(167,139,250,0.36)' },
-      { id: 'sakura', hex: '#f472b6', soft: 'rgba(244,114,182,0.16)', glow: 'rgba(244,114,182,0.36)' },
-      { id: 'emerald', hex: '#34d399', soft: 'rgba(52,211,153,0.16)', glow: 'rgba(52,211,153,0.36)' },
-      { id: 'cobalt', hex: '#60a5fa', soft: 'rgba(96,165,250,0.16)', glow: 'rgba(96,165,250,0.36)' }
+      { id: 'emerald', hex: '#4ade80', soft: 'rgba(74,222,128,0.14)', glow: 'rgba(74,222,128,0.38)' },
+      { id: 'amber',   hex: '#f6b974', soft: 'rgba(246,185,116,0.14)', glow: 'rgba(246,185,116,0.38)' },
+      { id: 'cyan',    hex: '#67e8f9', soft: 'rgba(103,232,249,0.14)', glow: 'rgba(103,232,249,0.38)' },
+      { id: 'cobalt',  hex: '#60a5fa', soft: 'rgba(96,165,250,0.14)',  glow: 'rgba(96,165,250,0.38)' },
+      { id: 'lavender',hex: '#c4b5fd', soft: 'rgba(196,181,253,0.14)', glow: 'rgba(196,181,253,0.38)' },
+      { id: 'rose',    hex: '#fb7185', soft: 'rgba(251,113,133,0.14)', glow: 'rgba(251,113,133,0.38)' },
+      { id: 'lunar',   hex: '#e5e7eb', soft: 'rgba(229,231,235,0.14)', glow: 'rgba(229,231,235,0.34)' }
     ];
 
-    let pairToken = localStorage.getItem('lm_token') || '';
+    let pairToken = (localStorage.getItem('lm_token') || '').toUpperCase();
     let userName = localStorage.getItem('lm_name') || '';
-    let tasks = JSON.parse(localStorage.getItem('lm_tasks') || '[]');
+    let tasks = [];
+    try { tasks = JSON.parse(localStorage.getItem('lm_tasks') || '[]'); } catch (_) { tasks = []; }
     let lastTasksTs = 0, lastNotesTs = 0, lastClipTs = 0;
-    let notesTimer = null, deferredInstall = null;
+    let notesTimer = null, toastTimer = null, deferredInstall = null;
+    let activeTab = 'pc';
 
-    let toastTimer;
+    // Estado do RGB
+    let rgbTimer = null, rgbHue = 150;
+
+    // Estado do Lumo Ping
+    let myPingId = localStorage.getItem('lm_ping_uid');
+    if (!myPingId) {
+      myPingId = 'm_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      localStorage.setItem('lm_ping_uid', myPingId);
+    }
+    let pingRoom = (localStorage.getItem('lm_ping_room') || '').toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16);
+    let pingRecents = [];
+    try { pingRecents = JSON.parse(localStorage.getItem('lm_ping_recents') || '[]'); } catch (_) { pingRecents = []; }
+    let pingMsgs = [], pingSeen = new Set(), pingLastId = 0, pingUnread = 0, pingReady = false, pingPolling = false, pingTimer = null;
+
+    const NUDGES = {
+      wave:  { text: 'deu um oi! 👋' },
+      love:  { text: 'mandou um carinho ❤️' },
+      break: { text: 'chamou pra uma pausa ☕' },
+      alert: { text: 'chamou sua atenção! ⚡' }
+    };
+
+    function esc(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function fmtTime(ts) {
+      try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
+    }
+    function fmtBytes(n) {
+      if (n < 1024) return n + ' B';
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+      return (n / (1024 * 1024)).toFixed(2) + ' MB';
+    }
     function toast(msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2300);
     }
-
-    function petLumo() {
-      const f = document.getElementById('m-face');
-      f.classList.add('happy');
-      toast(userName ? `Oi, ${userName}! Tudo certo por aqui.` : 'Oi! Estou conectado e pronto.');
-      setTimeout(() => f.classList.remove('happy'), 1200);
+    function hopMascot() {
+      const p = document.getElementById('m-face');
+      p.classList.add('hop');
+      setTimeout(() => p.classList.remove('hop'), 260);
     }
 
     function switchTab(id) {
+      activeTab = id;
       document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + id));
       document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.t === id));
       if (id === 'ia') {
         const box = document.getElementById('chat-box');
         box.scrollTop = box.scrollHeight;
       }
+      if (id === 'ping') {
+        pingUnread = 0;
+        updatePingBadge();
+        renderPingHead();
+        renderPingFeed();
+        pollPing();
+        restartPingTimer();
+      }
+      if (id === 'bolso') loadPocket(false);
     }
 
-    // === TEMAS ===
+    // === TEMAS & MODO RGB ===
     function setSurface(s) {
       document.body.classList.remove('surface-obsidian', 'surface-oled', 'surface-light');
       document.body.classList.add('surface-' + s);
       localStorage.setItem('lm_surface', s);
       document.querySelectorAll('.surf-btn').forEach((b) => b.classList.toggle('active', b.dataset.s === s));
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', s === 'light' ? '#eef1f7' : s === 'oled' ? '#000000' : '#0b0c12');
+      if (meta) meta.setAttribute('content', s === 'light' ? '#eef2f7' : s === 'oled' ? '#000000' : '#0b0c12');
+    }
+
+    function hslToRgb(h, s, l) {
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l - c / 2;
+      let r = 0, g = 0, b = 0;
+      if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+      else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+      else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+    }
+
+    function stopRgb() {
+      clearInterval(rgbTimer);
+      rgbTimer = null;
     }
 
     function setAccent(id) {
+      stopRgb();
+      if (id === 'rgb') {
+        localStorage.setItem('lm_accent', 'rgb');
+        document.querySelectorAll('#theme-dots .dot').forEach((d) => d.classList.toggle('active', d.dataset.id === 'rgb'));
+        const paint = () => {
+          const [r, g, b] = hslToRgb(rgbHue, 0.88, 0.66);
+          const hex = '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+          document.documentElement.style.setProperty('--accent', hex);
+          document.documentElement.style.setProperty('--accent-soft', `rgba(${r},${g},${b},0.15)`);
+          document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.42)`);
+        };
+        paint();
+        rgbTimer = setInterval(() => {
+          if (document.hidden) return;
+          rgbHue = (rgbHue + 2) % 360;
+          paint();
+        }, 120);
+        return;
+      }
       const t = ACCENTS.find((a) => a.id === id) || ACCENTS[0];
       document.documentElement.style.setProperty('--accent', t.hex);
       document.documentElement.style.setProperty('--accent-soft', t.soft);
@@ -448,42 +805,45 @@
         d.onclick = () => setAccent(a.id);
         box.appendChild(d);
       });
+      const rgb = document.createElement('button');
+      rgb.type = 'button';
+      rgb.className = 'dot rgb';
+      rgb.dataset.id = 'rgb';
+      rgb.title = 'Modo RGB';
+      rgb.onclick = () => setAccent('rgb');
+      box.appendChild(rgb);
     }
 
     // === PAREAMENTO & SYNC ===
     function updatePairUI() {
-      const dot = document.getElementById('pair-dot');
-      const st = document.getElementById('pair-status');
-      const inp = document.getElementById('pair-input');
-      const unp = document.getElementById('unpair-btn');
       const ok = Boolean(pairToken);
-      dot.classList.toggle('on', ok);
-      st.textContent = ok ? pairToken : 'Sem PC';
-      inp.value = pairToken;
-      unp.style.display = ok ? 'inline-flex' : 'none';
+      document.getElementById('pair-dot').classList.toggle('on', ok);
+      document.getElementById('pair-status').textContent = ok ? pairToken : 'Sem PC';
+      document.getElementById('pair-input').value = pairToken;
+      document.getElementById('unpair-btn').style.display = ok ? 'inline-flex' : 'none';
     }
-
     function savePairCode() {
-      const val = document.getElementById('pair-input').value.trim().toUpperCase();
+      const val = document.getElementById('pair-input').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
       if (val.length < 6) { toast('Digite um código LUMO válido.'); return; }
       pairToken = val;
       localStorage.setItem('lm_token', pairToken);
       updatePairUI();
       pollSync();
-      toast('Conectado ao código ' + pairToken);
+      loadPocket(false);
+      toast('Conectado ao PC ' + pairToken + ' ✓');
     }
-
     function unpairPc() {
       pairToken = '';
       localStorage.removeItem('lm_token');
       updatePairUI();
+      loadPocket(false);
       toast('PC desconectado.');
     }
-
     function saveName() {
       userName = document.getElementById('name-input').value.trim();
       localStorage.setItem('lm_name', userName);
-      toast('Nome salvo!');
+      renderPingHead();
+      toast('Nome salvo ✓');
     }
 
     async function postSync(payload) {
@@ -491,21 +851,16 @@
       try {
         const res = await fetch(`${API_BASE}/sync`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
           body: JSON.stringify({ token: pairToken, source: 'mobile', ...payload })
         });
         return res.ok;
-      } catch (_) {
-        toast('Sem conexão com o servidor.');
-        return false;
-      }
+      } catch (_) { toast('Sem conexão com o servidor.'); return false; }
     }
-
     async function sendCmd(action, value) {
       const ok = await postSync({ cmd: { action, value } });
-      if (ok) toast('Comando enviado ao PC ✓');
+      if (ok) { hopMascot(); toast('Comando enviado ao PC ✓'); }
     }
-
     async function sendTextToPc(asUrl) {
       const inp = document.getElementById('clip-input');
       const val = inp.value.trim();
@@ -513,17 +868,13 @@
       const action = asUrl ? 'open_url' : 'set_clip';
       const target = asUrl && !/^https?:\/\//i.test(val) ? 'https://' + val : val;
       const ok = await postSync({ cmd: { action, value: target }, clip: val });
-      if (ok) {
-        inp.value = '';
-        toast(asUrl ? 'Abrindo link no PC...' : 'Texto enviado pro Ctrl+C do PC ✓');
-      }
+      if (ok) { inp.value = ''; hopMascot(); toast(asUrl ? 'Abrindo no PC...' : 'Enviado pro Ctrl+C do PC ✓'); }
     }
-
     function copyPcClip() {
       const txt = document.getElementById('pc-clip-text').textContent;
       if (!txt) return;
       navigator.clipboard?.writeText(txt);
-      toast('Copiado no celular ✓');
+      toast('Copiado ✓');
     }
 
     async function pollSync() {
@@ -560,13 +911,12 @@
       const done = tasks.filter((t) => t.done).length;
       document.getElementById('task-count').textContent = `${done}/${tasks.length}`;
       if (!tasks.length) {
-        list.innerHTML = '<div style="font-size:12.5px; color:var(--muted); text-align:center; padding:8px;">Nenhuma tarefa ainda.</div>';
+        list.innerHTML = '<div style="font-size:12px; color:var(--muted); text-align:center; padding:6px;">Nenhuma tarefa ainda.</div>';
       } else {
         tasks.forEach((t, i) => {
           const row = document.createElement('div');
           row.className = 'task-item' + (t.done ? ' done' : '');
-          const safe = String(t.text || '').replace(/</g, '&lt;');
-          row.innerHTML = `<div class="task-left" onclick="toggleTask(${i})"><div class="chk">${t.done ? '✓' : ''}</div><span>${safe}</span></div><button class="del" type="button" onclick="delTask(${i})">×</button>`;
+          row.innerHTML = `<div class="task-left" onclick="toggleTask(${i})"><div class="chk">${t.done ? '✓' : ''}</div><span>${esc(t.text)}</span></div><button class="del" type="button" onclick="delTask(${i})">×</button>`;
           list.appendChild(row);
         });
       }
@@ -600,7 +950,7 @@
       }, 900);
     }
 
-    // === IA, RESUMIR LINKS & WHISPER ===
+    // === IA, /resumo & WHISPER ===
     function appendChat(text, who) {
       const box = document.getElementById('chat-box');
       const div = document.createElement('div');
@@ -613,64 +963,54 @@
         b.type = 'button';
         b.className = 'msg-copy';
         b.textContent = 'Copiar';
-        b.onclick = () => {
-          navigator.clipboard?.writeText(text);
-          b.textContent = 'Copiado ✓';
-          setTimeout(() => { b.textContent = 'Copiar'; }, 1500);
-        };
+        b.onclick = () => { navigator.clipboard?.writeText(text); b.textContent = 'Copiado ✓'; setTimeout(() => { b.textContent = 'Copiar'; }, 1400); };
         div.appendChild(b);
       }
       box.appendChild(div);
       box.scrollTop = box.scrollHeight;
-      return div;
     }
-
     function clearChat() {
       document.getElementById('chat-box').innerHTML = '<div class="msg ai">Conversa limpa! Como posso ajudar?</div>';
     }
-
     function toggleLinkBar() {
       const bar = document.getElementById('link-bar');
-      const open = bar.classList.toggle('show');
-      if (open) document.getElementById('link-url-input').focus();
+      if (bar.classList.toggle('show')) document.getElementById('link-url-input').focus();
     }
-
     function setAiBusy(busy) {
-      document.getElementById('ai-btn').disabled = busy;
-      document.getElementById('ai-btn').textContent = busy ? '...' : 'Enviar';
+      const b = document.getElementById('ai-btn');
+      b.disabled = busy;
+      b.textContent = busy ? '...' : 'Enviar';
       document.getElementById('m-face').classList.toggle('thinking', busy);
     }
-
+    function extractUrl(raw) {
+      const m = String(raw || '').match(/(https?:\/\/[^\s]+|www\.[^\s]+|(?:m\.)?(?:youtube\.com|youtu\.be)\/[^\s]+)/i);
+      if (!m) return '';
+      const u = m[1].replace(/[.,;!?)]+$/, '');
+      return /^https?:\/\//i.test(u) ? u : 'https://' + u;
+    }
     async function summarizeMobileUrl(rawUrl) {
-      const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : 'https://' + rawUrl;
+      const url = extractUrl(rawUrl) || rawUrl;
       appendChat('🔗 Resumir: ' + url, 'user');
       setAiBusy(true);
       try {
         const res = await fetch(`${API_BASE}/summarize`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
           body: JSON.stringify({ url })
         });
         const data = await res.json();
-        if (data.summary) appendChat((data.title ? `📌 ${data.title}\n\n` : '') + data.summary, 'ai');
-        else appendChat(data.error || 'Não consegui resumir essa página.', 'ai');
-      } catch (_) {
-        appendChat('Erro de conexão ao resumir.', 'ai');
-      } finally {
-        setAiBusy(false);
-      }
+        appendChat(data.summary ? (data.title ? `📌 ${data.title}\n\n` : '') + data.summary : (data.error || 'Não consegui resumir.'), 'ai');
+      } catch (_) { appendChat('Erro de conexão ao resumir.', 'ai'); }
+      finally { setAiBusy(false); }
     }
-
     function submitMobileLink(e) {
       e.preventDefault();
-      const inp = document.getElementById('link-url-input');
-      const v = inp.value.trim();
+      const inp = document.getElementById('link-url-input'), v = inp.value.trim();
       if (!v) return;
       inp.value = '';
       document.getElementById('link-bar').classList.remove('show');
       summarizeMobileUrl(v);
     }
-
     async function handleMobileAudio(input) {
       const file = input.files?.[0];
       input.value = '';
@@ -684,54 +1024,347 @@
         form.append('summarize', '1');
         const res = await fetch(`${API_BASE}/transcribe`, {
           method: 'POST',
-          headers: { 'X-Lumo-Client': 'lumo-mobile-v1' },
+          headers: { 'X-Lumo-Client': 'lumo-mobile-v2' },
           body: form
         });
         const data = await res.json();
         if (data.transcript) {
-          const out = data.summary
-            ? `🎙️ Resumo:\n${data.summary}\n\n— Transcrição —\n${data.transcript}`
-            : `🎙️ Transcrição:\n\n${data.transcript}`;
-          appendChat(out, 'ai');
-        } else {
-          appendChat(data.error || 'Não consegui transcrever esse áudio.', 'ai');
-        }
-      } catch (_) {
-        appendChat('Erro de conexão ao transcrever.', 'ai');
-      } finally {
-        setAiBusy(false);
-      }
+          appendChat(data.summary ? `🎙️ Resumo:\n${data.summary}\n\n— Transcrição —\n${data.transcript}` : data.transcript, 'ai');
+        } else appendChat(data.error || 'Não consegui transcrever.', 'ai');
+      } catch (_) { appendChat('Erro de conexão ao transcrever.', 'ai'); }
+      finally { setAiBusy(false); }
     }
-
     async function sendAiPrompt(e) {
       e.preventDefault();
-      const inp = document.getElementById('ai-input');
-      const prompt = inp.value.trim();
+      const inp = document.getElementById('ai-input'), prompt = inp.value.trim();
       if (!prompt) return;
       inp.value = '';
-
-      if (/^\/resumir\s+/i.test(prompt)) {
-        return summarizeMobileUrl(prompt.replace(/^\/resumir\s+/i, '').trim());
-      }
-      if (/^https?:\/\/\S+$/i.test(prompt)) {
-        return summarizeMobileUrl(prompt);
-      }
+      const resMatch = prompt.match(/^\/resum(?:ir|o)\s+([\s\S]+)$/i);
+      if (resMatch) return summarizeMobileUrl(resMatch[1]);
+      const direct = extractUrl(prompt);
+      if (direct && /(youtube\.com|youtu\.be|^https?:\/\/\S+$)/i.test(prompt)) return summarizeMobileUrl(direct);
 
       appendChat(prompt, 'user');
       setAiBusy(true);
       try {
         const res = await fetch(API_BASE, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v1' },
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
           body: JSON.stringify({ prompt, userName: userName || null })
         });
         const data = await res.json();
         appendChat(data.reply || data.error || 'Sem resposta agora.', 'ai');
-      } catch (_) {
-        appendChat('Sem conexão com o Lumo Cloud.', 'ai');
-      } finally {
-        setAiBusy(false);
+      } catch (_) { appendChat('Sem conexão com o Lumo Cloud.', 'ai'); }
+      finally { setAiBusy(false); }
+    }
+
+    // === LUMO PING (CHAT ENTRE AMIGOS COMPATÍVEL COM O PC) ===
+    function updatePingBadge() {
+      const b = document.getElementById('nav-ping-badge');
+      b.textContent = pingUnread > 9 ? '9+' : String(pingUnread);
+      b.classList.toggle('show', pingUnread > 0);
+    }
+    function savePingRecent(code) {
+      pingRecents = [code, ...pingRecents.filter((r) => r !== code)].slice(0, 3);
+      localStorage.setItem('lm_ping_recents', JSON.stringify(pingRecents));
+    }
+    function renderPingHead() {
+      const card = document.getElementById('ping-head-card');
+      const nudges = document.getElementById('ping-nudges');
+      const form = document.getElementById('ping-form');
+      if (!pingRoom) {
+        nudges.style.display = 'none';
+        form.style.display = 'none';
+        const recHtml = pingRecents.length
+          ? `<div class="recents"><span style="font-size:11px; color:var(--muted);">Recentes:</span>${pingRecents.map((r) => `<button type="button" class="chip" onclick="joinPingRoom('${esc(r)}')">${esc(r)}</button>`).join('')}</div>`
+          : '';
+        card.innerHTML = `
+          <div class="card-title"><span>Lumo Ping · Chat Ultraleve</span></div>
+          <div style="font-size:12px; color:var(--muted);">Converse e mande cutucões para o Lumo no PC ou celular de amigos. Mensagens expiram em 24h.</div>
+          <div class="row">
+            <input type="text" id="ping-room-inp" placeholder="Código (ex: LUMO-4K2P)" style="text-transform:uppercase;" />
+            <button type="button" class="btn primary" onclick="joinPingFromInput()">Entrar</button>
+          </div>
+          <div class="row" style="justify-content:space-between;">
+            <button type="button" class="btn sm soft" onclick="createPingRoom()">✨ Criar nova sala</button>
+            <span style="font-size:11px; color:var(--muted);">Você: <strong style="color:var(--text);">${esc(userName || 'Mobile')}</strong></span>
+          </div>
+          ${recHtml}`;
+      } else {
+        nudges.style.display = 'grid';
+        form.style.display = 'flex';
+        card.innerHTML = `
+          <div class="row" style="justify-content:space-between;">
+            <span class="room-pill"><span class="pair-dot on"></span>${esc(pingRoom)}</span>
+            <div class="row">
+              <button type="button" class="btn sm" onclick="copyPingCode()">Copiar</button>
+              <button type="button" class="btn sm" onclick="leavePingRoom()">Sair</button>
+            </div>
+          </div>`;
       }
+    }
+    function renderPingFeed() {
+      const feed = document.getElementById('ping-feed');
+      if (!pingRoom) {
+        feed.innerHTML = '<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Entre em uma sala ou crie um código acima para começar.</div>';
+        return;
+      }
+      if (!pingMsgs.length) {
+        feed.innerHTML = `<div style="margin:auto; text-align:center; color:var(--muted); font-size:12.5px;">Sala <strong>${esc(pingRoom)}</strong> pronta!<br>Envie o código para seu amigo ou abra no PC.</div>`;
+        return;
+      }
+      feed.innerHTML = pingMsgs.map((m) => {
+        const isMe = m.sender_id === myPingId;
+        if (m.kind === 'nudge') {
+          return `<div class="msg nudge"><strong style="color:${esc(m.sender_color)}">${esc(m.sender_name)}</strong> ${esc(m.body)} <span style="font-size:10px; color:var(--muted);">${fmtTime(m.created_at)}</span></div>`;
+        }
+        return `<div class="msg ${isMe ? 'me' : ''}">
+          <div class="msg-head">
+            <strong style="color:${isMe ? 'var(--accent)' : esc(m.sender_color)}">${isMe ? 'Você' : esc(m.sender_name)}</strong>
+            <span style="color:var(--muted);">${fmtTime(m.created_at)}</span>
+          </div>
+          <div>${esc(m.body)}</div>
+        </div>`;
+      }).join('');
+      feed.scrollTop = feed.scrollHeight;
+    }
+    async function pollPing() {
+      if (!pingRoom || pingPolling || document.visibilityState !== 'visible') return;
+      pingPolling = true;
+      try {
+        const res = await fetch(`${API_BASE}/ping?room=${encodeURIComponent(pingRoom)}&since=${pingLastId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const incoming = Array.isArray(data.messages) ? data.messages : [];
+        let changed = false;
+        for (const m of incoming) {
+          if (pingSeen.has(m.id)) continue;
+          pingSeen.add(m.id);
+          pingMsgs.push(m);
+          if (m.id > pingLastId) pingLastId = m.id;
+          changed = true;
+          if (pingReady && m.sender_id !== myPingId) {
+            hopMascot();
+            if (navigator.vibrate) navigator.vibrate(m.kind === 'nudge' ? [60, 40, 60] : 40);
+            if (activeTab !== 'ping') {
+              pingUnread++;
+              updatePingBadge();
+              toast(`${m.sender_name}: ${m.body.slice(0, 42)}`);
+            }
+          }
+        }
+        if (pingMsgs.length > 60) pingMsgs = pingMsgs.slice(-60);
+        pingReady = true;
+        if (changed) renderPingFeed();
+      } catch (_) {} finally { pingPolling = false; }
+    }
+    function restartPingTimer() {
+      clearInterval(pingTimer);
+      pingTimer = null;
+      if (!pingRoom) return;
+      pingTimer = setInterval(pollPing, activeTab === 'ping' ? 3000 : 8000);
+    }
+    async function sendPing(kind, body) {
+      if (!pingRoom || !body) return;
+      const accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      const payload = {
+        room: pingRoom,
+        sender_id: myPingId,
+        sender_name: (userName || 'Mobile').slice(0, 24),
+        sender_color: /^#[0-9a-fA-F]{6}$/.test(accentHex) ? accentHex : '#4ade80',
+        kind,
+        body
+      };
+      try {
+        const res = await fetch(`${API_BASE}/ping`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          const obj = { id: data.id || Date.now(), ...payload, created_at: data.created_at || Date.now() };
+          if (!pingSeen.has(obj.id)) {
+            pingSeen.add(obj.id);
+            pingMsgs.push(obj);
+            if (obj.id > pingLastId) pingLastId = obj.id;
+            renderPingFeed();
+          }
+        }
+      } catch (_) { toast('Sem conexão no Lumo Ping.'); }
+    }
+    function joinPingRoom(code) {
+      const clean = String(code || '').toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16);
+      if (clean.length < 3) { toast('Código precisa ter pelo menos 3 caracteres.'); return; }
+      pingRoom = clean;
+      localStorage.setItem('lm_ping_room', pingRoom);
+      savePingRecent(pingRoom);
+      pingMsgs = []; pingSeen = new Set(); pingLastId = 0; pingUnread = 0; pingReady = false;
+      updatePingBadge();
+      renderPingHead();
+      renderPingFeed();
+      pollPing();
+      restartPingTimer();
+    }
+    function joinPingFromInput() { joinPingRoom(document.getElementById('ping-room-inp')?.value || ''); }
+    function createPingRoom() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let s = '';
+      for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+      joinPingRoom('LUMO-' + s);
+      copyPingCode();
+    }
+    function copyPingCode() {
+      if (!pingRoom) return;
+      navigator.clipboard?.writeText(pingRoom);
+      toast(`Código ${pingRoom} copiado ✓`);
+    }
+    function leavePingRoom() {
+      pingRoom = '';
+      localStorage.removeItem('lm_ping_room');
+      pingMsgs = []; pingSeen = new Set(); pingLastId = 0; pingUnread = 0; pingReady = false;
+      clearInterval(pingTimer);
+      updatePingBadge();
+      renderPingHead();
+      renderPingFeed();
+    }
+    function sendPingNudge(type) {
+      const n = NUDGES[type] || NUDGES.wave;
+      hopMascot();
+      sendPing('nudge', n.text);
+    }
+    function submitPing(e) {
+      e.preventDefault();
+      const inp = document.getElementById('ping-input'), v = inp.value.trim();
+      if (!v) return;
+      inp.value = '';
+      sendPing('text', v);
+    }
+
+    // === BOLSO SINCRONIZADO (CELULAR <-> PC) ===
+    let pocketItems = [];
+    async function loadPocket(showToast) {
+      const list = document.getElementById('pocket-list');
+      if (!pairToken) {
+        list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:16px 8px;">Conecte seu código de pareamento do PC em <strong>Ajustes</strong> para usar o Bolso Nuvem.</div>';
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/pocket?token=${encodeURIComponent(pairToken)}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        pocketItems = Array.isArray(data.items) ? data.items : [];
+        renderPocketList();
+        if (showToast) toast('Bolso atualizado ✓');
+      } catch (_) {
+        list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Não foi possível carregar o Bolso Nuvem. Verifique se a rota /pocket foi publicada no Worker.</div>';
+      }
+    }
+    function renderPocketList() {
+      const list = document.getElementById('pocket-list');
+      if (!pocketItems.length) {
+        list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:16px 8px;">Bolso vazio. Envie um link, texto ou foto acima para aparecer no seu Windows!</div>';
+        return;
+      }
+      list.innerHTML = pocketItems.map((it) => {
+        const origin = it.source === 'pc' ? '💻 Do PC' : '📱 Do Celular';
+        const isImg = it.kind === 'file' && String(it.mime || '').startsWith('image/') && String(it.content || '').startsWith('data:');
+        const preview = isImg
+          ? `<img class="pocket-img" src="${it.content}" alt="${esc(it.name)}" />`
+          : (it.kind !== 'file' ? `<div class="pocket-preview">${esc(it.content)}</div>` : '');
+        const actionBtn = it.kind === 'file'
+          ? `<button type="button" class="btn sm primary" onclick="downloadPocketItem(${it.id})">Baixar</button>`
+          : (it.kind === 'url'
+              ? `<button type="button" class="btn sm primary" onclick="openPocketItem(${it.id})">Abrir</button><button type="button" class="btn sm" onclick="copyPocketItem(${it.id})">Copiar</button>`
+              : `<button type="button" class="btn sm primary" onclick="copyPocketItem(${it.id})">Copiar</button>`);
+        return `<div class="pocket-item">
+          <div class="pocket-top">
+            <div style="min-width:0; flex:1;">
+              <div class="pocket-name">${esc(it.name)}</div>
+              <div class="pocket-meta">${origin} · ${fmtBytes(it.size || 0)} · ${fmtTime(it.created_at)}</div>
+            </div>
+            <button type="button" class="del" onclick="deletePocketItem(${it.id})">×</button>
+          </div>
+          ${preview}
+          <div class="row">${actionBtn}</div>
+        </div>`;
+      }).join('');
+    }
+    async function sendPocketText() {
+      if (!pairToken) { toast('Pareie com o PC em Ajustes primeiro.'); return; }
+      const inp = document.getElementById('pocket-text-input'), raw = inp.value.trim();
+      if (!raw) return;
+      const isUrl = /^https?:\/\/\S+$/i.test(raw);
+      try {
+        const res = await fetch(`${API_BASE}/pocket`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+          body: JSON.stringify({
+            token: pairToken,
+            source: 'mobile',
+            kind: isUrl ? 'url' : 'text',
+            name: isUrl ? raw.replace(/^https?:\/\//i, '').slice(0, 48) : 'Texto do celular',
+            mime: 'text/plain',
+            content: raw,
+            size: raw.length
+          })
+        });
+        if (res.ok) { inp.value = ''; hopMascot(); toast('Enviado para o Bolso do PC ✓'); loadPocket(false); }
+        else toast('Erro ao enviar pro Bolso.');
+      } catch (_) { toast('Sem conexão com o Bolso Nuvem.'); }
+    }
+    function sendPocketFile(input) {
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      if (!pairToken) { toast('Pareie com o PC em Ajustes primeiro.'); return; }
+      if (file.size > 1.5 * 1024 * 1024) { toast('Limite do Bolso Nuvem: 1,5 MB.'); return; }
+      const reader = new FileReader();
+      toast('Enviando ' + file.name + '...');
+      reader.onload = async () => {
+        try {
+          const res = await fetch(`${API_BASE}/pocket`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-mobile-v2' },
+            body: JSON.stringify({
+              token: pairToken,
+              source: 'mobile',
+              kind: 'file',
+              name: file.name,
+              mime: file.type || 'application/octet-stream',
+              content: String(reader.result || ''),
+              size: file.size
+            })
+          });
+          if (res.ok) { hopMascot(); toast('Arquivo enviado pro PC ✓'); loadPocket(false); }
+          else toast('Não foi possível enviar o arquivo.');
+        } catch (_) { toast('Erro de rede ao enviar arquivo.'); }
+      };
+      reader.readAsDataURL(file);
+    }
+    function copyPocketItem(id) {
+      const it = pocketItems.find((x) => x.id === id);
+      if (!it) return;
+      navigator.clipboard?.writeText(it.content);
+      toast('Copiado ✓');
+    }
+    function openPocketItem(id) {
+      const it = pocketItems.find((x) => x.id === id);
+      if (it) window.open(it.content, '_blank', 'noopener');
+    }
+    function downloadPocketItem(id) {
+      const it = pocketItems.find((x) => x.id === id);
+      if (!it) return;
+      const a = document.createElement('a');
+      a.href = it.content;
+      a.download = it.name || 'arquivo';
+      a.click();
+    }
+    async function deletePocketItem(id) {
+      if (!pairToken) return;
+      await fetch(`${API_BASE}/pocket?token=${encodeURIComponent(pairToken)}&id=${id}`, { method: 'DELETE' }).catch(() => {});
+      pocketItems = pocketItems.filter((x) => x.id !== id);
+      renderPocketList();
     }
 
     // === PWA INSTALL & INIT ===
@@ -740,7 +1373,6 @@
       deferredInstall = e;
       document.getElementById('install-card').style.display = 'flex';
     });
-
     async function triggerInstall() {
       if (!deferredInstall) return;
       deferredInstall.prompt();
@@ -752,11 +1384,12 @@
     (function init() {
       buildAccentDots();
       setSurface(localStorage.getItem('lm_surface') || 'obsidian');
-      setAccent(localStorage.getItem('lm_accent') || 'amber');
+      setAccent(localStorage.getItem('lm_accent') || 'emerald');
       document.getElementById('name-input').value = userName;
       document.getElementById('notes-input').value = localStorage.getItem('lm_notes') || '';
 
-      const pairParam = new URLSearchParams(window.location.search).get('pair');
+      const params = new URLSearchParams(window.location.search);
+      const pairParam = params.get('pair');
       if (pairParam && pairParam.trim().length >= 6) {
         pairToken = pairParam.trim().toUpperCase();
         localStorage.setItem('lm_token', pairToken);
@@ -766,9 +1399,17 @@
 
       updatePairUI();
       renderTasks(false);
+      renderPingHead();
+      renderPingFeed();
       pollSync();
+      if (pingRoom) { pollPing(); restartPingTimer(); }
+      if (pairToken) loadPocket(false);
+
       setInterval(pollSync, 6000);
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollSync(); });
+      setInterval(() => { if (activeTab === 'bolso' && pairToken && document.visibilityState === 'visible') loadPocket(false); }, 7000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') { pollSync(); pollPing(); }
+      });
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});

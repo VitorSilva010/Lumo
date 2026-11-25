@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./redesign.css" />
   <link rel="stylesheet" href="./ping.css" />
   <link rel="stylesheet" href="./pill-hud.css" />
+  <link rel="stylesheet" href="./pocket-sync.css" />
 </head>
 <body>
   <div id="app">
@@ -534,7 +535,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v2.7.2</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v2.8.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -680,7 +681,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.7.2</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.8.0</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -700,5 +701,6 @@
   <script src="./rgb.js"></script>
   <script src="./music-trivia.js"></script>
   <script src="./pill-hud.js"></script>
+  <script src="./pocket-sync.js"></script>
 </body>
 </html>

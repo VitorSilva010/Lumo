@@ -1,0 +1,72 @@
+/* === LUMO v2.8.0 — BOLSO NUVEM (CELULAR <-> PC) === */
+.cloud-pocket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cp-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.cp-btn {
+  padding: 7px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 10.8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.cp-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+.cp-btn:active { transform: scale(0.96); }
+.cp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 185px;
+  overflow-y: auto;
+}
+.cp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.cp-info { min-width: 0; flex: 1; }
+.cp-name {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cp-meta { font-size: 9.5px; color: var(--muted); }
+.cp-mini-row { display: flex; gap: 4px; flex-shrink: 0; }
+.cp-mini {
+  padding: 4px 7px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 9.8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cp-mini:hover { border-color: var(--accent); color: var(--accent); }
+body.surface-light .cp-btn,
+body.surface-light .cp-item,
+body.surface-light .cp-mini {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.1);
+}
