@@ -226,7 +226,7 @@
   align-self: flex-end;
   border-radius: 13px 13px 4px 13px;
   background: var(--accent-soft);
-  border-color: rgba(246, 185, 116, 0.34);
+  border-color: var(--accent-glow);
 }
 .ping-msg.nudge {
   align-self: center;

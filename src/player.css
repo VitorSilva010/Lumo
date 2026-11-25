@@ -72,7 +72,7 @@
 }
 .station-item.playing {
   background: var(--accent-soft);
-  border-color: rgba(246, 185, 116, 0.45);
+  border-color: var(--accent-glow);
 }
 .st-main {
   display: flex;
@@ -114,7 +114,7 @@
   padding: 8px 10px;
   border-radius: 12px;
   background: var(--accent-soft);
-  border: 1px solid rgba(246, 185, 116, 0.35);
+  border: 1px solid var(--accent-glow);
 }
 .player-now-bar.show { display: flex; }
 .pnow-top {

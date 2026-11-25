@@ -23,7 +23,7 @@
 }
 .topbar .circle-btn.active {
   background: var(--accent-soft) !important;
-  border-color: rgba(246, 185, 116, 0.35) !important;
+  border-color: var(--accent-glow) !important;
   color: var(--accent) !important;
 }
 .topbar .circle-btn.danger:hover {
@@ -71,7 +71,7 @@
 }
 .mini-media-strip.playing {
   background: var(--accent-soft) !important;
-  border-color: rgba(246, 185, 116, 0.4) !important;
+  border-color: var(--accent-glow) !important;
 }
 
 /* 5. Grade 3x2 compacta (todos os 6 atalhos cabem limpos sem cortar no scroll) */
@@ -382,4 +382,17 @@ body.surface-light .station-item {
 body.surface-light .mini-media-strip.playing {
   background: var(--accent-soft) !important;
   border-color: var(--accent) !important;
+}
+
+/* === LUMO v2.6.1 — BOTÃO DO MODO RGB (CHROMA) === */
+.theme-dot-rgb {
+  background: conic-gradient(#ff6b8b, #f6b974, #4ade80, #38bdf8, #a78bfa, #ff6b8b) !important;
+  position: relative;
+}
+.theme-dot-rgb.active {
+  animation: rgbDotSpin 3.6s linear infinite;
+}
+@keyframes rgbDotSpin {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
 }

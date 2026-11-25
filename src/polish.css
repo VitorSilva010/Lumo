@@ -105,7 +105,7 @@
   transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 .mini-media-strip.playing {
-  border-color: rgba(246, 185, 116, 0.42);
+  border-color: var(--accent-glow);
   box-shadow: 0 0 22px var(--accent-soft);
 }
 
@@ -242,7 +242,7 @@ body.surface-light .msg-actions { border-top-color: rgba(15, 23, 42, 0.1); }
   padding: 6px 10px;
   border-radius: 10px;
   background: var(--accent-soft);
-  border: 1px solid rgba(246, 185, 116, 0.35);
+  border: 1px solid var(--accent-glow);
   font-size: 11px;
   color: var(--text);
 }
