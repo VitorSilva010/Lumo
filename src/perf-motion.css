@@ -1,6 +1,5 @@
 /* === LUMO v2.9.6 — OTIMIZAÇÃO 60 FPS, MODO ECONOMIA & MICRO-ANIMAÇÕES === */
 
-/* 1. Isolamento de repaint para manter 60 FPS sem GPU dedicada */
 #panel {
   contain: layout style;
 }
@@ -12,7 +11,6 @@
   transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background-color 0.2s ease;
 }
 
-/* 2. Morph elástico da cápsula e cascata suave nas abas */
 #lumo-pill {
   transition:
     transform 0.26s cubic-bezier(0.22, 1.24, 0.36, 1),
@@ -37,44 +35,7 @@
   to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
-/* 3. Mini Equalizador 100% GPU (só scaleY) ao lado dos olhos quando há música */
-#pill-eq {
-  display: none;
-  align-items: flex-end;
-  gap: 2px;
-  height: 12px;
-  margin-left: 2px;
-  pointer-events: none;
-  opacity: 0.92;
-}
-#pill-eq.active {
-  display: inline-flex;
-  animation: eqFadeIn 0.22s ease both;
-}
-#pill-eq span {
-  width: 2.5px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent-glow);
-  transform-origin: bottom center;
-  will-change: transform;
-  animation: eqPulse 0.85s ease-in-out infinite alternate;
-}
-#pill-eq span:nth-child(1) { animation-duration: 0.68s; animation-delay: 0s; }
-#pill-eq span:nth-child(2) { animation-duration: 0.54s; animation-delay: 0.16s; }
-#pill-eq span:nth-child(3) { animation-duration: 0.78s; animation-delay: 0.31s; }
-
-@keyframes eqPulse {
-  0%   { transform: scaleY(0.22); opacity: 0.65; }
-  100% { transform: scaleY(1); opacity: 1; }
-}
-@keyframes eqFadeIn {
-  from { opacity: 0; transform: scale(0.75); }
-  to   { opacity: 0.92; transform: scale(1); }
-}
-
-/* 4. Barra luminosa de progresso do Pomodoro na borda da cápsula */
+/* Barra luminosa de progresso do Pomodoro na borda da cápsula */
 #pill-pomo-track {
   position: absolute;
   left: 18px;
@@ -103,7 +64,6 @@
   will-change: transform;
 }
 
-/* 5. Pulso sutil quando o Lumo percebe novo Ctrl+C */
 #lumo-pill.clip-flash {
   animation: pillClipFlash 0.42s cubic-bezier(0.22, 1.25, 0.36, 1) !important;
 }
@@ -113,27 +73,24 @@
   100% { transform: scale(1); }
 }
 
-/* 6. MODO ECONOMIA AUTOMÁTICO (em jogo / bandeja / oculto): zera animações em loop */
+/* MODO ECONOMIA AUTOMÁTICO (em jogo / bandeja / oculto) */
 body.lumo-eco #lumo-pill,
 body.lumo-eco #lumo-pill *,
-body.lumo-eco #pill-eq span,
 body.lumo-eco .eye {
   animation-play-state: paused !important;
 }
 
-/* 7. MODO ULTRA-LEVE (manual nas Configurações ou preferência do Windows) */
+/* MODO ULTRA-LEVE */
 body.reduced-motion #lumo-pill,
 body.reduced-motion .view.active,
-body.reduced-motion .view.active .card,
-body.reduced-motion #pill-eq span {
+body.reduced-motion .view.active .card {
   animation: none !important;
   transition-duration: 0.08s !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #lumo-pill,
   .view.active,
-  .view.active .card,
-  #pill-eq span {
+  .view.active .card {
     animation: none !important;
     transition-duration: 0.08s !important;
   }

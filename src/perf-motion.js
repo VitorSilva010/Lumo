@@ -13,20 +13,9 @@
   applyReducedMotion(reducedMotion);
   window.setReducedMotion = applyReducedMotion;
 
-  // 1. Injeta Mini Equalizador (#pill-eq) e Barra de Progresso do Pomodoro (#pill-pomo-track) na cápsula
   const pill = document.getElementById('lumo-pill');
-  const face = document.getElementById('lumo-face');
 
-  let eqEl = document.getElementById('pill-eq');
-  if (pill && !eqEl) {
-    eqEl = document.createElement('div');
-    eqEl.id = 'pill-eq';
-    eqEl.setAttribute('aria-hidden', 'true');
-    eqEl.innerHTML = '<span></span><span></span><span></span>';
-    if (face && face.nextSibling) pill.insertBefore(eqEl, face.nextSibling);
-    else pill.appendChild(eqEl);
-  }
-
+  // 1. Injeta Barra de Progresso do Pomodoro (#pill-pomo-track) na cápsula
   let pomoTrack = document.getElementById('pill-pomo-track');
   let pomoFill = document.getElementById('pill-pomo-fill');
   if (pill && !pomoTrack) {
@@ -37,18 +26,7 @@
     pomoFill = pomoTrack.firstElementChild;
   }
 
-  // 2. Sincroniza Equalizador via MutationObserver no #lumo-face (zero polling!)
-  function syncEq() {
-    if (!eqEl || !face) return;
-    const playing = face.classList.contains('music') && !window.lumoEcoMode;
-    eqEl.classList.toggle('active', playing);
-  }
-  if (face) {
-    new MutationObserver(syncEq).observe(face, { attributes: true, attributeFilter: ['class'] });
-    syncEq();
-  }
-
-  // 3. Sincroniza estado visual da cápsula quando painel abre/fecha (MutationObserver em #panel)
+  // 2. Sincroniza estado visual da cápsula quando painel abre/fecha
   const panel = document.getElementById('panel');
   if (panel && pill) {
     new MutationObserver(() => {
@@ -56,7 +34,7 @@
     }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 
-  // 4. Barra de progresso do Pomodoro sem invadir o timer original
+  // 3. Barra de progresso do Pomodoro sem invadir o timer original
   let pomoPeakSec = 0;
   let lastRatio = -1;
   function parseTimerSeconds() {
@@ -89,7 +67,7 @@
     }
   }
 
-  // 5. Motor de Modo Economia Automático (1 check leve a cada 1.5s)
+  // 4. Motor de Modo Economia Automático
   function syncEcoState() {
     const inGame = typeof isHiddenInGame !== 'undefined' && isHiddenInGame;
     const inTray = typeof trayOnlyMode !== 'undefined' && trayOnlyMode && !(typeof isExpanded !== 'undefined' && isExpanded);
@@ -98,7 +76,6 @@
     if (nextEco !== window.lumoEcoMode) {
       window.lumoEcoMode = nextEco;
       document.body.classList.toggle('lumo-eco', nextEco);
-      syncEq();
     }
     updatePomoBar();
   }
@@ -106,7 +83,6 @@
   setInterval(syncEcoState, 1500);
   syncEcoState();
 
-  // 6. Pulso discreto na cápsula ao copiar conteúdo novo (quando a função global disparar)
   window.flashPillClip = function () {
     if (!pill || window.lumoEcoMode || reducedMotion) return;
     pill.classList.remove('clip-flash');
@@ -115,7 +91,7 @@
     setTimeout(() => pill.classList.remove('clip-flash'), 440);
   };
 
-  // 7. Injeta toggle "Modo Ultra-Leve" nas Configurações (logo após autohide-toggle)
+  // 5. Toggle "Modo Ultra-Leve" nas Configurações
   const autoHide = document.getElementById('autohide-toggle');
   const cfgRow = autoHide ? autoHide.closest('.toggle-row, label, div') : null;
   if (cfgRow && !document.getElementById('reduced-motion-toggle')) {
