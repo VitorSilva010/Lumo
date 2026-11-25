@@ -17,6 +17,7 @@ struct TelemetryCache {
     used_ram_mb: u64,
     total_ram_mb: u64,
     cpu_percent: u8,
+    screen_w: i32,
 }
 
 struct AppState {
@@ -618,6 +619,7 @@ pub fn run() {
                 used_ram_mb: 0,
                 total_ram_mb: 0,
                 cpu_percent: 0,
+                screen_w: 0,
             }),
             _instance_lock: lock,
         })
