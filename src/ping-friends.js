@@ -23,6 +23,8 @@
   try { readMap = JSON.parse(localStorage.getItem('lumo_dm_read_map') || '{}'); } catch (_) {}
   let alertedIds = new Set();
   let initializedList = false;
+  let lastFriendsRenderSig = '';
+  let ecoSkipTick = false;
 
   const NUDGES = {
     wave:  { text: 'deu um oi! 👋',           expr: 'happy',     freq: [520, 780] },
@@ -331,6 +333,7 @@
 
   async function pollFriends() {
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
+    if (window.lumoEcoMode) { ecoSkipTick = !ecoSkipTick; if (ecoSkipTick) return; }
     try {
       const res = await fetch(`${FRIENDS_API}?uid=${encodeURIComponent(myUid)}`);
       if (!res.ok) return;
@@ -372,7 +375,14 @@
 
       initializedList = true;
       syncBadges();
-      if (subTab === 'friends' && !activeFriend) renderFriendsPane();
+      if (subTab === 'friends' && !activeFriend) {
+        const focusedAdd = document.activeElement && document.activeElement.id === 'pf-add-input';
+        const sig = JSON.stringify([myTag, showGameStatus, requests.map(r => r.id), friends.map(f => [f.uid, f.online, f.playing, f.last_msg_id, f.last_seen, readMap[f.room_code] || 0])]);
+        if (!focusedAdd && sig !== lastFriendsRenderSig) {
+          lastFriendsRenderSig = sig;
+          renderFriendsPane();
+        }
+      }
       else if (subTab === 'friends' && activeFriend) {
         // Atualiza status Online/Jogando/Offline no cabeçalho do DM aberto
         const updated = friends.find((x) => x.uid === activeFriend.uid);
@@ -468,6 +478,7 @@
       document.getElementById('pf-friends-pane')?.classList.toggle('hidden', subTab !== 'friends');
       document.getElementById('pf-rooms-pane')?.classList.toggle('hidden', subTab !== 'rooms');
       if (subTab === 'friends') {
+        lastFriendsRenderSig = '';
         renderFriendsPane();
         pollFriends();
       }
@@ -482,6 +493,7 @@
     toggleGamePrivacy(val) {
       showGameStatus = Boolean(val);
       localStorage.setItem('lumo_ping_show_game', String(showGameStatus));
+      lastFriendsRenderSig = '';
       renderFriendsPane();
       sendHeartbeat();
     },
@@ -548,6 +560,7 @@
       activeFriend = null;
       clearInterval(dmTimer);
       dmTimer = null;
+      lastFriendsRenderSig = '';
       renderFriendsPane();
       pollFriends();
     },

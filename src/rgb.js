@@ -55,6 +55,7 @@
     paintHue(hue);
     let ticks = 0;
     rgbTimer = setInterval(() => {
+      if (window.lumoEcoMode || document.hidden) return;
       if (!rgbActive || document.hidden) return;
       hue = (hue + 1.3) % 360;
       paintHue(hue);
