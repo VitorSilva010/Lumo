@@ -289,3 +289,23 @@ body.surface-light .ping-msg.me {
   background: var(--accent-soft);
   border-color: var(--accent);
 }
+
+/* Card Lumo Ping integrado à grade 3x2 */
+.hub-tile.ping-tile {
+  position: relative;
+}
+.hub-tile.ping-tile.connected {
+  border-color: rgba(74, 222, 128, 0.36) !important;
+  background: rgba(74, 222, 128, 0.055) !important;
+}
+.hub-tile.ping-tile.connected .ping-live-dot {
+  display: inline-block;
+}
+.ping-tile-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 9.5px;
+}

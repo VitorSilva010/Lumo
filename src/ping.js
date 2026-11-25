@@ -62,27 +62,52 @@
     localStorage.setItem('lumo_ping_recents', JSON.stringify(recents));
   }
 
-  // 1. Injeta a barra compacta no Resumo e a view #view-ping
+  // 1. Promove "Modo Jogo" para o topo e coloca o Lumo Ping na grade 3x2 com ícone SVG minimalista
   const hubGrid = document.querySelector('#view-resumo .hub-grid');
-  if (hubGrid && !document.getElementById('ping-summary-strip')) {
-    hubGrid.insertAdjacentHTML(
-      'afterend',
-      `<button type="button" class="ping-strip" id="ping-summary-strip" onclick="openView('ping')">
-        <div class="ping-strip-left">
-          <div class="ping-strip-icon">💬</div>
-          <div style="min-width:0;">
-            <div class="ping-strip-title">Lumo Ping <span class="ping-live-dot"></span></div>
-            <div class="ping-strip-sub" id="ping-strip-sub">Chat leve com amigos por código</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-          <span class="ping-unread-badge" id="ping-unread-badge">0</span>
-          <span style="color:var(--muted); font-size:12px;">›</span>
-        </div>
-      </button>`
-    );
-  }
+  if (hubGrid && !document.getElementById('tile-ping')) {
+    const tiles = Array.from(hubGrid.querySelectorAll('.hub-tile'));
+    const gameTile = tiles.find((t) => /modo jogo/i.test(t.textContent || ''));
 
+    if (gameTile) {
+      const iconActions = document.querySelector('.topbar .icon-actions');
+      const cfgBtn = document.getElementById('cfg-btn');
+      if (iconActions && !document.getElementById('game-top-btn')) {
+        const gameBtn = document.createElement('button');
+        gameBtn.type = 'button';
+        gameBtn.className = 'circle-btn';
+        gameBtn.id = 'game-top-btn';
+        gameBtn.title = 'Modo Jogo (ir pro canto)';
+        const gameSvg = gameTile.querySelector('svg');
+        gameBtn.innerHTML = gameSvg
+          ? gameSvg.outerHTML
+          : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>';
+        const origOnclick = gameTile.getAttribute('onclick');
+        if (origOnclick) gameBtn.setAttribute('onclick', origOnclick);
+        iconActions.insertBefore(gameBtn, cfgBtn || null);
+      }
+
+      const pingTile = document.createElement('button');
+      pingTile.type = 'button';
+      pingTile.className = 'hub-tile ping-tile';
+      pingTile.id = 'tile-ping';
+      pingTile.setAttribute('onclick', "openView('ping')");
+      pingTile.innerHTML = `
+        <span class="ping-unread-badge ping-tile-badge" id="ping-unread-badge">0</span>
+        <div class="tile-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="tile-title" style="display:flex; align-items:center; gap:5px;">
+            <span>Lumo Ping</span>
+            <span class="ping-live-dot"></span>
+          </div>
+          <div class="tile-sub" id="ping-strip-sub">Chat com amigos</div>
+        </div>`;
+      gameTile.replaceWith(pingTile);
+    }
+  }
   const cfgView = document.getElementById('view-config');
   if (cfgView && !document.getElementById('view-ping')) {
     cfgView.insertAdjacentHTML(
@@ -105,7 +130,7 @@
   }
 
   function updateSummaryStrip() {
-    const strip = document.getElementById('ping-summary-strip');
+    const strip = document.getElementById('tile-ping');
     const sub = document.getElementById('ping-strip-sub');
     const badge = document.getElementById('ping-unread-badge');
     if (!strip || !sub || !badge) return;
@@ -113,11 +138,9 @@
     strip.classList.toggle('connected', Boolean(currentRoom));
     if (currentRoom) {
       const last = messages[messages.length - 1];
-      sub.textContent = last
-        ? `Sala ${currentRoom} · ${last.sender_name}: ${last.body}`
-        : `Conectado na sala ${currentRoom}`;
+      sub.textContent = last ? `${last.sender_name}: ${last.body}` : `Sala ${currentRoom}`;
     } else {
-      sub.textContent = 'Chat leve com amigos por código';
+      sub.textContent = 'Chat com amigos';
     }
     badge.textContent = unread > 9 ? '9+' : String(unread);
     badge.classList.toggle('show', unread > 0);

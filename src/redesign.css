@@ -396,3 +396,28 @@ body.surface-light .mini-media-strip.playing {
   from { filter: hue-rotate(0deg); }
   to   { filter: hue-rotate(360deg); }
 }
+
+/* === LUMO v2.6.3 — ENCAIXE PERFEITO DA GRADE 3x2 SEM CORTE NO RODAPÉ === */
+#view-resumo {
+  gap: 7px !important;
+}
+.hero-bento {
+  padding: 10px 12px !important;
+}
+.motd-card {
+  padding: 7px 11px !important;
+}
+.mini-media-strip {
+  padding: 7px 10px !important;
+}
+.hub-grid {
+  gap: 6px !important;
+}
+.hub-tile {
+  padding: 8px 9px !important;
+  gap: 5px !important;
+}
+.hub-tile .tile-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
