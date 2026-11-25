@@ -1,0 +1,291 @@
+/* === LUMO v2.6.0 — LUMO PING (CHAT ULTRALEVE ENTRE AMIGOS) === */
+
+/* Barra compacta no Resumo logo abaixo da grade 3x2 */
+.ping-strip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.028);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.16s ease, background 0.16s ease;
+}
+.ping-strip:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.ping-strip:active { transform: scale(0.975); }
+.ping-strip.connected {
+  border-color: rgba(74, 222, 128, 0.34);
+  background: rgba(74, 222, 128, 0.06);
+}
+.ping-strip-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.ping-strip-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.ping-strip-title {
+  font-size: 11.6px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ping-strip-sub {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ping-live-dot {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+  display: none;
+}
+.ping-strip.connected .ping-live-dot { display: inline-block; }
+.ping-unread-badge {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111318;
+  font-size: 10px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ping-unread-badge.show { display: inline-flex; }
+
+/* View completa do Lumo Ping */
+#view-ping {
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+}
+.ping-top-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 11px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.ping-join-row {
+  display: flex;
+  gap: 6px;
+}
+.ping-join-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  outline: none;
+}
+.ping-join-row input:focus { border-color: var(--accent); }
+.ping-recents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.ping-recent-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ping-recent-chip:hover { border-color: var(--accent); color: var(--text); }
+
+/* Cabeçalho quando conectado em uma sala */
+.ping-room-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.ping-room-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.11);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+.ping-room-actions {
+  display: flex;
+  gap: 4px;
+}
+.ping-mini-btn {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 10.2px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ping-mini-btn:hover { border-color: var(--accent); color: var(--text); }
+.ping-mini-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* Cutucões animados */
+.ping-nudge-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.ping-nudge-btn {
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 10.4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.16s ease, background 0.16s ease;
+}
+.ping-nudge-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ping-nudge-btn:active { transform: scale(0.93); }
+
+/* Feed de mensagens */
+.ping-feed {
+  flex: 1;
+  min-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 4px;
+  scroll-behavior: smooth;
+}
+.ping-empty {
+  margin: auto;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11.4px;
+  line-height: 1.5;
+  padding: 18px 14px;
+}
+.ping-msg {
+  max-width: 84%;
+  align-self: flex-start;
+  padding: 7px 10px;
+  border-radius: 13px 13px 13px 4px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 11.8px;
+  line-height: 1.4;
+  word-break: break-word;
+  animation: viewSlideIn 0.18s ease both;
+}
+.ping-msg.me {
+  align-self: flex-end;
+  border-radius: 13px 13px 4px 13px;
+  background: var(--accent-soft);
+  border-color: rgba(246, 185, 116, 0.34);
+}
+.ping-msg.nudge {
+  align-self: center;
+  max-width: 92%;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 10.8px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  text-align: center;
+}
+.ping-msg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 9.8px;
+}
+.ping-sender { font-weight: 700; }
+.ping-time { color: var(--muted); font-size: 9px; }
+
+/* Input de envio */
+.ping-composer {
+  display: flex;
+  gap: 6px;
+  padding-top: 2px;
+}
+.ping-composer input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 11px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 11.8px;
+  outline: none;
+}
+.ping-composer input:focus { border-color: var(--accent); }
+
+/* Modo Claro */
+body.surface-light .ping-strip,
+body.surface-light .ping-top-card,
+body.surface-light .ping-nudge-btn {
+  background: rgba(15, 23, 42, 0.032);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+body.surface-light .ping-join-row input,
+body.surface-light .ping-composer input {
+  background: rgba(15, 23, 42, 0.05);
+  color: #0f172a;
+}
+body.surface-light .ping-msg {
+  background: rgba(15, 23, 42, 0.055);
+  border-color: rgba(15, 23, 42, 0.09);
+}
+body.surface-light .ping-msg.me {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
