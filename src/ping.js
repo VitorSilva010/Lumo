@@ -408,6 +408,7 @@
 
   function sendPingNudge(type) {
     const n = NUDGES[type] || NUDGES.wave;
+    if (typeof window.burstPingParticles === 'function') window.burstPingParticles(type, '', 4);
     if (typeof playChirp === 'function') playChirp(n.freq[0], n.freq[1], 0.14);
     if (typeof hopPill === 'function') hopPill();
     sendPingPayload('nudge', n.text);

@@ -71,6 +71,8 @@
     const inGame = typeof isGameSessionActive === 'function' ? isGameSessionActive() : (typeof isHiddenInGame !== 'undefined' && isHiddenInGame);
     const stealth = typeof isStealth === 'function' && isStealth();
 
+    if (typeof window.burstPingParticles === 'function') window.burstPingParticles(isNudge ? body : 'msg', col, isNudge ? 6 : 4);
+
     // 1. Pulinho luminoso na cor do amigo + som suave
     if (pill && !inGame) {
       pill.style.setProperty('--msg-color', col);
@@ -566,6 +568,7 @@
     },
     sendNudge(type) {
       const n = NUDGES[type] || NUDGES.wave;
+      if (typeof window.burstPingParticles === 'function') window.burstPingParticles(type, getMyColor(), 4);
       if (typeof hopPill === 'function') hopPill();
       if (typeof playChirp === 'function') playChirp(n.freq[0], n.freq[1], 0.14);
       sendDmMessage('nudge', n.text);

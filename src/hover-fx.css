@@ -1,0 +1,145 @@
+/* === LUMO v2.9.9 — MINI PLAYER NO HOVER & PARTÍCULAS DO LUMO PING === */
+
+/* Micro-barra do Mini Player ancorada na cápsula */
+#pill-mini-player {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 7px);
+  transform: translate3d(-50%, -6px, 0) scale(0.94);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 252px;
+  padding: 5px 8px 5px 10px;
+  border-radius: 999px;
+  background: rgba(13, 16, 24, 0.94);
+  border: 1px solid var(--accent-glow);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 18px var(--accent-soft);
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 65;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1.25, 0.36, 1);
+  will-change: transform, opacity;
+}
+/* Ponte invisível para o cursor deslizar da cápsula aos botões sem fechar */
+#pill-mini-player::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 12px;
+}
+#pill-mini-player.pos-above {
+  top: auto;
+  bottom: calc(100% + 7px);
+  transform: translate3d(-50%, 6px, 0) scale(0.94);
+}
+#pill-mini-player.pos-above::before {
+  top: auto;
+  bottom: -10px;
+}
+#pill-mini-player.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(-50%, 0, 0) scale(1);
+}
+
+body.surface-light #pill-mini-player {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.pmp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  flex-shrink: 0;
+}
+.pmp-title {
+  font-size: 10.6px;
+  font-weight: 700;
+  max-width: 122px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.pmp-ctrls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.pmp-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: 10.5px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.pmp-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-glow);
+  color: var(--accent);
+  transform: scale(1.08);
+}
+.pmp-btn:active {
+  transform: scale(0.92);
+}
+.pmp-btn.play {
+  background: var(--accent);
+  color: #0b0e14;
+  font-weight: 800;
+}
+.pmp-btn.play:hover {
+  background: var(--accent);
+  color: #0b0e14;
+  filter: brightness(1.08);
+}
+body.surface-light .pmp-btn:not(.play) {
+  background: rgba(15, 23, 42, 0.07);
+}
+
+/* Partículas GPU dos cutucões do Lumo Ping */
+.ping-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 98;
+  font-size: 15px;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 0 8px var(--pt-color, var(--accent)));
+  will-change: transform, opacity;
+  animation: pingParticleArc var(--pt-dur, 1.05s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes pingParticleArc {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 0, 0) scale(0.45) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate3d(calc(-50% + var(--pt-x) * 0.35), calc(var(--pt-y) * 0.4), 0) scale(1.12) rotate(calc(var(--pt-r) * 0.4));
+  }
+  75% {
+    opacity: 0.95;
+    transform: translate3d(calc(-50% + var(--pt-x) * 0.9), calc(var(--pt-y) * 0.92), 0) scale(0.98) rotate(var(--pt-r));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% + var(--pt-x)), calc(var(--pt-y) - 10px), 0) scale(0.65) rotate(calc(var(--pt-r) * 1.25));
+  }
+}
