@@ -102,18 +102,5 @@ window.loadNews = loadNews;
     }
   });
 
-  new MutationObserver(() => {
-    if (!panelEl.classList.contains('open')) return;
-    const targets = panelEl.querySelectorAll(
-      '#view-resumo .hero-bento, #view-resumo .motd-card, #view-resumo .mini-media-strip, #view-resumo .hub-tile, #view-resumo .card, #view-resumo .news-card'
-    );
-    targets.forEach((el, idx) => {
-      el.classList.remove('cascade-in');
-      void el.offsetWidth;
-      const delay = Math.min(idx * 22, 180);
-      el.style.setProperty('--cdelay', delay + 'ms');
-      el.classList.add('cascade-in');
-      setTimeout(() => el.classList.remove('cascade-in'), delay + 380);
-    });
-  }).observe(panelEl, { attributes: true, attributeFilter: ['class'] });
+  // Cascade-in removido na v2.7.0 para abertura instantânea sem flicker
 })();

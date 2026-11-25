@@ -276,6 +276,11 @@ function tryCollapseOnOutside(reasonTitle = '') {
 async function togglePanel(forceState) {
   if (isShuttingDown || isClosing) return;
   lastInteraction = Date.now();
+  const _f = document.getElementById('lumo-face');
+  if (_f && (_f.classList.contains('sleepy') || _f.classList.contains('bored'))) {
+    restoreIdleExpression();
+  }
+  if (typeof syncFreePosDirection === 'function') syncFreePosDirection();
   if (isHiddenInGame) await wakeFromGame();
   const next = typeof forceState === 'boolean' ? forceState : !isExpanded;
   if (next === isExpanded) return;
@@ -1066,7 +1071,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.6.4 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v2.7.0 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1202,6 +1207,20 @@ pill.addEventListener('pointermove', async e => {
 pill.addEventListener('pointerleave', () => pill.style.setProperty('--tilt', '0deg'));
 pill.addEventListener('click', () => {
   if (dragged || isShuttingDown) return;
+  const _faceNow = document.getElementById('lumo-face');
+  if (_faceNow && _faceNow.classList.contains('sleepy')) {
+    clearTimeout(clickTimer); clickTimer = null;
+    lastInteraction = Date.now();
+    pill.classList.remove('wake-stretch');
+    void pill.offsetWidth;
+    pill.classList.add('wake-stretch');
+    setTimeout(() => pill.classList.remove('wake-stretch'), 540);
+    setExpression('happy');
+    playChirp(420, 760, 0.16);
+    say('Opa, acordei! 👀', 2200, true);
+    setTimeout(() => restoreIdleExpression(), 1250);
+    return;
+  }
   if (clickTimer) {
     clearTimeout(clickTimer); clickTimer = null;
     lastInteraction = Date.now(); hopPill();

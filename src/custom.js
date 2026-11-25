@@ -57,11 +57,15 @@ function applyOpacity(val) {
 }
 
 async function applyPosition(pos, feedback = false) {
-  const valid = ['top-center', 'top-left', 'top-right', 'bottom-right'];
+  const valid = ['top-center', 'top-left', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'free'];
   const next = valid.includes(pos) ? pos : 'top-center';
   window.uiPosition = next;
   localStorage.setItem('lumo_pos', next);
-  document.body.classList.toggle('pos-bottom', next.startsWith('bottom-'));
+  if (next === 'free' && typeof syncFreePosDirection === 'function') {
+    syncFreePosDirection();
+  } else {
+    document.body.classList.toggle('pos-bottom', next.startsWith('bottom-'));
+  }
   document.querySelectorAll('.pos-btn').forEach((b) => {
     b.classList.toggle('active-btn', b.dataset.pos === next);
   });

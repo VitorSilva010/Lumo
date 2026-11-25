@@ -2,9 +2,13 @@
 (function initLumoMotion() {
   // 1. Transição suave (slide + fade) ao trocar de aba
   if (typeof window.openView === 'function') {
+    let _lastView = 'resumo';
     const _origOpenView = window.openView;
     window.openView = function (name, ...rest) {
+      const changed = name !== _lastView;
+      _lastView = name;
       const res = _origOpenView.call(this, name, ...rest);
+      if (!changed) return res;
       requestAnimationFrame(() => {
         const target =
           document.getElementById('view-' + name) ||

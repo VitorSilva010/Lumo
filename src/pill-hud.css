@@ -1,0 +1,178 @@
+/* === LUMO v2.7.0 — FLUIDEZ, REFLEXO NOS CARDS, HUD NA CÁPSULA E 7 POSIÇÕES === */
+
+/* 1. Barra de rolagem ultrafina e discreta */
+#panel ::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+#panel ::-webkit-scrollbar-track {
+  background: transparent;
+}
+#panel ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+#panel:hover ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+body.surface-light #panel ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.16);
+}
+
+/* 2. Espaçamento final para a 2ª fileira da grade 3x2 não raspar no rodapé */
+#view-resumo {
+  gap: 6px !important;
+  padding-bottom: 6px !important;
+}
+.hero-bento {
+  padding: 9px 11px !important;
+}
+.motd-card {
+  padding: 6px 10px !important;
+}
+.mini-media-strip {
+  padding: 6px 9px !important;
+}
+.hub-tile {
+  padding: 7px 9px !important;
+  gap: 4px !important;
+}
+
+/* 3. Reflexo luminoso suave acompanhando o mouse nos cards (GPU) */
+.hub-tile,
+.hero-bento,
+.motd-card,
+.mini-media-strip,
+.card {
+  position: relative;
+  overflow: hidden;
+}
+.hub-tile::after,
+.motd-card::after,
+.mini-media-strip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    140px circle at var(--mx, 50%) var(--my, 50%),
+    var(--accent-soft),
+    transparent 70%
+  );
+  transition: opacity 0.22s ease;
+}
+.hub-tile:hover::after,
+.motd-card:hover::after,
+.mini-media-strip:hover::after {
+  opacity: 0.9;
+}
+
+/* 4. Cápsula mais viva: respiração sutil + espreguiçada ao acordar */
+#lumo-pill {
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.24s ease,
+    box-shadow 0.28s ease,
+    padding 0.24s ease !important;
+}
+#lumo-pill.wake-stretch {
+  animation: wakeStretch 0.52s cubic-bezier(0.22, 1.32, 0.36, 1) !important;
+}
+@keyframes wakeStretch {
+  0%   { transform: scale(1, 1); }
+  30%  { transform: scale(1.1, 0.88) translateY(2px); }
+  62%  { transform: scale(0.95, 1.09) translateY(-5px); }
+  100% { transform: scale(1, 1) translateY(0); }
+}
+
+/* 5. HUD opcional na cápsula fechada (Relógio / Clima / CPU / Misto) */
+#pill-hud {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--text);
+  border-left: 1px solid transparent;
+  pointer-events: none;
+  transition:
+    max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease,
+    margin-left 0.28s ease,
+    padding-left 0.28s ease,
+    border-color 0.24s ease;
+}
+#pill-hud.show {
+  max-width: 86px;
+  opacity: 0.94;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left-color: rgba(255, 255, 255, 0.14);
+}
+body.surface-light #pill-hud.show {
+  border-left-color: rgba(15, 23, 42, 0.15);
+}
+#pill-hud .hud-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  flex-shrink: 0;
+}
+
+/* 6. Grades nas Configurações (7 posições + 5 modos da cápsula) */
+.pos-grid.pos-grid-7 {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 5px !important;
+}
+.pos-grid.pos-grid-7 .pos-btn[data-pos="free"] {
+  grid-column: span 3;
+}
+.hud-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-top: 7px;
+}
+.hud-mode-btn {
+  padding: 6px 4px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+.hud-mode-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.hud-mode-btn:active {
+  transform: scale(0.94);
+}
+.hud-mode-btn.active-btn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+body.surface-light .hud-mode-btn {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #334155;
+}
+body.surface-light .hud-mode-btn.active-btn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: #0f172a;
+}

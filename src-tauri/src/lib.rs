@@ -111,6 +111,16 @@ fn set_window_mode(
         _ => (310.0_f64, 150.0_f64, false),
     };
 
+    let prev_rect = match (window.outer_position(), window.outer_size(), window.scale_factor()) {
+        (Ok(p), Ok(s), Ok(sc)) if sc > 0.0 => Some((
+            p.x as f64 / sc,
+            p.y as f64 / sc,
+            s.width as f64 / sc,
+            s.height as f64 / sc,
+        )),
+        _ => None,
+    };
+
     window
         .set_size(tauri::Size::Logical(tauri::LogicalSize::new(w, h)))
         .map_err(|e| e.to_string())?;
@@ -127,10 +137,31 @@ fn set_window_mode(
         let (x, y) = match pos_key {
             "top-left" => (12.0, 8.0),
             "top-right" => ((screen_w - w - 12.0).max(0.0), 8.0),
+            "bottom-left" => (12.0, (screen_h - h - 56.0).max(8.0)),
+            "bottom-center" => (
+                ((screen_w - w) / 2.0).max(0.0),
+                (screen_h - h - 56.0).max(8.0),
+            ),
             "bottom-right" => (
                 (screen_w - w - 12.0).max(0.0),
                 (screen_h - h - 56.0).max(8.0),
             ),
+            "free" => {
+                if let Some((px, py, pw, ph)) = prev_rect {
+                    let cx = px + pw / 2.0;
+                    let cy = py + ph / 2.0;
+                    let is_lower = cy > screen_h / 2.0;
+                    let nx = (cx - w / 2.0).clamp(8.0, (screen_w - w - 8.0).max(8.0));
+                    let ny = if is_lower {
+                        (py + ph - h).clamp(8.0, (screen_h - h - 52.0).max(8.0))
+                    } else {
+                        py.clamp(8.0, (screen_h - h - 52.0).max(8.0))
+                    };
+                    (nx, ny)
+                } else {
+                    (((screen_w - w) / 2.0).max(0.0), 8.0)
+                }
+            }
             _ => (((screen_w - w) / 2.0).max(0.0), 8.0),
         };
 
