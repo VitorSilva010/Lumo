@@ -1,0 +1,147 @@
+/* === LUMO v2.3.0 — SKINS & ACESSÓRIOS DO MASCOTE === */
+
+/* Grid de seleção nas Configurações */
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+.skin-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 3px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 9.8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.skin-btn .sk-ic { font-size: 13px; line-height: 1.1; }
+.skin-btn:hover { border-color: var(--accent); color: var(--text); }
+.skin-btn.active-btn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.skin-pro-tag {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #111318;
+  line-height: 1.1;
+}
+body.is-pro-user .skin-pro-tag { display: none; }
+
+/* Base dos acessórios extras dentro de #lumo-face */
+.acc-extra {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  color: var(--accent);
+  opacity: 0;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+  transition: opacity 0.24s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 4;
+}
+
+/* Evita sobrepor fone/óculos reativos quando outra skin fixa estiver ativa */
+body.skin-fixed:not(.skin-headphones) #acc-headphones {
+  opacity: 0 !important;
+}
+body.skin-fixed:not(.skin-glasses) #acc-glasses {
+  opacity: 0 !important;
+}
+
+/* 1. Fones Fixos */
+body.skin-headphones #acc-headphones {
+  opacity: 1 !important;
+  transform: translateX(-50%) scale(1) !important;
+}
+
+/* 2. Óculos Fixos */
+body.skin-glasses #acc-glasses {
+  opacity: 1 !important;
+  transform: translateX(-50%) scale(1) !important;
+}
+
+/* 3. Orelhinhas de Gato */
+#acc-cat {
+  top: -22px;
+  width: 68px;
+  height: 22px;
+  transform: translateX(-50%) scale(0.75) translateY(5px);
+}
+body.skin-cat #acc-cat {
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateY(0);
+}
+
+/* 4. Visor Cyber (Pro) */
+#acc-cyber {
+  top: -3px;
+  width: 66px;
+  height: 24px;
+  transform: translateX(-50%) scale(0.8);
+}
+body.skin-cyber #acc-cyber {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+body.skin-cyber #acc-cyber .visor-shine {
+  animation: visorScan 2.8s ease-in-out infinite;
+}
+@keyframes visorScan {
+  0%, 100% { opacity: 0.25; transform: translateX(-8px); }
+  50% { opacity: 0.85; transform: translateX(8px); }
+}
+
+/* 5. Coroa Flutuante (Pro) */
+#acc-crown {
+  top: -24px;
+  width: 36px;
+  height: 20px;
+  transform: translateX(-50%) scale(0.7) translateY(6px);
+}
+body.skin-crown #acc-crown {
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateY(0);
+  animation: skinFloat 2.8s ease-in-out infinite;
+}
+
+/* 6. Auréola Flutuante (Pro) */
+#acc-halo {
+  top: -23px;
+  width: 48px;
+  height: 15px;
+  transform: translateX(-50%) scale(0.7) translateY(6px);
+}
+body.skin-halo #acc-halo {
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateY(0);
+  animation: skinFloat 2.4s ease-in-out infinite;
+}
+
+@keyframes skinFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0px); }
+  50%      { transform: translateX(-50%) translateY(-3px); }
+}
+
+/* Esconde acessórios durante o modo oculto/jogo (bolinha) ou despedida */
+#lumo-pill.stealth-dot .acc-extra,
+.face.goodbye .acc-extra {
+  opacity: 0 !important;
+}

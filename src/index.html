@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./custom.css" />
   <link rel="stylesheet" href="./alive.css" />
   <link rel="stylesheet" href="./player.css" />
+  <link rel="stylesheet" href="./skins.css" />
 </head>
 <body>
   <div id="app">
@@ -530,7 +531,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v2.2.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v2.3.0</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -636,6 +637,16 @@
             <button type="button" class="pos-btn" data-pos="top-right" onclick="applyPosition('top-right', true)">Dir.</button>
             <button type="button" class="pos-btn" data-pos="bottom-right" onclick="applyPosition('bottom-right', true)">Relógio</button>
           </div>
+          <div style="margin-top:9px; font-size:10.5px; color:var(--muted); font-weight:600;">Skins do Lumo</div>
+          <div class="skin-grid">
+            <button type="button" class="skin-btn" data-skin="reactive" onclick="applySkin('reactive', true)"><span class="sk-ic">✨</span>Reativo</button>
+            <button type="button" class="skin-btn" data-skin="headphones" onclick="applySkin('headphones', true)"><span class="sk-ic">🎧</span>Fones</button>
+            <button type="button" class="skin-btn" data-skin="glasses" onclick="applySkin('glasses', true)"><span class="sk-ic">🕶️</span>Óculos</button>
+            <button type="button" class="skin-btn" data-skin="cat" onclick="applySkin('cat', true)"><span class="sk-ic">🐱</span>Gato</button>
+            <button type="button" class="skin-btn" data-skin="cyber" onclick="applySkin('cyber', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">⚡</span>Cyber</button>
+            <button type="button" class="skin-btn" data-skin="crown" onclick="applySkin('crown', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">👑</span>Coroa</button>
+            <button type="button" class="skin-btn" data-skin="halo" onclick="applySkin('halo', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">😇</span>Auréola</button>
+          </div>
         </div>
         <div class="card">
           <div class="label-xs">
@@ -666,7 +677,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.2.1</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v2.3.0</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
@@ -680,5 +691,6 @@
   <script src="./docs.js"></script>
   <script src="./alive.js"></script>
   <script src="./player.js"></script>
+  <script src="./skins.js"></script>
 </body>
 </html>
