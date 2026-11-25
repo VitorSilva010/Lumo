@@ -167,7 +167,7 @@
             .join('')}</div>`
         : '';
       top.innerHTML = `
-        <div style="font-size:11.6px; font-weight:700;">Converse pelo Lumo sem pesar a RAM</div>
+        <div style="font-size:11.6px; font-weight:700;">Converse pelo Lumo</div>
         <div style="font-size:10.4px; color:var(--muted); line-height:1.4;">Crie uma sala, passe o código pro seu amigo e troquem mensagens ou cutucões direto na cápsula. Mensagens expiram em 24h.</div>
         <div class="ping-join-row">
           <input type="text" id="ping-room-input" placeholder="Código (ex: LUMO-4K2P)" maxlength="16" onkeydown="if(event.key==='Enter') joinPingFromInput()" />
