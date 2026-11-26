@@ -1,38 +1,28 @@
-/* === LUMO v2.9.6 — OTIMIZAÇÃO 60 FPS, MODO ECONOMIA & MICRO-ANIMAÇÕES === */
+/* === LUMO v3.0.1 — OTIMIZAÇÃO 60 FPS, MODO ECONOMIA & SCROLL SINCRONIZADO === */
 
-#panel {
-  contain: layout style;
+/* Garante que o scroll do Resumo fique 100% dentro de .home-scroll sem desalinhamento */
+#view-resumo {
+  padding: 0 !important;
+  overflow: hidden !important;
+  gap: 0 !important;
 }
-.view {
-  contain: layout style;
+#view-resumo .home-scroll {
+  gap: 9px !important;
 }
+
 .card {
-  contain: layout style;
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 #lumo-pill {
   transition:
-    transform 0.26s cubic-bezier(0.22, 1.24, 0.36, 1),
+    transform 0.24s cubic-bezier(0.22, 1.24, 0.36, 1),
     border-color 0.22s ease,
     box-shadow 0.28s ease;
 }
 #lumo-pill.pill-open {
   transform: scale(0.97);
   border-color: var(--accent-glow);
-}
-
-.view.active .card {
-  animation: cardStaggerIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.view.active .card:nth-child(2) { animation-delay: 28ms; }
-.view.active .card:nth-child(3) { animation-delay: 52ms; }
-.view.active .card:nth-child(4) { animation-delay: 76ms; }
-.view.active .card:nth-child(5) { animation-delay: 100ms; }
-
-@keyframes cardStaggerIn {
-  from { opacity: 0; transform: translate3d(0, 7px, 0) scale(0.988); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 /* Barra luminosa de progresso do Pomodoro na borda da cápsula */
@@ -82,15 +72,13 @@ body.lumo-eco .eye {
 
 /* MODO ULTRA-LEVE */
 body.reduced-motion #lumo-pill,
-body.reduced-motion .view.active,
-body.reduced-motion .view.active .card {
+body.reduced-motion .view.active {
   animation: none !important;
   transition-duration: 0.08s !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #lumo-pill,
-  .view.active,
-  .view.active .card {
+  .view.active {
     animation: none !important;
     transition-duration: 0.08s !important;
   }

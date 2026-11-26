@@ -54,7 +54,7 @@
   }
 
   // 2. Injeta card contextual no topo do #view-resumo
-  const resumoView = document.getElementById('view-resumo');
+  const resumoView = document.querySelector('#view-resumo .home-scroll') || document.getElementById('view-resumo');
   let dlCard = document.getElementById('resumo-dl-card');
   if (resumoView && !dlCard) {
     dlCard = document.createElement('div');

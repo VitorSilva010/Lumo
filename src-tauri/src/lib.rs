@@ -340,8 +340,8 @@ fn send_media_key(action: &str) {
     };
 
     unsafe {
-        keybd_event(vk, 0, KEYBD_EVENT_FLAGS(0), 0);
-        keybd_event(vk, 0, KEYEVENTF_KEYUP, 0);
+        keybd_event(vk, 0, KEYBD_EVENT_FLAGS(0x0001), 0);
+        keybd_event(vk, 0, KEYBD_EVENT_FLAGS(0x0001 | 0x0002), 0);
     }
 }
 

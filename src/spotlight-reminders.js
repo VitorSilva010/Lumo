@@ -359,7 +359,7 @@
   }
 
   function renderResumoAlert() {
-    const resumo = document.getElementById('view-resumo');
+    const resumo = document.querySelector('#view-resumo .home-scroll') || document.getElementById('view-resumo');
     if (!resumo) return;
     let box = document.getElementById('resumo-rem-alert');
     if (!box) {
