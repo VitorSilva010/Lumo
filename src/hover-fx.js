@@ -33,8 +33,7 @@
 
     const pos = String(window.uiPosition || localStorage.getItem('lumo_pos') || 'top-center');
     miniEl.classList.toggle('pos-above', pos.startsWith('bottom-'));
-    miniEl.classList.toggle('pos-left', pos.endsWith('-left'));
-    miniEl.classList.toggle('pos-right', pos.endsWith('-right'));
+    miniEl.classList.remove('pos-left', 'pos-right');
   }
 
   function showMiniPlayer() {

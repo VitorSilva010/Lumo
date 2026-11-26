@@ -37,8 +37,10 @@
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function getMyName() {
-    if (typeof userName !== 'undefined' && userName) return String(userName).slice(0, 24);
-    return (localStorage.getItem('lumo_name') || 'Lumo').slice(0, 24);
+    const stored = (localStorage.getItem('lumo_username') || localStorage.getItem('lumo_name') || '').trim();
+    if (stored) return stored.slice(0, 24);
+    if (typeof userName !== 'undefined' && userName) return String(userName).trim().slice(0, 24);
+    return 'Lumo';
   }
   function getMyColor() {
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
@@ -379,7 +381,7 @@
       syncBadges();
       if (subTab === 'friends' && !activeFriend) {
         const focusedAdd = document.activeElement && document.activeElement.id === 'pf-add-input';
-        const sig = JSON.stringify([myTag, showGameStatus, requests.map(r => r.id), friends.map(f => [f.uid, f.online, f.playing, f.last_msg_id, f.last_seen, readMap[f.room_code] || 0])]);
+        const sig = JSON.stringify([myTag, showGameStatus, requests.map(r => r.id), friends.map(f => [f.uid, f.display_name, f.online, f.playing, f.last_msg_id, f.last_seen, readMap[f.room_code] || 0])]);
         if (!focusedAdd && sig !== lastFriendsRenderSig) {
           lastFriendsRenderSig = sig;
           renderFriendsPane();
@@ -417,9 +419,17 @@
         if (m.id > dmLastId) dmLastId = m.id;
         changed = true;
         alertedIds.add(`${activeFriend.room_code}:${m.id}`);
-        if (m.sender_uid !== myUid && isPingViewOpen()) {
-          readMap[activeFriend.room_code] = dmLastId;
-          localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
+        if (m.sender_uid !== myUid) {
+          const readingNow = isPingViewOpen() && subTab === 'friends';
+          if (readingNow) {
+            readMap[activeFriend.room_code] = dmLastId;
+            localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
+            if (m.kind === 'nudge') {
+              triggerIncomingMessageAnim(m.sender_name || activeFriend.display_name, m.body || 'te cutucou!', m.sender_color || activeFriend.color, true);
+            }
+          } else {
+            triggerIncomingMessageAnim(m.sender_name || activeFriend.display_name, m.body || 'Nova mensagem', m.sender_color || activeFriend.color, m.kind === 'nudge');
+          }
         }
       }
       if (dmMsgs.length > 60) dmMsgs = dmMsgs.slice(-60);
@@ -474,6 +484,7 @@
   }
 
   window.LumoFriends = {
+    syncProfile() { sendHeartbeat().then(pollFriends); },
     setTab(tab) {
       subTab = tab === 'rooms' ? 'rooms' : 'friends';
       document.querySelectorAll('.pf-subtab').forEach((b) => b.classList.toggle('active', b.dataset.tab === subTab));
