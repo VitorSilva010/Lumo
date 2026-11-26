@@ -46,6 +46,56 @@
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
     return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#4ade80';
   }
+  let replyTarget = null;
+  let lastActivityAt = Date.now();
+  let friendsPollTimer = null;
+
+  function loadDmCache(roomCode) {
+    try {
+      const arr = JSON.parse(localStorage.getItem('lumo_dm_hist_' + roomCode) || '[]');
+      return Array.isArray(arr) ? arr.slice(-200) : [];
+    } catch (_) { return []; }
+  }
+  function saveDmCache(roomCode, list) {
+    try {
+      localStorage.setItem('lumo_dm_hist_' + roomCode, JSON.stringify((list || []).slice(-200)));
+    } catch (_) {}
+  }
+  function dayLabel(ts) {
+    const d = new Date(ts || Date.now());
+    const now = new Date();
+    const key = (x) => `${x.getFullYear()}-${x.getMonth()}-${x.getDate()}`;
+    if (key(d) === key(now)) return 'Hoje';
+    const yest = new Date(now);
+    yest.setDate(now.getDate() - 1);
+    if (key(d) === key(yest)) return 'Ontem';
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  }
+  function formatBodyWithLinks(text) {
+    const safe = esc(text);
+    return safe.replace(/(https?:\/\/[^\s<]+)/gi, (url) =>
+      `<a class="pf-msg-link" href="#" onclick="event.stopPropagation(); event.preventDefault(); if(typeof invoke==='function') invoke('open_external_url',{url:'${url.replace(/'/g, "%27")}'});">${url}</a>`
+    );
+  }
+  function renderBodyHtml(body) {
+    const str = String(body || '');
+    const qm = str.match(/^↪\s*([^:\n]+):\s*"([^\n]*)"\n([\s\S]+)$/);
+    if (qm) {
+      return `<div class="pf-quote-box"><strong>${esc(qm[1])}:</strong> ${esc(qm[2])}</div>${formatBodyWithLinks(qm[3])}`;
+    }
+    return formatBodyWithLinks(str);
+  }
+  function syncReplyBar() {
+    const bar = document.getElementById('pf-reply-bar');
+    if (!bar) return;
+    if (!replyTarget) {
+      bar.classList.remove('show');
+      return;
+    }
+    bar.classList.add('show');
+    const pv = bar.querySelector('.pf-reply-preview');
+    if (pv) pv.textContent = `Respondendo ${replyTarget.name}: "${replyTarget.text.slice(0, 48)}"`;
+  }
   function fmtTime(ts) {
     try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
   }
@@ -208,6 +258,10 @@
           <button type="button" class="cp-mini" style="padding:5px 4px;" onclick="LumoFriends.sendNudge('alert')">⚡ Atenção</button>
         </div>
         <div class="pf-dm-feed" id="pf-dm-feed"></div>
+        <div class="pf-reply-bar" id="pf-reply-bar">
+          <span class="pf-reply-preview"></span>
+          <button type="button" class="del-btn" onclick="LumoFriends.cancelReply()">×</button>
+        </div>
         <form class="pf-dm-form" onsubmit="LumoFriends.submitDm(event)">
           <input type="text" id="pf-dm-input" placeholder="Mensagem para ${esc(f.display_name)}..." maxlength="380" autocomplete="off" />
           <button type="submit" class="cp-mini" style="padding:0 12px; background:var(--accent); color:#0b0e14; border-color:var(--accent); font-weight:700;">Enviar</button>
@@ -289,24 +343,33 @@
 
   function renderDmFeed() {
     const feed = document.getElementById('pf-dm-feed');
-    if (!feed || !activeFriend) return;
+    if (!feed) return;
     if (!dmMsgs.length) {
-      feed.innerHTML = `<div style="margin:auto; text-align:center; color:var(--muted); font-size:11px;">Diga oi para <strong>${esc(activeFriend.display_name)}</strong> ou mande um cutucão acima!</div>`;
+      feed.innerHTML = '<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:18px 8px;">Nenhuma mensagem ainda. Mande um oi ou um cutucão!</div>';
       return;
     }
-    feed.innerHTML = dmMsgs.map((m) => {
+    let lastDay = '';
+    const html = [];
+    for (const m of dmMsgs) {
+      const dLbl = dayLabel(m.created_at);
+      if (dLbl !== lastDay) {
+        lastDay = dLbl;
+        html.push(`<div class="pf-date-sep"><span>${esc(dLbl)}</span></div>`);
+      }
       const isMe = m.sender_uid === myUid;
       if (m.kind === 'nudge') {
-        return `<div class="pf-msg nudge"><strong style="color:${esc(m.sender_color)}">${esc(m.sender_name)}</strong> ${esc(m.body)} <span style="font-size:9.5px; color:var(--muted);">${fmtTime(m.created_at)}</span></div>`;
+        html.push(`<div class="ping-msg nudge"><span style="color:${esc(m.sender_color || 'var(--accent)')}">${esc(m.sender_name)}</span> ${esc(m.body)} <span style="opacity:0.55; font-size:9px;">${fmtTime(m.created_at)}</span></div>`);
+      } else {
+        const plainBody = String(m.body || '').replace(/^↪[^\n]+\n/, '');
+        html.push(`<div class="pf-dm-row ${isMe ? 'me' : 'them'}">
+          <div class="pf-dm-bubble" title="Clique para responder" onclick="LumoFriends.startReply(${JSON.stringify(m.sender_name || '')}, ${JSON.stringify(plainBody.slice(0, 80))})">
+            ${renderBodyHtml(m.body)}
+            <span class="pf-dm-time">${fmtTime(m.created_at)}</span>
+          </div>
+        </div>`);
       }
-      return `<div class="pf-msg ${isMe ? 'me' : ''}">
-        <div style="display:flex; justify-content:space-between; gap:8px; font-size:9.5px; margin-bottom:2px;">
-          <strong style="color:${isMe ? 'var(--accent)' : esc(m.sender_color)}">${isMe ? 'Você' : esc(m.sender_name)}</strong>
-          <span style="color:var(--muted);">${fmtTime(m.created_at)}</span>
-        </div>
-        <div>${esc(m.body)}</div>
-      </div>`;
-    }).join('');
+    }
+    feed.innerHTML = html.join('');
     feed.scrollTop = feed.scrollHeight;
   }
 
@@ -337,7 +400,7 @@
 
   async function pollFriends() {
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
-    if (window.lumoEcoMode) { ecoSkipTick = !ecoSkipTick; if (ecoSkipTick) return; }
+    // Ping 2.0: nunca pula tick de notificação
     try {
       const res = await fetch(`${FRIENDS_API}?uid=${encodeURIComponent(myUid)}`);
       if (!res.ok) return;
@@ -432,7 +495,8 @@
           }
         }
       }
-      if (dmMsgs.length > 60) dmMsgs = dmMsgs.slice(-60);
+      if (dmMsgs.length > 200) dmMsgs = dmMsgs.slice(-200);
+      if (changed && activeFriend) { lastActivityAt = Date.now(); saveDmCache(activeFriend.room_code, dmMsgs); }
       if (changed) {
         renderDmFeed();
         syncBadges();
@@ -475,6 +539,8 @@
           if (msg.id > dmLastId) dmLastId = msg.id;
           readMap[activeFriend.room_code] = dmLastId;
           localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
+          lastActivityAt = Date.now();
+          saveDmCache(activeFriend.room_code, dmMsgs);
           renderDmFeed();
         }
       }
@@ -556,9 +622,11 @@
       const f = friends.find((x) => x.uid === fUid);
       if (!f) return;
       activeFriend = f;
-      dmMsgs = [];
-      dmSeen = new Set();
-      dmLastId = 0;
+      replyTarget = null;
+      lastActivityAt = Date.now();
+      dmMsgs = loadDmCache(f.room_code);
+      dmSeen = new Set(dmMsgs.map((m) => m.id));
+      dmLastId = dmMsgs.reduce((max, m) => (m.id > max ? m.id : max), 0);
       if (f.last_msg_id) {
         readMap[f.room_code] = f.last_msg_id;
         localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
@@ -567,7 +635,7 @@
       renderFriendsPane();
       pollActiveDm();
       clearInterval(dmTimer);
-      dmTimer = setInterval(pollActiveDm, 3000);
+      dmTimer = setInterval(pollActiveDm, 1800);
     },
     closeDm() {
       activeFriend = null;
@@ -595,7 +663,16 @@
   };
 
   renderFriendsPane();
-  setTimeout(async () => { await sendHeartbeat(); await pollFriends(); }, 1600);
-  setInterval(sendHeartbeat, 25000);
-  setInterval(pollFriends, 7000);
+  async function scheduleFriendsPoll() {
+    clearTimeout(friendsPollTimer);
+    await pollFriends();
+    const activeRecently = (Date.now() - lastActivityAt) < 90000;
+    const delay = activeFriend ? 1800 : (activeRecently ? 2000 : (window.lumoEcoMode ? 4000 : 2500));
+    friendsPollTimer = setTimeout(scheduleFriendsPoll, delay);
+  }
+  window.addEventListener('focus', () => { pollFriends(); if (activeFriend) pollActiveDm(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { pollFriends(); if (activeFriend) pollActiveDm(); } });
+
+  setTimeout(async () => { await sendHeartbeat(); scheduleFriendsPoll(); }, 900);
+  setInterval(sendHeartbeat, 20000);
 })();
