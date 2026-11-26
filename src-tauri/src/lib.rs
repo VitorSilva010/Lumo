@@ -325,7 +325,7 @@ fn media_control(action: String) {
 #[cfg(windows)]
 fn send_media_key(action: &str) {
     use windows::Win32::UI::Input::KeyboardAndMouse::{
-        keybd_event, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, VK_MEDIA_NEXT_TRACK,
+        keybd_event, KEYBD_EVENT_FLAGS, VK_MEDIA_NEXT_TRACK,
         VK_MEDIA_PLAY_PAUSE, VK_MEDIA_PREV_TRACK, VK_VOLUME_DOWN, VK_VOLUME_MUTE, VK_VOLUME_UP,
     };
 
