@@ -1179,6 +1179,129 @@ fn open_downloads_folder(file_name: Option<String>) -> Result<(), String> {
     Ok(())
 }
 
+
+#[derive(serde::Deserialize, Clone)]
+pub struct HitRect {
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+}
+
+struct HitTestConfig {
+    enabled: bool,
+    rects: Vec<HitRect>,
+}
+
+static HIT_TEST_STATE: std::sync::OnceLock<Mutex<HitTestConfig>> = std::sync::OnceLock::new();
+
+#[tauri::command]
+fn set_hit_rects(rects: Vec<HitRect>, enabled: bool) {
+    let state = HIT_TEST_STATE.get_or_init(|| {
+        Mutex::new(HitTestConfig {
+            enabled: false,
+            rects: Vec::new(),
+        })
+    });
+    if let Ok(mut cfg) = state.lock() {
+        cfg.enabled = enabled;
+        cfg.rects = rects;
+    }
+}
+
+#[cfg(windows)]
+fn get_cursor_and_buttons() -> Option<(i32, i32, bool)> {
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
+    use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+    unsafe {
+        let mut pt = POINT { x: 0, y: 0 };
+        if GetCursorPos(&mut pt).is_ok() {
+            let lbtn = (GetAsyncKeyState(0x01) as u16 & 0x8000) != 0;
+            let rbtn = (GetAsyncKeyState(0x02) as u16 & 0x8000) != 0;
+            return Some((pt.x, pt.y, lbtn || rbtn));
+        }
+    }
+    None
+}
+
+#[cfg(not(windows))]
+fn get_cursor_and_buttons() -> Option<(i32, i32, bool)> {
+    None
+}
+
+fn spawn_hit_test_loop(handle: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        let mut last_ignored = false;
+        loop {
+            let win = handle
+                .get_webview_window("main")
+                .or_else(|| handle.webview_windows().values().next().cloned());
+
+            let Some(window) = win else {
+                std::thread::sleep(Duration::from_millis(200));
+                continue;
+            };
+
+            if !window.is_visible().unwrap_or(false) {
+                if last_ignored {
+                    let _ = window.set_ignore_cursor_events(false);
+                    last_ignored = false;
+                }
+                std::thread::sleep(Duration::from_millis(250));
+                continue;
+            }
+
+            let (enabled, rects) = {
+                let state = HIT_TEST_STATE.get_or_init(|| {
+                    Mutex::new(HitTestConfig {
+                        enabled: false,
+                        rects: Vec::new(),
+                    })
+                });
+                match state.lock() {
+                    Ok(cfg) => (cfg.enabled, cfg.rects.clone()),
+                    Err(_) => (false, Vec::new()),
+                }
+            };
+
+            let mut should_ignore = false;
+
+            if enabled && !rects.is_empty() {
+                if let (Some((cx, cy, mouse_down)), Ok(pos), Ok(scale)) = (
+                    get_cursor_and_buttons(),
+                    window.inner_position(),
+                    window.scale_factor(),
+                ) {
+                    let rel_x = (cx - pos.x) as f64 / scale.max(0.5);
+                    let rel_y = (cy - pos.y) as f64 / scale.max(0.5);
+
+                    let inside = rects.iter().any(|r| {
+                        rel_x >= r.x && rel_x <= (r.x + r.w) && rel_y >= r.y && rel_y <= (r.y + r.h)
+                    });
+
+                    // Nunca interrompe um arraste iniciado dentro do Lumo
+                    if mouse_down && !last_ignored {
+                        should_ignore = false;
+                    } else {
+                        should_ignore = !inside;
+                    }
+                }
+            }
+
+            if should_ignore != last_ignored {
+                let _ = window.set_ignore_cursor_events(should_ignore);
+                if should_ignore {
+                    let _ = window.emit("lumo-cursor-outside", ());
+                }
+                last_ignored = should_ignore;
+            }
+
+            std::thread::sleep(Duration::from_millis(if enabled { 28 } else { 140 }));
+        }
+    });
+}
+
 pub fn run() {
     let lock = match TcpListener::bind("127.0.0.1:48291") {
         Ok(listener) => Some(listener),
@@ -1208,6 +1331,7 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            spawn_hit_test_loop(app.handle().clone());
             let show_i = MenuItem::with_id(app, "show", "Abrir Lumo", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&show_i, &quit_i])?;
@@ -1249,6 +1373,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            set_hit_rects,
             get_active_downloads,
             open_downloads_folder,
             get_desktop_state,
