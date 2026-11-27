@@ -1,0 +1,513 @@
+/* === LUMO v3.1.0 — LUMO MUSIC (PLAYER HÍBRIDO ESTILO SPOTIFY & LETRAS SINCRONIZADAS) === */
+
+.lm-subtabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+body.surface-light .lm-subtabs {
+  background: rgba(15, 23, 42, 0.045);
+}
+.lm-subtab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+}
+.lm-subtab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-glow);
+  color: var(--accent);
+}
+#lm-music-pane.hidden,
+#lm-legacy-pane.hidden {
+  display: none !important;
+}
+#lm-music-pane,
+#lm-legacy-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Card Now Playing estilo Spotify */
+.lm-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 12px !important;
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(0, 0, 0, 0.18));
+}
+body.surface-light .lm-hero {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(15, 23, 42, 0.04));
+}
+.lm-hero-glow {
+  position: absolute;
+  inset: -20px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) saturate(1.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.lm-hero.has-art .lm-hero-glow {
+  opacity: 0.22;
+}
+.lm-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.lm-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lm-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--accent-glow);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.lm-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.lm-cover svg {
+  width: 24px;
+  height: 24px;
+}
+.lm-meta {
+  min-width: 0;
+  flex: 1;
+}
+.lm-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lm-artist {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.lm-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+.lm-src-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  color: var(--accent);
+  letter-spacing: 0.2px;
+}
+.lm-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.lm-icon-btn {
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.lm-icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.lm-icon-btn:hover {
+  border-color: var(--accent-glow);
+  color: var(--text);
+}
+.lm-icon-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lm-icon-btn.liked {
+  color: #fb7185;
+  border-color: rgba(251, 113, 133, 0.45);
+  background: rgba(251, 113, 133, 0.14);
+}
+
+/* Barra de progresso */
+.lm-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lm-time {
+  font-size: 9.8px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+}
+.lm-time.end {
+  text-align: right;
+}
+.lm-seek,
+.lm-vol {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+  cursor: pointer;
+}
+.lm-seek {
+  flex: 1;
+}
+body.surface-light .lm-seek,
+body.surface-light .lm-vol {
+  background: rgba(15, 23, 42, 0.14);
+}
+.lm-seek::-webkit-slider-thumb,
+.lm-vol::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  cursor: pointer;
+}
+
+/* Controles centrais */
+.lm-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.lm-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lm-play-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #0b0e14;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+.lm-play-btn:hover {
+  filter: brightness(1.08);
+  transform: scale(1.04);
+}
+.lm-play-btn:active {
+  transform: scale(0.95);
+}
+.lm-play-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.lm-vol-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 82px;
+}
+.lm-vol {
+  width: 60px;
+}
+
+/* Letras sincronizadas (LRCLIB) */
+.lm-lyrics-box {
+  display: none;
+  max-height: 155px;
+  overflow-y: auto;
+  padding: 10px 10px;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  text-align: center;
+  scroll-behavior: smooth;
+}
+body.surface-light .lm-lyrics-box {
+  background: rgba(15, 23, 42, 0.05);
+}
+.lm-lyrics-box.show {
+  display: block;
+}
+.lm-lyric-line {
+  font-size: 11.4px;
+  line-height: 1.55;
+  color: var(--muted);
+  opacity: 0.62;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+.lm-lyric-line.active {
+  color: var(--accent);
+  opacity: 1;
+  font-weight: 800;
+  font-size: 12.2px;
+  background: var(--accent-soft);
+}
+
+/* Biblioteca: abas, busca, chips e lista de faixas */
+.lm-lib-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.lm-lib-tab {
+  padding: 5px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 10.2px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.lm-lib-tab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lm-search-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.lm-search-inp {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  color: var(--text);
+  font-size: 11.5px;
+  font-family: inherit;
+  outline: none;
+}
+.lm-search-inp:focus {
+  border-color: var(--accent);
+}
+.lm-src-switch {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.lm-src-pill {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lm-src-pill.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lm-chips {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+.lm-chip {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lm-chip.active,
+.lm-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.lm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 225px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.lm-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 7px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+body.surface-light .lm-track {
+  background: rgba(15, 23, 42, 0.035);
+}
+.lm-track:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border);
+}
+.lm-track.playing {
+  background: var(--accent-soft);
+  border-color: var(--accent-glow);
+}
+.lm-t-art {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--accent);
+}
+.lm-t-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lm-t-info {
+  min-width: 0;
+  flex: 1;
+}
+.lm-t-title {
+  font-size: 11.4px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lm-t-sub {
+  font-size: 9.8px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lm-t-acts {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.lm-t-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lm-t-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.lm-t-btn.liked {
+  color: #fb7185;
+}
+
+/* Host oculto do iframe YouTube sob demanda (destruído quando parado = 0 MB RAM) */
+#lm-yt-host {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  left: -9999px;
+  top: -9999px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Mini capa no hover da cápsula */
+.pmp-cover {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--accent-glow);
+  flex-shrink: 0;
+  display: none;
+}
+.pmp-cover.show {
+  display: block;
+}

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lumo Music YT Bridge</title>
+  <style>
+    html, body, #yt-player { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="yt-player"></div>
+  <script>
+    let player = null;
+    let ready = false;
+    let pendingLoad = null;
+    let tickTimer = null;
+
+    function post(payload) {
+      try { window.parent.postMessage(payload, '*'); } catch (_) {}
+    }
+
+    function startTick() {
+      stopTick();
+      tickTimer = setInterval(() => {
+        if (!player || !ready || typeof player.getCurrentTime !== 'function') return;
+        const st = player.getPlayerState ? player.getPlayerState() : -1;
+        if (st === 1) {
+          post({
+            type: 'lumo-yt-time',
+            current: Number(player.getCurrentTime() || 0),
+            duration: Number(player.getDuration() || 0)
+          });
+        }
+      }, 500);
+    }
+
+    function stopTick() {
+      if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+    }
+
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player('yt-player', {
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0
+        },
+        events: {
+          onReady: () => {
+            ready = true;
+            post({ type: 'lumo-yt-ready' });
+            if (pendingLoad) {
+              const p = pendingLoad;
+              pendingLoad = null;
+              if (typeof p.volume === 'number') player.setVolume(p.volume);
+              player.loadVideoById(p.videoId);
+              player.playVideo();
+            }
+          },
+          onStateChange: (e) => {
+            if (e.data === 1) {
+              startTick();
+              post({ type: 'lumo-yt-state', state: 'playing', duration: Number(player.getDuration() || 0) });
+            } else if (e.data === 2) {
+              stopTick();
+              post({ type: 'lumo-yt-state', state: 'paused' });
+            } else if (e.data === 0) {
+              stopTick();
+              post({ type: 'lumo-yt-state', state: 'ended' });
+            } else if (e.data === 3) {
+              post({ type: 'lumo-yt-state', state: 'buffering' });
+            }
+          },
+          onError: (e) => {
+            stopTick();
+            post({ type: 'lumo-yt-error', code: e.data });
+          }
+        }
+      });
+    };
+
+    window.addEventListener('message', (ev) => {
+      const msg = ev.data || {};
+      if (!msg || !msg.type) return;
+      if (msg.type === 'load') {
+        if (!ready || !player) { pendingLoad = msg; return; }
+        if (typeof msg.volume === 'number') player.setVolume(msg.volume);
+        player.loadVideoById(msg.videoId);
+        player.playVideo();
+      } else if (msg.type === 'play' && ready && player) {
+        player.playVideo();
+      } else if (msg.type === 'pause' && ready && player) {
+        player.pauseVideo();
+      } else if (msg.type === 'seek' && ready && player) {
+        player.seekTo(Number(msg.sec || 0), true);
+      } else if (msg.type === 'volume' && ready && player) {
+        player.setVolume(Math.max(0, Math.min(100, Number(msg.volume || 65))));
+      } else if (msg.type === 'stop' && ready && player) {
+        stopTick();
+        player.stopVideo();
+      }
+    });
+
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  </script>
+</body>
+</html>
