@@ -1,0 +1,389 @@
+/* === LUMO v3.7.0 — REDESIGN DO BOLSO, KIT RÁPIDO & FOCO & PC === */
+
+/* Barra de sub-abas reutilizável (Kit Rápido e Foco & PC) */
+.v37-subtabs {
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+.v37-subtabs.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.v37-subtabs.cols-4 { grid-template-columns: repeat(4, 1fr); }
+body.surface-light .v37-subtabs {
+  background: rgba(15, 23, 42, 0.045);
+}
+.v37-subtab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10.4px;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+.v37-subtab svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.v37-subtab:hover {
+  color: var(--text);
+}
+.v37-subtab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-glow);
+  color: var(--accent);
+}
+.v37-hidden {
+  display: none !important;
+}
+
+/* === 1. BANDEJA MÁGICA / BOLSO (#view-bolso) === */
+#view-bolso .drop-zone {
+  position: relative;
+  border: 1.5px dashed var(--accent-glow) !important;
+  border-radius: 16px !important;
+  padding: 15px 14px !important;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.045), rgba(0, 0, 0, 0.2)) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.2s ease, transform 0.16s ease;
+}
+body.surface-light #view-bolso .drop-zone {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(15, 23, 42, 0.04)) !important;
+}
+#view-bolso .drop-zone:hover,
+#view-bolso .drop-zone.drag-active {
+  border-color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+  box-shadow: 0 0 22px var(--accent-soft);
+}
+#view-bolso .drop-zone.drag-active {
+  transform: scale(1.015);
+}
+.v37-drop-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+.v37-fmt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+.v37-fmt-chip {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+body.surface-light .v37-fmt-chip {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.v37-bolso-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.v37-bolso-search {
+  display: flex;
+  gap: 5px;
+}
+.v37-bolso-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.038);
+  color: var(--text);
+  font-size: 11.2px;
+  font-family: inherit;
+  outline: none;
+}
+.v37-bolso-search input:focus {
+  border-color: var(--accent);
+}
+.v37-filter-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.v37-filter-btn {
+  padding: 5px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 9.8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.v37-filter-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* === 2. KIT RÁPIDO (#view-kit) === */
+.v37-color-stage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-top: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid var(--border);
+}
+body.surface-light .v37-color-stage {
+  background: rgba(15, 23, 42, 0.04);
+}
+.v37-color-big {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+}
+.v37-color-vals {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v37-color-codes {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.v37-code-pill {
+  padding: 3px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-family: Consolas, monospace;
+  font-size: 10.2px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.v37-code-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.v37-shades-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: 7px;
+}
+.v37-shade {
+  height: 22px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  transition: transform 0.14s ease;
+}
+.v37-shade:hover {
+  transform: scale(1.06);
+}
+
+/* QR Code refinado */
+#view-kit #qr-preview {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+#view-kit #qr-img {
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+}
+.v37-qr-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+/* Medidor de força da senha */
+.v37-pwd-meter-wrap {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v37-pwd-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.v37-pwd-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.26s ease, background-color 0.26s ease;
+}
+.v37-pwd-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* === 3. FOCO & PC (#view-util) === */
+.v37-pomo-ring-wrap {
+  position: relative;
+  width: 146px;
+  height: 146px;
+  margin: 8px auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.v37-pomo-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.v37-pomo-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 7;
+}
+body.surface-light .v37-pomo-bg {
+  stroke: rgba(15, 23, 42, 0.1);
+}
+.v37-pomo-fg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  transition: stroke-dashoffset 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.v37-pomo-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+#view-util .v37-pomo-center #timer-display {
+  margin: 0 !important;
+  font-size: 27px !important;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+}
+.v37-pomo-tag {
+  font-size: 9.2px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.v37-pomo-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10.2px;
+  color: var(--muted);
+}
+
+/* Dashboard de Saúde do PC na aba PC & Energia */
+.v37-pc-meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 7px;
+}
+.v37-pc-box {
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+body.surface-light .v37-pc-box {
+  background: rgba(15, 23, 42, 0.04);
+}
+.v37-pc-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.v37-pc-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.v37-pc-val {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.v37-pc-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.v37-pc-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.45s ease, background-color 0.3s ease;
+}
+.v37-pc-fill.warn { background: #fbbf24; }
+.v37-pc-fill.crit { background: #fb7185; }
