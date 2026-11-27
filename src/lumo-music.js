@@ -1205,7 +1205,7 @@
         <div class="lm-top-row">
           <div class="lm-cover">
             ${currentTrack?.artwork ? `<img src="${esc(currentTrack.artwork)}" alt="" />` : IC.music}
-            ${currentTrack && isPlaying ? '<span class="lm-eq-badge"><i></i><i></i><i></i></span>' : ''}
+            ${currentTrack ? '<span class="lm-eq-badge"><i></i><i></i><i></i></span>' : ''}
           </div>
           <div class="lm-meta">
             <div class="lm-title">${esc(currentTrack ? currentTrack.title : 'Lumo Music')}</div>

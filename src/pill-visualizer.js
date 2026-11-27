@@ -246,6 +246,7 @@
   function tick(now) {
     rafId = 0;
     if (isBlocked()) {
+      layer.style.opacity = '0';
       layer.classList.remove('active');
       ctx.clearRect(0, 0, width, height);
       energy = 0;
@@ -258,17 +259,20 @@
     const active = detectPlayingState();
     const volScale = Math.max(0.38, Math.min(1, musicVolume));
     const targetEnergy = active ? volScale : 0;
-    energy += (targetEnergy - energy) * (active ? 0.18 : 0.14);
+    // Entrada responsiva ao dar play; saída longa e suave (~750ms) ao pausar
+    energy += (targetEnergy - energy) * (active ? 0.16 : 0.068);
 
-    if (energy < 0.015 && !active) {
+    if (energy < 0.008 && !active) {
       energy = 0;
+      layer.style.opacity = '0';
       layer.classList.remove('active');
       ctx.clearRect(0, 0, width, height);
       return;
     }
 
     layer.classList.add('active');
-    phase += dt * (0.95 + energy * 0.55);
+    layer.style.opacity = String(Math.min(1, energy * 2.15).toFixed(3));
+    phase += dt * (0.35 + energy * 1.15);
 
     ctx.clearRect(0, 0, width, height);
     const col = readAccent(now);

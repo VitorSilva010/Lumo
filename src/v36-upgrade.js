@@ -29,7 +29,7 @@
       if (!musicTile.querySelector('.lm-tile-waves')) {
         const w = document.createElement('span');
         w.className = 'lm-tile-waves';
-        w.innerHTML = '<i></i><i></i><i></i><i></i><i></i>';
+        w.innerHTML = '<i></i><i></i><i></i>';
         musicTile.appendChild(w);
       }
     }
@@ -78,7 +78,7 @@
           sub.textContent = (musicState.playing ? '▶ ' : '⏸ ') + musicState.title.slice(0, 22);
         } else if (playingNow) {
           const mt = document.getElementById('mini-media-title')?.textContent?.trim();
-          if (mt && !/pronto para/i.test(mt)) sub.textContent = '▶ ' + mt.slice(0, 22);
+          if (mt && !/pronto para|controle de m[ií]dia|tocando agora/i.test(mt)) sub.textContent = '▶ ' + mt.slice(0, 22);
           else sub.textContent = 'Tocando agora';
         } else {
           sub.textContent = 'Músicas · Lo-fi · Rádio';

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lumo-mobile-v3-9-0';
+const CACHE_NAME = 'lumo-mobile-v3-9-2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {

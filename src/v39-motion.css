@@ -1,0 +1,214 @@
+/* === LUMO v3.9.2 — ANIMAÇÕES CLEAN, TRANSIÇÕES SUAVES & EQUALIZADOR 3 BARRAS UNIFICADO === */
+
+:root {
+  --ease-clean: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 1. Transição suave da cápsula (halo, borda e camada de ondas) */
+#lumo-pill {
+  transition:
+    box-shadow 0.5s var(--ease-clean),
+    border-color 0.45s var(--ease-clean),
+    background 0.35s var(--ease-clean),
+    opacity 0.25s ease !important;
+}
+#pill-wave-layer {
+  transition: opacity 0.6s var(--ease-clean) !important;
+}
+
+/* 2. Equalizador 3 barras limpo no card Lumo Music (idêntico à barra Controle de Mídia) */
+.hub-tile[data-lm-tile="1"] .lm-tile-waves {
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.6px;
+  height: 15px;
+  padding: 2px 4px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  opacity: 0;
+  transform: translateY(2px) scale(0.86);
+  transition:
+    opacity 0.48s var(--ease-clean),
+    transform 0.48s var(--ease-clean);
+}
+.hub-tile[data-lm-tile="1"].lm-tile-playing .lm-tile-waves {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.hub-tile[data-lm-tile="1"] .lm-tile-waves i {
+  display: block;
+  width: 3px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  transform-origin: bottom center;
+  transform: scaleY(0.24);
+  transition: transform 0.45s var(--ease-clean), opacity 0.45s var(--ease-clean);
+  animation: none;
+}
+.hub-tile[data-lm-tile="1"].lm-tile-playing .lm-tile-waves i:nth-child(1) {
+  animation: lmEq3A 0.76s ease-in-out 0.00s infinite alternate;
+}
+.hub-tile[data-lm-tile="1"].lm-tile-playing .lm-tile-waves i:nth-child(2) {
+  animation: lmEq3B 0.62s ease-in-out 0.18s infinite alternate;
+}
+.hub-tile[data-lm-tile="1"].lm-tile-playing .lm-tile-waves i:nth-child(3) {
+  animation: lmEq3C 0.84s ease-in-out 0.32s infinite alternate;
+}
+
+@keyframes lmEq3A {
+  0%   { transform: scaleY(0.32); opacity: 0.72; }
+  100% { transform: scaleY(0.84); opacity: 1; }
+}
+@keyframes lmEq3B {
+  0%   { transform: scaleY(0.45); opacity: 0.82; }
+  100% { transform: scaleY(1.00); opacity: 1; }
+}
+@keyframes lmEq3C {
+  0%   { transform: scaleY(0.26); opacity: 0.68; }
+  100% { transform: scaleY(0.72); opacity: 1; }
+}
+
+/* 3. Equalizador unificado na capa do álbum e na base do Now Playing (com fade-out suave ao pausar) */
+.lm-cover .lm-eq-badge {
+  display: inline-flex !important;
+  align-items: flex-end !important;
+  gap: 2.5px !important;
+  height: 16px !important;
+  padding: 3px 5px !important;
+  border-radius: 7px !important;
+  background: rgba(8, 11, 18, 0.78) !important;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: scale(0.82);
+  transition:
+    opacity 0.45s var(--ease-clean),
+    transform 0.45s var(--ease-clean);
+}
+.lm-hero.is-playing .lm-cover .lm-eq-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+.lm-cover .lm-eq-badge i {
+  display: block;
+  width: 2.8px !important;
+  height: 10px !important;
+  border-radius: 999px !important;
+  background: var(--accent) !important;
+  transform-origin: bottom center;
+  transform: scaleY(0.24);
+  transition: transform 0.42s var(--ease-clean);
+  animation: none !important;
+}
+.lm-hero.is-playing .lm-cover .lm-eq-badge i:nth-child(1) {
+  animation: lmEq3A 0.74s ease-in-out 0.00s infinite alternate !important;
+}
+.lm-hero.is-playing .lm-cover .lm-eq-badge i:nth-child(2) {
+  animation: lmEq3B 0.60s ease-in-out 0.16s infinite alternate !important;
+}
+.lm-hero.is-playing .lm-cover .lm-eq-badge i:nth-child(3) {
+  animation: lmEq3C 0.82s ease-in-out 0.30s infinite alternate !important;
+}
+
+/* Onda da base do Now Playing: cascata suave com fade-out gradual ao pausar */
+.lm-hero {
+  transition: border-color 0.45s var(--ease-clean), box-shadow 0.55s var(--ease-clean) !important;
+}
+.lm-hero-waves {
+  height: 20px !important;
+  gap: 4px !important;
+  opacity: 0 !important;
+  transform: translateY(4px);
+  transition:
+    opacity 0.65s var(--ease-clean),
+    transform 0.65s var(--ease-clean) !important;
+}
+.lm-hero.is-playing .lm-hero-waves {
+  opacity: 0.34 !important;
+  transform: translateY(0);
+}
+.lm-hero-waves i {
+  border-radius: 999px 999px 0 0 !important;
+  transform: scaleY(0.14);
+  transition: transform 0.55s var(--ease-clean);
+  animation: none !important;
+}
+.lm-hero.is-playing .lm-hero-waves i:nth-child(5n+1) { animation: lmHeroWaveClean 0.92s ease-in-out 0.00s infinite alternate !important; }
+.lm-hero.is-playing .lm-hero-waves i:nth-child(5n+2) { animation: lmHeroWaveClean 0.76s ease-in-out 0.18s infinite alternate !important; }
+.lm-hero.is-playing .lm-hero-waves i:nth-child(5n+3) { animation: lmHeroWaveClean 1.04s ease-in-out 0.34s infinite alternate !important; }
+.lm-hero.is-playing .lm-hero-waves i:nth-child(5n+4) { animation: lmHeroWaveClean 0.84s ease-in-out 0.52s infinite alternate !important; }
+.lm-hero.is-playing .lm-hero-waves i:nth-child(5n+5) { animation: lmHeroWaveClean 0.70s ease-in-out 0.26s infinite alternate !important; }
+
+@keyframes lmHeroWaveClean {
+  0%   { transform: scaleY(0.18); opacity: 0.45; }
+  100% { transform: scaleY(0.96); opacity: 1; }
+}
+
+/* 4. Movimentação mais clean nas trocas de tela, sub-abas, gavetas, botões e letras */
+.view.active {
+  animation: lumoCleanViewIn 0.24s var(--ease-clean) both !important;
+}
+@keyframes lumoCleanViewIn {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.lm-subtab,
+.v37-subtab,
+.lm-lib-tab,
+.lm-src-pill,
+.lm-chip,
+.lp-skin-btn,
+.lp-expr-btn,
+.lp-persona-chip,
+.v37-filter-btn,
+.circle-btn,
+.btn-primary,
+.btn-ghost {
+  transition:
+    background-color 0.2s var(--ease-clean),
+    border-color 0.2s var(--ease-clean),
+    color 0.18s var(--ease-clean),
+    box-shadow 0.24s var(--ease-clean),
+    transform 0.18s var(--ease-clean) !important;
+}
+
+.lm-play-btn {
+  transition:
+    transform 0.2s var(--ease-clean),
+    box-shadow 0.35s var(--ease-clean),
+    filter 0.18s ease !important;
+}
+.lm-play-btn:hover { transform: scale(1.045); }
+.lm-play-btn:active { transform: scale(0.95); }
+
+#lm-lyrics-box.show,
+#lm-jam-box.show {
+  animation: lumoDrawerClean 0.26s var(--ease-clean) both;
+}
+@keyframes lumoDrawerClean {
+  from { opacity: 0; transform: translate3d(0, -5px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.lm-lyric-line {
+  transition:
+    color 0.28s var(--ease-clean),
+    opacity 0.28s var(--ease-clean),
+    transform 0.28s var(--ease-clean) !important;
+}
+
+/* Respeita Modo Economia / Reduced Motion */
+body.lumo-eco .lm-tile-waves i,
+body.reduced-motion .lm-tile-waves i,
+body.lumo-eco .lm-eq-badge i,
+body.reduced-motion .lm-eq-badge i,
+body.lumo-eco .lm-hero-waves i,
+body.reduced-motion .lm-hero-waves i,
+body.lumo-eco .view.active,
+body.reduced-motion .view.active {
+  animation: none !important;
+}

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Lumo — Seu assistente de tela leve, musical e vivo</title>
-  <meta name="description" content="Lumo v3.9.1: cápsula leve em Rust + Tauri para Windows com Lumo Music (Spotify, YouTube e Audius), Lumo Jam, Lumo Ping, IA integrada, Bandeja Mágica e Foco & PC." />
+  <meta name="description" content="Lumo v3.9.2: cápsula leve em Rust + Tauri para Windows com Lumo Music (Spotify, YouTube e Audius), Lumo Jam, Lumo Ping, IA integrada, Bandeja Mágica e Foco & PC." />
   <meta name="theme-color" content="#080b11" />
   <link rel="icon" href="./app/icon.svg" type="image/svg+xml" />
   <style>
@@ -15,10 +15,10 @@
       --border: rgba(255, 255, 255, 0.09);
       --text: #f1f5f9;
       --muted: #94a3b8;
-      --accent: #34d399;
-      --accent-2: #22d3ee;
-      --accent-soft: rgba(52, 211, 153, 0.14);
-      --accent-glow: rgba(52, 211, 153, 0.45);
+      --accent: #f6b974;
+      --accent-2: #fb923c;
+      --accent-soft: rgba(246, 185, 116, 0.15);
+      --accent-glow: rgba(246, 185, 116, 0.48);
       --radius: 18px;
     }
     * { box-sizing: border-box; }
@@ -27,8 +27,8 @@
       margin: 0;
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Inter, sans-serif;
       background:
-        radial-gradient(900px 480px at 50% -120px, rgba(52, 211, 153, 0.14), transparent 70%),
-        radial-gradient(620px 380px at 88% 18%, rgba(34, 211, 238, 0.08), transparent 72%),
+        radial-gradient(900px 480px at 50% -120px, rgba(246, 185, 116, 0.15), transparent 70%),
+        radial-gradient(620px 380px at 88% 18%, rgba(251, 146, 60, 0.09), transparent 72%),
         var(--bg);
       color: var(--text);
       line-height: 1.55;
@@ -71,10 +71,10 @@
     .btn:hover { background: var(--surface-hover); border-color: var(--accent-glow); transform: translateY(-1px); }
     .btn:active { transform: translateY(0) scale(0.98); }
     .btn-primary {
-      background: var(--accent); border-color: var(--accent); color: #06130e;
-      box-shadow: 0 8px 24px rgba(52, 211, 153, 0.25);
+      background: var(--accent); border-color: var(--accent); color: #161008;
+      box-shadow: 0 8px 24px rgba(246, 185, 116, 0.28);
     }
-    .btn-primary:hover { background: #4ade80; border-color: #4ade80; color: #05110c; box-shadow: 0 10px 28px rgba(52, 211, 153, 0.36); }
+    .btn-primary:hover { background: #fcd09b; border-color: #fcd09b; color: #161008; box-shadow: 0 10px 28px rgba(246, 185, 116, 0.40); }
     .btn-lg { padding: 13px 22px; font-size: 14.5px; border-radius: 14px; }
 
     .hero { padding: 72px 0 56px; }
@@ -103,7 +103,7 @@
     .stage-viewport {
       position: relative; height: 225px; border-radius: 18px;
       background:
-        radial-gradient(circle at 50% 52%, rgba(52, 211, 153, 0.14), transparent 62%),
+        radial-gradient(circle at 50% 52%, rgba(246, 185, 116, 0.15), transparent 62%),
         repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 28px),
         repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 28px),
         #06090f;
@@ -182,7 +182,7 @@
     .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
     .plan-card { padding: 28px; border-radius: 22px; background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px; }
     .plan-card.pro {
-      background: linear-gradient(160deg, rgba(52, 211, 153, 0.1), rgba(251, 191, 36, 0.05) 55%, rgba(12, 17, 27, 0.92));
+      background: linear-gradient(160deg, rgba(246, 185, 116, 0.12), rgba(251, 191, 36, 0.05) 55%, rgba(12, 17, 27, 0.92));
       border-color: var(--accent-glow); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     }
     .plan-top { display: flex; align-items: center; justify-content: space-between; }
@@ -218,7 +218,7 @@
       <a href="#" class="brand">
         <span class="brand-pill"><i></i><i></i></span>
         <span>Lumo</span>
-        <span class="ver-pill" id="nav-ver">v3.9.1</span>
+        <span class="ver-pill" id="nav-ver">v3.9.2</span>
       </a>
       <nav class="nav-links">
         <a href="#recursos">Recursos</a>
@@ -293,7 +293,7 @@
           </div>
           <div class="stage-controls">
             <div class="skin-row" id="demo-skins">
-              <button type="button" class="chip-btn active" data-skin="default"><span class="dot-swatch" style="background:#34d399"></span>Clássica</button>
+              <button type="button" class="chip-btn active" data-skin="default"><span class="dot-swatch" style="background:#f6b974"></span>Âmbar</button>
               <button type="button" class="chip-btn" data-skin="sakura"><span class="dot-swatch" style="background:#f9a8d4"></span>Sakura</button>
               <button type="button" class="chip-btn" data-skin="gold"><span class="dot-swatch" style="background:#fbbf24"></span>Obsidian Gold</button>
               <button type="button" class="chip-btn" data-skin="prisma"><span class="dot-swatch" style="background:#818cf8"></span>Prisma</button>
@@ -517,7 +517,7 @@
         ctx.clearRect(0, 0, w, h);
         if (playing) {
           phase += 0.055;
-          const col = getComputedStyle(pill).getPropertyValue('--accent').trim() || '#34d399';
+          const col = getComputedStyle(pill).getPropertyValue('--accent').trim() || '#f6b974';
           [false, true].forEach((isTop) => {
             const baseY = isTop ? 9 : h - 9;
             const dir = isTop ? 1 : -1;
