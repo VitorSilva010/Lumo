@@ -1642,7 +1642,7 @@
     const h = document.getElementById('panel-title') || document.querySelector('#panel-header .panel-title, .header-title, #view-title');
     if (h && h.textContent.trim() === 'Mídia') h.textContent = 'Lumo Music';
   }
-  new MutationObserver(fixHeaderTitle).observe(viewMidia, { attributes: true, attributeFilter: ['class'] });
+  // Header title gerenciado por app.js
   setTimeout(fixHeaderTitle, 300);
 
   window.LumoMusic = {

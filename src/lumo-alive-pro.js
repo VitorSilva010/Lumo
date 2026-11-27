@@ -124,63 +124,27 @@
     }
   }, 15000);
 
-  // Rastreamento suave dos olhos seguindo o cursor + detector de sacudida ("dizzy")
-  let shakeScore = 0;
-  let lastMx = 0;
-  let lastDxSign = 0;
-  let lastMoveTime = 0;
-  let eyeRaf = 0;
-  let pendingClientX = 0;
-  let pendingClientY = 0;
-
-  function applyEyeFollow() {
-    eyeRaf = 0;
-    if (window.lumoEcoMode || activeExpr === 'sleepy' || activeExpr === 'dizzy') {
-      face.style.setProperty('--eye-x', '0px');
-      face.style.setProperty('--eye-y', '0px');
-      return;
-    }
-    const r = pill.getBoundingClientRect();
-    if (!r.width) return;
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dx = Math.max(-1, Math.min(1, (pendingClientX - cx) / 140));
-    const dy = Math.max(-1, Math.min(1, (pendingClientY - cy) / 110));
-    face.style.setProperty('--eye-x', (dx * 3.4).toFixed(2) + 'px');
-    face.style.setProperty('--eye-y', (dy * 2.1).toFixed(2) + 'px');
-  }
-
-  window.addEventListener('pointermove', (e) => {
+  // Detector leve de sacudida ("dizzy") restrito à cápsula (olhos já são rastreados nativamente no app.js)
+  let shakeScore = 0, lastMx = 0, lastDxSign = 0, lastMoveTime = 0;
+  pill.addEventListener('pointermove', (e) => {
     markUserActive();
-    pendingClientX = e.clientX;
-    pendingClientY = e.clientY;
-    if (!eyeRaf) eyeRaf = requestAnimationFrame(applyEyeFollow);
-
-    // Detecta sacudida rápida sobre a cápsula
     const now = performance.now();
-    if (e.target && e.target.closest && e.target.closest('#lumo-pill')) {
-      const diff = e.clientX - lastMx;
-      const sign = diff > 6 ? 1 : (diff < -6 ? -1 : 0);
-      if (sign && sign !== lastDxSign && (now - lastMoveTime) < 220) {
-        shakeScore++;
-        lastDxSign = sign;
-        if (shakeScore >= 5 && activeExpr !== 'dizzy') {
-          shakeScore = 0;
-          setAliveExpression('dizzy', 2300);
-          if (typeof say === 'function') say('Opa! Calma aí que fiquei tonto 😵‍💫', 2200, true);
-        }
-      } else if (now - lastMoveTime > 380) {
+    const diff = e.clientX - lastMx;
+    const sign = diff > 6 ? 1 : (diff < -6 ? -1 : 0);
+    if (sign && sign !== lastDxSign && (now - lastMoveTime) < 220) {
+      shakeScore++;
+      lastDxSign = sign;
+      if (shakeScore >= 5 && activeExpr !== 'dizzy') {
         shakeScore = 0;
+        setAliveExpression('dizzy', 2300);
+        if (typeof say === 'function') say('Opa! Calma aí que fiquei tonto!', 2200, true);
       }
-      lastMx = e.clientX;
-      lastMoveTime = now;
+    } else if (now - lastMoveTime > 380) {
+      shakeScore = 0;
     }
+    lastMx = e.clientX;
+    lastMoveTime = now;
   }, { passive: true });
-
-  window.addEventListener('pointerleave', () => {
-    face.style.setProperty('--eye-x', '0px');
-    face.style.setProperty('--eye-y', '0px');
-  });
   window.addEventListener('keydown', markUserActive, { passive: true });
   window.addEventListener('pointerdown', markUserActive, { passive: true });
 
@@ -418,7 +382,7 @@
   }
 
   async function pollClipboardOnce() {
-    if (!isPro() || document.hidden) return;
+    if (!isPro() || document.hidden || window.lumoEcoMode) return;
     let txt = '';
     if (typeof invoke === 'function') {
       try { txt = await invoke('get_clipboard_text'); } catch (_) {}

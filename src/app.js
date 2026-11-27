@@ -1,3 +1,7 @@
+function _safeParse(raw, fallbackJson) {
+  try { return JSON.parse(raw || fallbackJson); }
+  catch (_) { try { return JSON.parse(fallbackJson); } catch (__) { return []; } }
+}
 const invoke = window.__TAURI__?.core?.invoke || null;
 const listen = window.__TAURI__?.event?.listen || null;
 const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
@@ -27,9 +31,9 @@ let isUpdating = false, pendingAutoUpdate = null;
 let lastCursorX = 0, lastDir = 0, shakeCount = 0, lastShakeReset = Date.now();
 let activeGamePendingHide = false;
 
-let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Testar a base limpa v1.8","done":false},{"text":"Beber água","done":true}]');
-let clipHistory = JSON.parse(localStorage.getItem('lumo_clips') || '[]');
-let colorHistory = JSON.parse(localStorage.getItem('lumo_colors') || '["#F6B974","#34D399","#67E8F9"]');
+let tasks = _safeParse(localStorage.getItem('lumo_tasks'), '[{"text":"Testar a base limpa v1.8","done":false},{"text":"Beber água","done":true}]');
+let clipHistory = _safeParse(localStorage.getItem('lumo_clips'), '[]');
+let colorHistory = _safeParse(localStorage.getItem('lumo_colors'), '["#F6B974","#34D399","#67E8F9"]');
 let pocketFiles = [];
 
 const viewTitles = {
@@ -1080,7 +1084,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.8.3 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.0 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
@@ -1248,13 +1252,26 @@ pill.addEventListener('click', () => {
   }
 });
 
-document.getElementById('panel').addEventListener('pointermove', e => {
-  const t = e.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card, .motd-card, .news-card');
-  if (!t) return;
-  const r = t.getBoundingClientRect();
-  t.style.setProperty('--mx', (e.clientX - r.left).toFixed(1) + 'px');
-  t.style.setProperty('--my', (e.clientY - r.top).toFixed(1) + 'px');
-});
+(() => {
+  const _panelEl = document.getElementById('panel');
+  let _spotRaf = 0, _lastEv = null;
+  _panelEl.addEventListener('pointermove', (e) => {
+    _lastEv = e;
+    if (_spotRaf) return;
+    _spotRaf = requestAnimationFrame(() => {
+      _spotRaf = 0;
+      const ev = _lastEv;
+      if (!ev || !ev.target || !ev.target.closest) return;
+      const activeView = document.querySelector('.view.active');
+      if (activeView && (activeView.classList.contains('is-scrolling') || activeView.querySelector('.home-scroll.is-scrolling'))) return;
+      const t = ev.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card, .motd-card, .news-card');
+      if (!t) return;
+      const r = t.getBoundingClientRect();
+      t.style.setProperty('--mx', (ev.clientX - r.left).toFixed(1) + 'px');
+      t.style.setProperty('--my', (ev.clientY - r.top).toFixed(1) + 'px');
+    });
+  }, { passive: true });
+})();
 
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && isExpanded) togglePanel(false); });
 window.addEventListener('blur', () => setTimeout(() => tryCollapseOnOutside(''), 150));

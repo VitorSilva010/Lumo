@@ -118,10 +118,7 @@
   if (viewMidia) {
     new MutationObserver(fixMidiaHeader).observe(viewMidia, { attributes: true, attributeFilter: ['class'] });
   }
-  const panelHeader = document.querySelector('#panel-header, .panel-header, .panel-top');
-  if (panelHeader) {
-    new MutationObserver(fixMidiaHeader).observe(panelHeader, { childList: true, subtree: true, characterData: true });
-  }
+  // Header title já é gerenciado por viewTitles em app.js
 
   // Executa após ping.js montar a grade do Resumo
   ensureHubGridLayout();
