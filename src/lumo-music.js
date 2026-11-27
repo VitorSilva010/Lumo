@@ -1,23 +1,15 @@
-// === LUMO v3.2.0 — LUMO MUSIC (ÁUDIO PURO SEM ANÚNCIO + AMBIENTE INTEGRADO + REDESIGN) ===
+// === LUMO v3.3.0 — LUMO MUSIC (SPOTIFY PREMIUM SDK + YOUTUBE PREMIUM + AUDIUS + PLAY INSTANTÂNEO) ===
 (function initLumoMusic() {
   const viewMidia = document.getElementById('view-midia');
   if (!viewMidia || document.getElementById('lm-subtabs')) return;
 
   const AUDIUS_API = 'https://api.audius.co/v1';
-  const YT_BRIDGE_URL = 'https://vitorsilva010.github.io/Lumo/yt-player.html';
+  const PAGES_BASE = 'https://vitorsilva010.github.io/Lumo';
+  const YT_BRIDGE_URL = PAGES_BASE + '/yt-player.html';
+  const SP_BRIDGE_URL = PAGES_BASE + '/spotify-player.html';
+  const SP_REDIRECT_URI = PAGES_BASE + '/spotify-cb.html';
+  const DEFAULT_SP_CLIENT_ID = 'f8799bf94c3a4d4b970a0fdd03b0a593';
   const WORKER_BASE = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://lumo-ai.sivavieiravitor.workers.dev');
-
-  // Instâncias públicas para tentar áudio puro do YouTube (sem anúncios, ~10 MB RAM)
-  const PIPED_MIRRORS = [
-    'https://pipedapi.kavin.rocks',
-    'https://pipedapi.adminforge.de',
-    'https://api.piped.private.coffee'
-  ];
-  const INVIDIOUS_MIRRORS = [
-    'https://inv.nadeko.net',
-    'https://invidious.nerdvpn.de',
-    'https://yewtu.be'
-  ];
 
   const S = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
   const IC = {
@@ -48,7 +40,7 @@
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 
-  // === ESTADO ===
+  // === ESTADO & PERSISTÊNCIA ===
   const audio = new Audio();
   audio.preload = 'none';
 
@@ -57,18 +49,28 @@
   let lastNonZeroVol = volume > 0 ? volume : 70;
   audio.volume = volume / 100;
 
+  // Credenciais Spotify PKCE (somente Client ID + tokens do usuário local)
+  let spClientId = localStorage.getItem('lumo_sp_client_id') || DEFAULT_SP_CLIENT_ID;
+  let spTokens = null; // { access_token, refresh_token, expires_at, user_name, product }
+  try { spTokens = JSON.parse(localStorage.getItem('lumo_sp_tokens') || 'null'); } catch (_) {}
+  let ytSignedIn = localStorage.getItem('lumo_yt_signed_in') === 'true';
+
   let mainTab = 'music';     // 'music' | 'ambient' | 'legacy'
   let libTab = 'explore';    // 'explore' | 'queue' | 'likes' | 'playlists'
-  let searchSrc = 'youtube'; // 'youtube' | 'audius'
+  let searchSrc = spTokens?.access_token ? 'spotify' : 'youtube'; // 'spotify' | 'youtube' | 'audius'
   let activeChip = 'trending';
+  let spChip = 'likes';
   let searchQuery = '';
   let loadingList = false;
-  let listMsg = 'Busque qualquer música ou cole um link do YouTube!';
+  let listMsg = spTokens?.access_token ? 'Carregando sua biblioteca do Spotify...' : 'Busque qualquer música ou conecte Spotify / YouTube Premium!';
   let results = [];
+  let spPlaylists = [];
+  let showSpManualBox = false;
+  let showSpSettings = false;
 
   let queue = [];
   let queueIdx = -1;
-  let currentTrack = null;   // { ..., _mode: 'direct' | 'embed' }
+  let currentTrack = null;
   let isPlaying = false;
   let isShuffle = false;
   let repeatMode = 'off';
@@ -85,82 +87,55 @@
   if (!Array.isArray(likes)) likes = [];
   if (!Array.isArray(playlists)) playlists = [];
 
-  // Letras (LRCLIB)
+  // Letras (Cache persistente de até 60 músicas + Auto-Lyrics + Pré-carregamento)
+  let autoLyrics = localStorage.getItem('lumo_music_autolyrics') !== 'false';
   let lyricsOpen = false;
   let lyricsLines = [];
   let lyricsSynced = false;
   let lyricsStatus = '';
   let activeLyricIdx = -1;
-  const lyricsCache = new Map();
+  let prefetchedNextKey = '';
+  let lyricsStore = {};
+  try { lyricsStore = JSON.parse(localStorage.getItem('lumo_lyrics_cache_v1') || '{}') || {}; } catch (_) {}
 
-  // Ponte YouTube sob demanda (0 MB quando parada ou em áudio puro)
+  function saveLikes() { localStorage.setItem('lumo_music_likes', JSON.stringify(likes.slice(0, 200))); }
+  function savePlaylists() { localStorage.setItem('lumo_music_playlists', JSON.stringify(playlists.slice(0, 30))); }
+  function saveSpTokens() {
+    if (spTokens) localStorage.setItem('lumo_sp_tokens', JSON.stringify(spTokens));
+    else localStorage.removeItem('lumo_sp_tokens');
+  }
+  function saveLyricsStore() {
+    try {
+      const entries = Object.entries(lyricsStore);
+      if (entries.length > 60) {
+        entries.sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+        lyricsStore = Object.fromEntries(entries.slice(0, 60));
+      }
+      localStorage.setItem('lumo_lyrics_cache_v1', JSON.stringify(lyricsStore));
+    } catch (_) {}
+  }
+
+  // === PONTE YOUTUBE OFICIAL (PRÉ-AQUECIDA & DESTRUÍVEL PARA 0 MB RAM) ===
   let ytHost = null;
   let ytFrame = null;
   let ytReady = false;
   let ytPendingId = null;
 
-  function usingYtEmbed() {
-    return Boolean(currentTrack && currentTrack.source === 'youtube' && currentTrack._mode === 'embed');
-  }
-  function saveLikes() { localStorage.setItem('lumo_music_likes', JSON.stringify(likes.slice(0, 200))); }
-  function savePlaylists() { localStorage.setItem('lumo_music_playlists', JSON.stringify(playlists.slice(0, 30))); }
-
-  // === RESOLUTOR DE ÁUDIO PURO DO YOUTUBE (SEM ANÚNCIO & BAIXA RAM) ===
-  async function resolvePureYtAudio(videoId) {
-    const pickBest = (streams) => {
-      if (!Array.isArray(streams)) return null;
-      const valid = streams.filter((s) => s && s.url && /audio/i.test(s.mimeType || s.type || 'audio'));
-      if (!valid.length) return null;
-      valid.sort((a, b) => {
-        const ba = Number(a.bitrate || 0);
-        const bb = Number(b.bitrate || 0);
-        // Prioriza ~128kbps (rápido para abrir, excelente qualidade)
-        return Math.abs(ba - 130000) - Math.abs(bb - 130000);
-      });
-      return valid[0].url;
-    };
-
-    const tasks = [];
-
-    // 1. Tenta rota opcional /yt-audio no Worker caso exista
-    tasks.push(
-      fetch(`${WORKER_BASE}/yt-audio?v=${encodeURIComponent(videoId)}`, { signal: AbortSignal.timeout(2800) })
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d) => (d && d.url ? d.url : Promise.reject()))
-    );
-
-    // 2. Corrida em paralelo nos mirrors Piped
-    for (const base of PIPED_MIRRORS) {
-      tasks.push(
-        fetch(`${base}/streams/${encodeURIComponent(videoId)}`, { signal: AbortSignal.timeout(3000) })
-          .then((r) => (r.ok ? r.json() : Promise.reject()))
-          .then((d) => {
-            const url = pickBest(d.audioStreams);
-            return url ? url : Promise.reject();
-          })
-      );
+  function ensureYtBridge() {
+    if (!ytHost) {
+      ytHost = document.createElement('div');
+      ytHost.id = 'lm-yt-host';
+      document.body.appendChild(ytHost);
     }
-
-    // 3. Corrida em paralelo nos mirrors Invidious
-    for (const base of INVIDIOUS_MIRRORS) {
-      tasks.push(
-        fetch(`${base}/api/v1/videos/${encodeURIComponent(videoId)}?fields=adaptiveFormats`, { signal: AbortSignal.timeout(3000) })
-          .then((r) => (r.ok ? r.json() : Promise.reject()))
-          .then((d) => {
-            const url = pickBest(d.adaptiveFormats);
-            return url ? url : Promise.reject();
-          })
-      );
-    }
-
-    try {
-      return await Promise.any(tasks);
-    } catch (_) {
-      return null;
+    if (!ytFrame) {
+      ytReady = false;
+      ytFrame = document.createElement('iframe');
+      ytFrame.src = YT_BRIDGE_URL;
+      ytFrame.allow = 'autoplay; encrypted-media';
+      ytFrame.setAttribute('title', 'Lumo YouTube Audio');
+      ytHost.appendChild(ytFrame);
     }
   }
-
-  // === PONTE YOUTUBE EMBED (FALLBACK) ===
   function destroyYtPlayer() {
     ytReady = false;
     ytPendingId = null;
@@ -173,32 +148,286 @@
   function sendYt(msg) {
     if (ytFrame && ytFrame.contentWindow) ytFrame.contentWindow.postMessage(msg, '*');
   }
-  function loadYtEmbed(videoId) {
-    if (!ytHost) {
-      ytHost = document.createElement('div');
-      ytHost.id = 'lm-yt-host';
-      document.body.appendChild(ytHost);
+  function loadYtVideo(videoId) {
+    ensureYtBridge();
+    if (ytReady) sendYt({ type: 'load', videoId, volume });
+    else ytPendingId = videoId;
+  }
+
+  // === PONTE SPOTIFY WEB PLAYBACK SDK (HTTPS + PKCE) ===
+  let spHost = null;
+  let spFrame = null;
+  let spBridgeUp = false;
+  let spDeviceId = '';
+  let spDeviceWaiters = [];
+
+  function ensureSpBridge() {
+    if (!spHost) {
+      spHost = document.createElement('div');
+      spHost.id = 'lm-sp-host';
+      document.body.appendChild(spHost);
     }
-    if (!ytFrame) {
-      ytReady = false;
-      ytPendingId = videoId;
-      ytFrame = document.createElement('iframe');
-      ytFrame.src = YT_BRIDGE_URL;
-      ytFrame.allow = 'autoplay; encrypted-media';
-      ytFrame.setAttribute('title', 'Lumo YouTube Audio');
-      ytHost.appendChild(ytFrame);
-    } else if (ytReady) {
-      sendYt({ type: 'load', videoId, volume });
-    } else {
-      ytPendingId = videoId;
+    if (!spFrame) {
+      spBridgeUp = false;
+      spDeviceId = '';
+      spFrame = document.createElement('iframe');
+      spFrame.src = SP_BRIDGE_URL;
+      spFrame.allow = 'autoplay; encrypted-media';
+      spFrame.setAttribute('title', 'Lumo Spotify SDK');
+      spHost.appendChild(spFrame);
+    }
+  }
+  function destroySpPlayer() {
+    spBridgeUp = false;
+    spDeviceId = '';
+    spDeviceWaiters.forEach((r) => r(''));
+    spDeviceWaiters = [];
+    if (spFrame) {
+      try { spFrame.contentWindow?.postMessage({ type: 'sp-disconnect' }, '*'); } catch (_) {}
+      spFrame.remove();
+      spFrame = null;
+    }
+  }
+  function sendSp(msg) {
+    if (spFrame && spFrame.contentWindow) spFrame.contentWindow.postMessage(msg, '*');
+  }
+
+  async function initSpDeviceIfNeeded() {
+    const token = await spGetValidToken();
+    if (!token) return '';
+    ensureSpBridge();
+    if (spDeviceId) {
+      sendSp({ type: 'sp-token', token });
+      return spDeviceId;
+    }
+    if (spBridgeUp) {
+      sendSp({ type: 'sp-init', token, volume: volume / 100 });
+    }
+    return new Promise((resolve) => {
+      const t = setTimeout(() => resolve(spDeviceId), 7000);
+      spDeviceWaiters.push((id) => { clearTimeout(t); resolve(id); });
+    });
+  }
+
+  // === SPOTIFY PKCE OAUTH ===
+  function randomStr(len) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const arr = new Uint8Array(len);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (b) => chars[b % chars.length]).join('');
+  }
+  async function pkceChallenge(verifier) {
+    const data = new TextEncoder().encode(verifier);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function startSpotifyLogin() {
+    ensureSpBridge(); // Garante listener de localStorage ativo na origem do GitHub Pages
+    const verifier = randomStr(64);
+    const state = randomStr(16);
+    const challenge = await pkceChallenge(verifier);
+    localStorage.setItem('lumo_sp_pkce_v', verifier);
+    localStorage.setItem('lumo_sp_pkce_s', state);
+
+    const scopes = [
+      'streaming',
+      'user-read-email',
+      'user-read-private',
+      'user-modify-playback-state',
+      'user-read-playback-state',
+      'user-library-read',
+      'playlist-read-private'
+    ].join(' ');
+
+    const u = new URL('https://accounts.spotify.com/authorize');
+    u.searchParams.set('client_id', spClientId);
+    u.searchParams.set('response_type', 'code');
+    u.searchParams.set('redirect_uri', SP_REDIRECT_URI);
+    u.searchParams.set('code_challenge_method', 'S256');
+    u.searchParams.set('code_challenge', challenge);
+    u.searchParams.set('state', state);
+    u.searchParams.set('scope', scopes);
+
+    const pop = window.open(u.toString(), 'lumo_spotify_auth', 'width=470,height=680');
+    if (!pop && typeof invoke === 'function') {
+      invoke('open_external_url', { url: u.toString() }).catch(() => {});
+    }
+    showSpManualBox = true;
+    renderLibrary();
+    if (typeof say === 'function') say('Faça login no Spotify na janela aberta!', 3200, true);
+  }
+
+  async function finishSpotifyAuth(code, state) {
+    const savedState = localStorage.getItem('lumo_sp_pkce_s') || '';
+    const verifier = localStorage.getItem('lumo_sp_pkce_v') || '';
+    if (!code || !verifier) return;
+    if (state && savedState && state !== savedState) return;
+
+    localStorage.removeItem('lumo_sp_pkce_s');
+    localStorage.removeItem('lumo_sp_pkce_v');
+
+    try {
+      const body = new URLSearchParams({
+        client_id: spClientId,
+        grant_type: 'authorization_code',
+        code: String(code).trim(),
+        redirect_uri: SP_REDIRECT_URI,
+        code_verifier: verifier
+      });
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      });
+      const d = await res.json();
+      if (!res.ok || !d.access_token) {
+        if (typeof say === 'function') say('Erro ao concluir login Spotify: ' + (d.error_description || d.error || 'tente novamente'), 3800, true);
+        return;
+      }
+
+      spTokens = {
+        access_token: d.access_token,
+        refresh_token: d.refresh_token || '',
+        expires_at: Date.now() + (Number(d.expires_in || 3600) * 1000),
+        user_name: 'Spotify',
+        product: 'premium'
+      };
+      try {
+        const me = await fetch('https://api.spotify.com/v1/me', {
+          headers: { Authorization: 'Bearer ' + spTokens.access_token }
+        });
+        if (me.ok) {
+          const md = await me.json();
+          spTokens.user_name = md.display_name || md.email || 'Spotify';
+          spTokens.product = md.product || 'free';
+        }
+      } catch (_) {}
+
+      saveSpTokens();
+      showSpManualBox = false;
+      searchSrc = 'spotify';
+      initSpDeviceIfNeeded();
+      loadSpotifyFeed('likes', '');
+      renderHero();
+      if (typeof hopPill === 'function') hopPill();
+      if (typeof say === 'function') say(`Spotify conectado como ${spTokens.user_name} ✓`, 3000, true);
+    } catch (_) {
+      if (typeof say === 'function') say('Sem conexão para autenticar no Spotify.', 2800, true);
     }
   }
 
+  async function spGetValidToken() {
+    if (!spTokens || !spTokens.access_token) return '';
+    if (Date.now() < (spTokens.expires_at || 0) - 60000) return spTokens.access_token;
+    if (!spTokens.refresh_token) return '';
+
+    try {
+      const body = new URLSearchParams({
+        client_id: spClientId,
+        grant_type: 'refresh_token',
+        refresh_token: spTokens.refresh_token
+      });
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      });
+      const d = await res.json();
+      if (res.ok && d.access_token) {
+        spTokens.access_token = d.access_token;
+        if (d.refresh_token) spTokens.refresh_token = d.refresh_token;
+        spTokens.expires_at = Date.now() + (Number(d.expires_in || 3600) * 1000);
+        saveSpTokens();
+        sendSp({ type: 'sp-token', token: spTokens.access_token });
+        return spTokens.access_token;
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  function disconnectSpotify() {
+    if (currentTrack?.source === 'spotify') stopMusic();
+    destroySpPlayer();
+    spTokens = null;
+    spPlaylists = [];
+    saveSpTokens();
+    results = [];
+    listMsg = 'Spotify desconectado.';
+    renderHero();
+    renderLibrary();
+  }
+
+  function openYouTubeLogin() {
+    const url = 'https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/';
+    window.open(url, 'lumo_yt_login', 'width=480,height=680');
+    ytSignedIn = true;
+    localStorage.setItem('lumo_yt_signed_in', 'true');
+    destroyYtPlayer(); // Força recriar iframe já com o novo cookie na próxima reprodução
+    renderLibrary();
+    if (typeof say === 'function') say('Entre na sua conta Google/YouTube na janela aberta para ativar o YouTube Premium!', 4200, true);
+  }
+
+  // === LISTENER GLOBAL DE POSTMESSAGE (YOUTUBE + SPOTIFY SDK + CALLBACK) ===
   window.addEventListener('message', (ev) => {
     const d = ev.data || {};
-    if (!d || typeof d.type !== 'string' || !d.type.startsWith('lumo-yt-')) return;
-    if (!usingYtEmbed()) return;
+    if (!d || typeof d.type !== 'string') return;
 
+    // 1. Callback OAuth Spotify
+    if (d.type === 'lumo-sp-auth') {
+      if (d.code) finishSpotifyAuth(d.code, d.state);
+      return;
+    }
+
+    // 2. Eventos Spotify SDK
+    if (d.type === 'lumo-sp-bridge-up') {
+      spBridgeUp = true;
+      if (spTokens?.access_token) {
+        spGetValidToken().then((tk) => { if (tk) sendSp({ type: 'sp-init', token: tk, volume: volume / 100 }); });
+      }
+      return;
+    }
+    if (d.type === 'lumo-sp-ready') {
+      spDeviceId = d.device_id || '';
+      const waiters = spDeviceWaiters.splice(0);
+      waiters.forEach((fn) => fn(spDeviceId));
+      return;
+    }
+    if (d.type === 'lumo-sp-error') {
+      if (d.kind === 'account' && typeof say === 'function') {
+        say('O Spotify SDK exige conta Spotify Premium ativa.', 3600, true);
+      } else if (d.kind === 'auth') {
+        spGetValidToken().then((tk) => { if (tk) sendSp({ type: 'sp-init', token: tk, volume: volume / 100 }); });
+      }
+      return;
+    }
+    if (d.type === 'lumo-sp-state' && currentTrack?.source === 'spotify') {
+      isPlaying = !d.paused;
+      if (d.duration > 0) duration = d.duration;
+      if (!seeking && typeof d.current === 'number') curTime = d.current;
+      syncGlobalVisuals();
+      renderHero();
+      updateProgressDOM();
+      return;
+    }
+    if (d.type === 'lumo-sp-time' && currentTrack?.source === 'spotify') {
+      if (!seeking) {
+        curTime = d.current || 0;
+        if (d.duration > 0) duration = d.duration;
+        updateProgressDOM();
+        syncActiveLyric();
+        maybePrefetchNext();
+      }
+      return;
+    }
+    if (d.type === 'lumo-sp-ended' && currentTrack?.source === 'spotify') {
+      playNext(true);
+      return;
+    }
+
+    // 3. Eventos YouTube Bridge
+    if (!d.type.startsWith('lumo-yt-')) return;
     if (d.type === 'lumo-yt-ready') {
       ytReady = true;
       if (ytPendingId) {
@@ -206,7 +435,11 @@
         ytPendingId = null;
         sendYt({ type: 'load', videoId: id, volume });
       }
-    } else if (d.type === 'lumo-yt-state') {
+      return;
+    }
+    if (currentTrack?.source !== 'youtube') return;
+
+    if (d.type === 'lumo-yt-state') {
       if (d.state === 'playing') {
         isPlaying = true;
         if (d.duration > 0) duration = d.duration;
@@ -225,56 +458,49 @@
         if (d.duration > 0) duration = d.duration;
         updateProgressDOM();
         syncActiveLyric();
+        maybePrefetchNext();
       }
     } else if (d.type === 'lumo-yt-error') {
-      if (typeof say === 'function') say('Esse vídeo bloqueou reprodução. Pulando...', 2600, true);
+      if (typeof say === 'function') say('Esse vídeo bloqueou reprodução incorporada. Pulando...', 2600, true);
       if (queue.length > 1) playNext(true);
       else stopMusic();
     }
   });
 
-  // === AUDIO NATIVO (<audio>) ===
+  // === AUDIO NATIVO (<audio> — AUDIUS / LOCAL) ===
   audio.addEventListener('playing', () => {
-    if (!currentTrack || usingYtEmbed()) return;
+    if (!currentTrack || currentTrack.source !== 'audius') return;
     isPlaying = true;
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     syncGlobalVisuals();
     renderHero();
   });
   audio.addEventListener('pause', () => {
-    if (!currentTrack || usingYtEmbed()) return;
+    if (!currentTrack || currentTrack.source !== 'audius') return;
     isPlaying = false;
     syncGlobalVisuals();
     renderHero();
   });
   audio.addEventListener('timeupdate', () => {
-    if (!currentTrack || usingYtEmbed() || seeking) return;
+    if (!currentTrack || currentTrack.source !== 'audius' || seeking) return;
     curTime = audio.currentTime || 0;
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     updateProgressDOM();
     syncActiveLyric();
+    maybePrefetchNext();
   });
   audio.addEventListener('ended', () => {
-    if (!currentTrack || usingYtEmbed()) return;
+    if (!currentTrack || currentTrack.source !== 'audius') return;
     playNext(true);
   });
   audio.addEventListener('error', () => {
-    if (!currentTrack || usingYtEmbed()) return;
-    // Se o stream puro do YouTube expirou/falhou, cai automaticamente para o Embed sem travar a música!
-    if (currentTrack.source === 'youtube' && currentTrack._mode === 'direct') {
-      currentTrack._mode = 'embed';
-      audio.pause();
-      audio.removeAttribute('src');
-      loadYtEmbed(currentTrack.videoId || currentTrack.id.replace(/^yt_/, ''));
-      renderHero();
-      return;
-    }
+    if (!currentTrack || currentTrack.source !== 'audius') return;
     if (typeof say === 'function') say('Não consegui carregar essa faixa. Tentando a próxima...', 2200, true);
     if (queue.length > 1) playNext(true);
     else stopMusic();
   });
 
-  // === SINCRONIA COM CÁPSULA, RESUMO & CARD LUMO MUSIC ===
+  // === SINCRONIA COM CÁPSULA, VISUALIZADOR E CARD DO RESUMO ===
   function syncResumoMusicTile() {
     const sub = document.getElementById('music-tile-sub');
     const tile = sub?.closest('.hub-tile') || document.querySelector('.hub-tile[data-lm-tile="1"]');
@@ -303,7 +529,9 @@
     }
     if (typeof syncPlayVisuals === 'function') syncPlayVisuals();
     syncResumoMusicTile();
-    window.dispatchEvent(new CustomEvent('lumo-music-state', { detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' } }));
+    window.dispatchEvent(new CustomEvent('lumo-music-state', {
+      detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' }
+    }));
 
     const mini = document.getElementById('pill-mini-player');
     if (mini) {
@@ -325,6 +553,23 @@
     }
   }
 
+  // === PRÉ-CARREGAMENTO DA PRÓXIMA FAIXA (PLAY INSTANTÂNEO) ===
+  function getNextTrackCandidate() {
+    if (queue.length <= 1 || isShuffle) return null;
+    const nIdx = queueIdx + 1 < queue.length ? queueIdx + 1 : (repeatMode === 'all' ? 0 : -1);
+    return nIdx >= 0 ? queue[nIdx] : null;
+  }
+  function maybePrefetchNext() {
+    if (!duration || duration < 20 || (duration - curTime) > 15 || (duration - curTime) < 2) return;
+    const next = getNextTrackCandidate();
+    if (!next) return;
+    const key = `${next.title}::${next.artist}`;
+    if (key === prefetchedNextKey) return;
+    prefetchedNextKey = key;
+    if (next.artwork) { const img = new Image(); img.src = next.artwork; }
+    fetchLyricsData(next).catch(() => {});
+  }
+
   // === CONTROLE DE REPRODUÇÃO ===
   async function playTrack(track, newQueue = null, idxInQueue = -1) {
     if (!track) return;
@@ -340,15 +585,20 @@
       else { queue.push({ ...track }); queueIdx = queue.length - 1; }
     }
 
-    currentTrack = { ...track, _mode: 'direct', _resolving: track.source === 'youtube' };
+    currentTrack = { ...track };
     curTime = 0;
     duration = Number(track.duration || 0);
     activeLyricIdx = -1;
+    prefetchedNextKey = '';
 
+    if (autoLyrics) lyricsOpen = true;
     if (typeof stopAmbient === 'function') { try { stopAmbient(); } catch (_) {} }
     if (typeof hopPill === 'function') hopPill();
 
-    if (track.source === 'youtube') {
+    // Dispara busca de letra EM PARALELO no milissegundo do clique!
+    if (lyricsOpen) fetchLyricsFor(currentTrack);
+
+    if (track.source === 'spotify') {
       audio.pause();
       audio.removeAttribute('src');
       destroyYtPlayer();
@@ -356,32 +606,43 @@
       syncGlobalVisuals();
       renderHero();
       renderLibrary();
-      if (lyricsOpen) fetchLyricsFor(currentTrack);
 
-      const vid = track.videoId || track.id.replace(/^yt_/, '');
-      const pureUrl = await resolvePureYtAudio(vid);
+      const devId = await initSpDeviceIfNeeded();
+      const token = await spGetValidToken();
       if (reqId !== playReqSeq || !currentTrack) return;
-
-      currentTrack._resolving = false;
-      if (pureUrl) {
-        currentTrack._mode = 'direct';
-        audio.src = pureUrl;
-        audio.volume = volume / 100;
-        audio.play().catch(() => {
-          if (reqId !== playReqSeq || !currentTrack) return;
-          currentTrack._mode = 'embed';
-          loadYtEmbed(vid);
-          renderHero();
-        });
-      } else {
-        currentTrack._mode = 'embed';
-        loadYtEmbed(vid);
+      if (!devId || !token) {
+        isPlaying = false;
+        syncGlobalVisuals();
+        renderHero();
+        if (typeof say === 'function') say('Conecte sua conta Spotify Premium para tocar essa faixa.', 3000, true);
+        return;
       }
+
+      const res = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(devId)}`, {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uris: [track.uri || `spotify:track:${track.id.replace(/^sp_/, '')}`] })
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        isPlaying = false;
+        syncGlobalVisuals();
+        renderHero();
+        if (typeof say === 'function') say('Spotify não iniciou o player agora. Verifique sua conta Premium.', 3200, true);
+      }
+    } else if (track.source === 'youtube') {
+      audio.pause();
+      audio.removeAttribute('src');
+      if (spFrame) sendSp({ type: 'sp-pause' });
+      isPlaying = true;
+      loadYtVideo(track.videoId || track.id.replace(/^yt_/, ''));
+      syncGlobalVisuals();
       renderHero();
+      renderLibrary();
     } else {
+      // Audius — áudio nativo ultra-leve (~10MB)
       destroyYtPlayer();
-      currentTrack._mode = 'direct';
-      currentTrack._resolving = false;
+      if (spFrame) sendSp({ type: 'sp-pause' });
       audio.src = track.streamUrl || `${AUDIUS_API}/tracks/${encodeURIComponent(track.id)}/stream?app_name=LumoMusic`;
       audio.volume = volume / 100;
       audio.play().catch(() => {});
@@ -389,7 +650,6 @@
       syncGlobalVisuals();
       renderHero();
       renderLibrary();
-      if (lyricsOpen) fetchLyricsFor(currentTrack);
     }
   }
 
@@ -399,7 +659,12 @@
       else if (results.length) playTrack(results[0], results, 0);
       return;
     }
-    if (usingYtEmbed()) {
+    if (currentTrack.source === 'spotify') {
+      sendSp({ type: 'sp-toggle' });
+      isPlaying = !isPlaying;
+      syncGlobalVisuals();
+      renderHero();
+    } else if (currentTrack.source === 'youtube') {
       if (isPlaying) { sendYt({ type: 'pause' }); isPlaying = false; }
       else { sendYt({ type: 'play' }); isPlaying = true; }
       syncGlobalVisuals();
@@ -416,6 +681,7 @@
     audio.removeAttribute('src');
     audio.load();
     destroyYtPlayer();
+    destroySpPlayer();
     currentTrack = null;
     isPlaying = false;
     curTime = 0;
@@ -423,6 +689,7 @@
     lyricsLines = [];
     syncGlobalVisuals();
     renderHero();
+    renderLyricsBox();
     renderLibrary();
     if (typeof say === 'function') say('Player parado · RAM liberada ✓', 1800, true);
   }
@@ -431,7 +698,8 @@
     if (!queue.length) return;
     if (auto && repeatMode === 'one' && currentTrack) {
       seekTo(0);
-      if (usingYtEmbed()) sendYt({ type: 'play' });
+      if (currentTrack.source === 'spotify') playTrack(currentTrack, queue, queueIdx);
+      else if (currentTrack.source === 'youtube') sendYt({ type: 'play' });
       else audio.play().catch(() => {});
       return;
     }
@@ -459,7 +727,8 @@
   function seekTo(sec) {
     const target = Math.max(0, Math.min(duration || 99999, Number(sec || 0)));
     curTime = target;
-    if (usingYtEmbed()) sendYt({ type: 'seek', sec: target });
+    if (currentTrack?.source === 'spotify') sendSp({ type: 'sp-seek', sec: target });
+    else if (currentTrack?.source === 'youtube') sendYt({ type: 'seek', sec: target });
     else if (Number.isFinite(audio.duration)) audio.currentTime = target;
     updateProgressDOM();
     syncActiveLyric();
@@ -470,16 +739,20 @@
     if (volume > 0) lastNonZeroVol = volume;
     localStorage.setItem('lumo_music_vol', String(volume));
     audio.volume = volume / 100;
-    if (usingYtEmbed()) sendYt({ type: 'volume', volume });
+    if (currentTrack?.source === 'youtube') sendYt({ type: 'volume', volume });
+    if (spFrame) sendSp({ type: 'sp-volume', volume: volume / 100 });
     const vi = document.getElementById('lm-vol');
     if (vi) { vi.value = String(volume); vi.style.setProperty('--vpct', volume + '%'); }
-    window.dispatchEvent(new CustomEvent('lumo-music-state', { detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' } }));
+    window.dispatchEvent(new CustomEvent('lumo-music-state', {
+      detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' }
+    }));
   }
 
-  // === LETRAS SINCRONIZADAS (LRCLIB) ===
+  // === LETRAS SINCRONIZADAS COM CACHE PERSISTENTE (0ms EM REPETIÇÕES) ===
   function cleanTitleForLyrics(raw) {
     return String(raw || '')
-      .replace(/\s*[\(\[](?:official|audio|video|lyrics?|hd|4k|visualizer|remix|ft\.?|feat\.?)[^\)\]]*[\)\]]/gi, '')
+      .replace(/\s*[\(\[](?:official|audio|video|lyrics?|hd|4k|visualizer|remix|remaster(?:ed)?|ft\.?|feat\.?)[^\)\]]*[\)\]]/gi, '')
+      .replace(/\s*-\s*remaster.*$/i, '')
       .replace(/\s+(?:ft\.?|feat\.?)\s+.*$/i, '')
       .trim();
   }
@@ -494,53 +767,100 @@
     }
     return out;
   }
-  async function fetchLyricsFor(track) {
-    if (!track) return;
-    const key = `${track.title}::${track.artist}`;
-    if (lyricsCache.has(key)) {
-      const c = lyricsCache.get(key);
-      lyricsLines = c.lines; lyricsSynced = c.synced; lyricsStatus = c.status;
-      renderLyricsBox(); syncActiveLyric(); return;
-    }
-    lyricsLines = []; lyricsSynced = false; lyricsStatus = 'Buscando letra sincronizada...';
-    renderLyricsBox();
+
+  async function fetchLyricsData(track) {
     const ct = cleanTitleForLyrics(track.title);
-    const ca = cleanTitleForLyrics(track.artist);
+    const ca = cleanTitleForLyrics(track.artist.split(',')[0]);
+    const key = `${ct.toLowerCase()}::${ca.toLowerCase()}`;
+
+    if (lyricsStore[key]) {
+      lyricsStore[key].ts = Date.now();
+      return lyricsStore[key];
+    }
+
+    let data = null;
     try {
-      let data = null;
-      const r1 = await fetch(`https://lrclib.net/api/get?track_name=${encodeURIComponent(ct)}&artist_name=${encodeURIComponent(ca)}`, { signal: AbortSignal.timeout(5500) });
+      const r1 = await fetch(`https://lrclib.net/api/get?track_name=${encodeURIComponent(ct)}&artist_name=${encodeURIComponent(ca)}`, { signal: AbortSignal.timeout(4500) });
       if (r1.ok) data = await r1.json();
       if (!data || (!data.syncedLyrics && !data.plainLyrics)) {
-        const r2 = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(`${ct} ${ca}`.trim())}`, { signal: AbortSignal.timeout(5500) });
+        const r2 = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(`${ct} ${ca}`.trim())}`, { signal: AbortSignal.timeout(4500) });
         if (r2.ok) {
           const arr = await r2.json();
           if (Array.isArray(arr) && arr.length) data = arr.find((x) => x.syncedLyrics) || arr[0];
         }
       }
-      if (data?.syncedLyrics) { lyricsLines = parseLrc(data.syncedLyrics); lyricsSynced = true; lyricsStatus = ''; }
-      else if (data?.plainLyrics) { lyricsLines = data.plainLyrics.split('\n').filter((x) => x.trim()).map((text) => ({ t: -1, text })); lyricsSynced = false; lyricsStatus = ''; }
-      else { lyricsLines = []; lyricsSynced = false; lyricsStatus = 'Letra não encontrada para esta faixa.'; }
     } catch (_) {
-      lyricsStatus = 'Sem conexão para buscar a letra.';
+      return { lines: [], synced: false, status: 'Sem conexão para buscar a letra.', ts: Date.now() };
     }
-    if (lyricsCache.size > 30) lyricsCache.clear();
-    lyricsCache.set(key, { lines: lyricsLines, synced: lyricsSynced, status: lyricsStatus });
-    renderLyricsBox(); syncActiveLyric();
+
+    let entry;
+    if (data?.syncedLyrics) {
+      entry = { lines: parseLrc(data.syncedLyrics), synced: true, status: '', ts: Date.now() };
+    } else if (data?.plainLyrics) {
+      entry = { lines: data.plainLyrics.split('\n').filter((x) => x.trim()).map((text) => ({ t: -1, text })), synced: false, status: '', ts: Date.now() };
+    } else {
+      entry = { lines: [], synced: false, status: 'Letra não encontrada para esta faixa.', ts: Date.now() };
+    }
+
+    if (entry.lines.length) {
+      lyricsStore[key] = entry;
+      saveLyricsStore();
+    }
+    return entry;
   }
+
+  async function fetchLyricsFor(track) {
+    if (!track) return;
+    const ct = cleanTitleForLyrics(track.title);
+    const ca = cleanTitleForLyrics(track.artist.split(',')[0]);
+    const key = `${ct.toLowerCase()}::${ca.toLowerCase()}`;
+    const targetId = track.id;
+
+    if (lyricsStore[key]) {
+      const c = lyricsStore[key];
+      lyricsLines = c.lines; lyricsSynced = c.synced; lyricsStatus = c.status;
+      renderLyricsBox(); syncActiveLyric(); return;
+    }
+
+    lyricsLines = []; lyricsSynced = false; lyricsStatus = 'Sincronizando letra...';
+    renderLyricsBox();
+
+    const entry = await fetchLyricsData(track);
+    if (!currentTrack || currentTrack.id !== targetId) return;
+    lyricsLines = entry.lines;
+    lyricsSynced = entry.synced;
+    lyricsStatus = entry.status;
+    renderLyricsBox();
+    syncActiveLyric();
+  }
+
   function renderLyricsBox() {
     const box = document.getElementById('lm-lyrics-box');
     if (!box) return;
     box.classList.toggle('show', lyricsOpen);
     if (!lyricsOpen) return;
-    if (!currentTrack) { box.innerHTML = '<div class="lm-lyric-line">Toque uma música para ver a letra sincronizada.</div>'; return; }
-    if (lyricsStatus) { box.innerHTML = `<div class="lm-lyric-line">${esc(lyricsStatus)}</div>`; return; }
-    box.innerHTML = lyricsLines.map((l, i) => `<div class="lm-lyric-line" data-lidx="${i}" data-lt="${l.t}">${esc(l.text)}</div>`).join('');
+
+    const header = `<div class="lm-lyrics-head">
+      <span>${lyricsSynced ? '● Letra sincronizada' : 'Letra'}</span>
+      <button type="button" class="lm-auto-pill ${autoLyrics ? 'on' : ''}" data-autolyrics="1">Auto-Lyrics: ${autoLyrics ? 'ON' : 'OFF'}</button>
+    </div>`;
+
+    if (!currentTrack) {
+      box.innerHTML = header + '<div class="lm-lyric-line">Toque uma música para acompanhar a letra.</div>';
+      return;
+    }
+    if (lyricsStatus) {
+      box.innerHTML = header + `<div class="lm-lyric-line">${esc(lyricsStatus)}</div>`;
+      return;
+    }
+    box.innerHTML = header + lyricsLines.map((l, i) => `<div class="lm-lyric-line" data-lidx="${i}" data-lt="${l.t}">${esc(l.text)}</div>`).join('');
   }
+
   function syncActiveLyric() {
     if (!lyricsOpen || !lyricsSynced || !lyricsLines.length) return;
     let idx = -1;
     for (let i = 0; i < lyricsLines.length; i++) {
-      if (curTime + 0.25 >= lyricsLines[i].t) idx = i;
+      if (curTime + 0.28 >= lyricsLines[i].t) idx = i;
       else break;
     }
     if (idx === activeLyricIdx) return;
@@ -554,7 +874,92 @@
     }
   }
 
-  // === BUSCA (YOUTUBE & AUDIUS) ===
+  // === CATÁLOGOS: SPOTIFY WEB API, YOUTUBE & AUDIUS ===
+  function mapSpotifyTrack(t) {
+    if (!t || !t.id) return null;
+    return {
+      id: 'sp_' + t.id,
+      uri: t.uri || ('spotify:track:' + t.id),
+      source: 'spotify',
+      title: t.name || 'Sem título',
+      artist: (t.artists || []).map((a) => a.name).join(', ') || 'Artista',
+      artwork: t.album?.images?.[1]?.url || t.album?.images?.[0]?.url || '',
+      duration: Math.round((t.duration_ms || 0) / 1000)
+    };
+  }
+
+  async function loadSpotifyFeed(chip = 'likes', query = '') {
+    const token = await spGetValidToken();
+    if (!token) {
+      results = [];
+      listMsg = 'Conecte sua conta Spotify Premium acima para buscar e ouvir suas músicas sem anúncios.';
+      renderLibrary();
+      return;
+    }
+
+    initSpDeviceIfNeeded(); // Pré-aquece o SDK em paralelo
+    loadingList = true;
+    listMsg = query.trim() ? 'Buscando no Spotify...' : 'Carregando do Spotify...';
+    renderLibrary();
+
+    try {
+      let url;
+      if (query.trim()) {
+        url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query.trim())}&type=track&limit=10`;
+      } else if (chip === 'likes') {
+        url = 'https://api.spotify.com/v1/me/tracks?limit=25';
+      } else if (chip === 'playlists') {
+        const pr = await fetch('https://api.spotify.com/v1/me/playlists?limit=20', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        const pd = await pr.json();
+        spPlaylists = Array.isArray(pd.items) ? pd.items : [];
+        results = [];
+        listMsg = spPlaylists.length ? '' : 'Nenhuma playlist encontrada na sua conta.';
+        loadingList = false;
+        renderLibrary();
+        return;
+      } else {
+        url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(chip)}&type=track&limit=10`;
+      }
+
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+      const data = await res.json();
+      const rawItems = query.trim() || (chip !== 'likes')
+        ? (data.tracks?.items || [])
+        : (data.items || []).map((x) => x.track);
+      results = rawItems.map(mapSpotifyTrack).filter(Boolean);
+      listMsg = results.length ? '' : 'Nenhuma música encontrada no Spotify.';
+    } catch (_) {
+      results = [];
+      listMsg = 'Erro ao carregar do Spotify.';
+    }
+    loadingList = false;
+    renderLibrary();
+  }
+
+  async function openSpotifyPlaylist(plId, plName) {
+    const token = await spGetValidToken();
+    if (!token) return;
+    loadingList = true;
+    listMsg = `Abrindo "${plName}"...`;
+    spChip = 'pl-view';
+    renderLibrary();
+    try {
+      const res = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(plId)}/tracks?limit=30`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      const data = await res.json();
+      results = (data.items || []).map((x) => mapSpotifyTrack(x.track)).filter(Boolean);
+      listMsg = results.length ? '' : 'Essa playlist está vazia.';
+    } catch (_) {
+      results = [];
+      listMsg = 'Não consegui abrir essa playlist.';
+    }
+    loadingList = false;
+    renderLibrary();
+  }
+
   function mapAudiusTrack(t) {
     return {
       id: String(t.id),
@@ -567,7 +972,7 @@
     };
   }
   async function loadAudiusFeed(chip = 'trending', query = '') {
-    loadingList = true; listMsg = 'Carregando faixas sem anúncio...'; renderLibrary();
+    loadingList = true; listMsg = 'Carregando faixas gratuitas sem anúncio...'; renderLibrary();
     try {
       const url = query.trim()
         ? `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(query.trim())}&app_name=LumoMusic&limit=18`
@@ -583,6 +988,7 @@
     }
     loadingList = false; renderLibrary();
   }
+
   function extractYtId(input) {
     const s = String(input || '').trim();
     if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
@@ -592,6 +998,8 @@
   async function searchYouTube(query) {
     const q = String(query || '').trim();
     if (!q) { results = []; listMsg = 'Busque qualquer música ou cole um link do YouTube!'; renderLibrary(); return; }
+    ensureYtBridge(); // Pré-aquece o player enquanto busca!
+
     const directId = extractYtId(q);
     if (directId) {
       loadingList = true; listMsg = 'Abrindo faixa do YouTube...'; renderLibrary();
@@ -606,37 +1014,11 @@
       return;
     }
 
-    loadingList = true; listMsg = 'Buscando músicas...'; renderLibrary();
+    loadingList = true; listMsg = 'Buscando no YouTube...'; renderLibrary();
     try {
-      let items = null;
-      try {
-        const wr = await fetch(`${WORKER_BASE}/yt-search?q=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(5500) });
-        if (wr.ok) {
-          const wd = await wr.json();
-          if (Array.isArray(wd.items) && wd.items.length) items = wd.items;
-        }
-      } catch (_) {}
-      if (!items) {
-        for (const base of PIPED_MIRRORS) {
-          try {
-            const pr = await fetch(`${base}/search?q=${encodeURIComponent(q)}&filter=music_songs`, { signal: AbortSignal.timeout(4500) });
-            if (!pr.ok) continue;
-            const pd = await pr.json();
-            if (Array.isArray(pd.items) && pd.items.length) {
-              items = pd.items.slice(0, 15).map((it) => {
-                const vid = extractYtId(it.url || '');
-                return vid ? {
-                  id: 'yt_' + vid, videoId: vid, source: 'youtube',
-                  title: it.title || 'Música', artist: it.uploaderName || 'YouTube',
-                  artwork: it.thumbnail || `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`, duration: Number(it.duration || 0)
-                } : null;
-              }).filter(Boolean);
-              if (items.length) break;
-            }
-          } catch (_) {}
-        }
-      }
-      results = items || [];
+      const wr = await fetch(`${WORKER_BASE}/yt-search?q=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(6000) });
+      const wd = wr.ok ? await wr.json() : { items: [] };
+      results = Array.isArray(wd.items) ? wd.items : [];
       listMsg = results.length ? '' : 'Nenhum resultado agora. Tente outro termo ou cole o link do YouTube!';
     } catch (_) {
       results = []; listMsg = 'Erro na busca. Tente colar o link do YouTube!';
@@ -683,13 +1065,19 @@
   });
 
   document.getElementById('lm-lyrics-box').addEventListener('click', (e) => {
+    if (e.target.closest('[data-autolyrics]')) {
+      autoLyrics = !autoLyrics;
+      localStorage.setItem('lumo_music_autolyrics', String(autoLyrics));
+      renderLyricsBox();
+      return;
+    }
     const line = e.target.closest('.lm-lyric-line');
     if (!line) return;
     const t = parseFloat(line.dataset.lt);
     if (Number.isFinite(t) && t >= 0) seekTo(t);
   });
 
-  // Garante o ícone musical no card Lumo Music do Resumo (mesmo após scripts de ícones)
+  // Mantém ícone musical no card do Resumo + scroll guard anti-tremida
   function ensureResumoTilePolish() {
     const tile = document.querySelector('.hub-tile[data-lm-tile="1"]') || document.getElementById('music-tile-sub')?.closest('.hub-tile');
     if (!tile) return;
@@ -699,7 +1087,6 @@
   }
   setTimeout(ensureResumoTilePolish, 120);
   setTimeout(ensureResumoTilePolish, 900);
-  // Congela efeitos de hover enquanto o usuário rola o Resumo
   const vr = document.getElementById('view-resumo');
   if (vr) {
     let scTimer = 0;
@@ -746,13 +1133,12 @@
     const hero = document.getElementById('lm-hero');
     if (!hero) return;
     const liked = currentTrack ? isLiked(currentTrack.id) : false;
-    let srcLabel = 'Sem anúncio · Baixa RAM';
+    let srcLabel = 'Spotify · YouTube · Audius';
     let isAdFree = true;
     if (currentTrack) {
-      if (currentTrack._resolving) { srcLabel = 'Conectando áudio puro...'; isAdFree = true; }
-      else if (currentTrack.source === 'audius') { srcLabel = 'Audius · Sem anúncio (~10MB)'; isAdFree = true; }
-      else if (currentTrack._mode === 'direct') { srcLabel = 'YouTube · Áudio puro (Sem anúncio)'; isAdFree = true; }
-      else { srcLabel = 'YouTube · Embed (Fallback)'; isAdFree = false; }
+      if (currentTrack.source === 'spotify') { srcLabel = 'Spotify Premium · Oficial'; isAdFree = true; }
+      else if (currentTrack.source === 'audius') { srcLabel = 'Audius · Grátis & Sem Anúncio'; isAdFree = true; }
+      else { srcLabel = ytSignedIn ? 'YouTube Premium · Oficial' : 'YouTube · Oficial'; isAdFree = ytSignedIn; }
     }
     const maxVal = Math.max(1, Math.floor(duration || 1));
     const curVal = Math.min(Math.floor(curTime), maxVal);
@@ -833,7 +1219,10 @@
     else if (act === 'repeat') {
       repeatMode = repeatMode === 'off' ? 'all' : (repeatMode === 'all' ? 'one' : 'off');
       renderHero();
-    } else if (act === 'wave' && window.LumoWave) { window.LumoWave.cycleMode(); renderHero(); } else if (act === 'lyrics') {
+    } else if (act === 'wave' && window.LumoWave) {
+      window.LumoWave.cycleMode();
+      renderHero();
+    } else if (act === 'lyrics') {
       lyricsOpen = !lyricsOpen; renderHero(); renderLyricsBox();
       if (lyricsOpen && currentTrack) fetchLyricsFor(currentTrack);
     }
@@ -874,18 +1263,76 @@
 
     let body = '';
     if (libTab === 'explore') {
-      const chips = [['trending','Em Alta'],['lofi','Lo-Fi'],['electronic','Eletrônica'],['hip hop','Hip-Hop'],['pop','Pop'],['rock','Rock'],['phonk','Phonk']];
+      let acctBanner = '';
+      if (searchSrc === 'spotify') {
+        if (spTokens?.access_token) {
+          acctBanner = `<div class="lm-acct-banner sp-ok">
+            <div class="lm-acct-info"><strong>Spotify · ${esc(spTokens.user_name || 'Conectado')}</strong><span>${spDeviceId ? 'Player SDK pronto (zero anúncio)' : 'Aquecendo player oficial...'}</span></div>
+            <button type="button" class="lm-acct-btn ghost" data-acct="sp-logout">Sair</button>
+          </div>`;
+        } else {
+          acctBanner = `<div class="lm-acct-banner">
+            <div class="lm-acct-info"><strong>Spotify Premium (Opcional)</strong><span>Login único · toca sem abrir o app do Spotify</span></div>
+            <div style="display:flex; gap:4px;">
+              <button type="button" class="lm-acct-btn ghost" data-acct="sp-cfg" title="Trocar Client ID">⚙</button>
+              <button type="button" class="lm-acct-btn sp" data-acct="sp-login">Conectar</button>
+            </div>
+          </div>`;
+          if (showSpSettings) {
+            acctBanner += `<form class="lm-manual-auth" id="lm-spcfg-form">
+              <input type="text" id="lm-spcfg-inp" class="lm-search-inp" value="${esc(spClientId)}" placeholder="Spotify Client ID..." />
+              <button type="submit" class="lm-acct-btn">Salvar</button>
+            </form>`;
+          }
+          if (showSpManualBox) {
+            acctBanner += `<form class="lm-manual-auth" id="lm-spcode-form">
+              <input type="text" id="lm-spcode-inp" class="lm-search-inp" placeholder="Se abriu fora, cole o código aqui..." />
+              <button type="submit" class="lm-acct-btn sp">OK</button>
+            </form>`;
+          }
+        }
+      } else if (searchSrc === 'youtube') {
+        acctBanner = `<div class="lm-acct-banner ${ytSignedIn ? 'yt-ok' : ''}">
+          <div class="lm-acct-info"><strong>${ytSignedIn ? 'YouTube Premium vinculado' : 'Tem YouTube Premium?'}</strong><span>${ytSignedIn ? 'Sessão ativa no Lumo · reprodução oficial sem anúncios' : 'Conecte sua conta Google uma vez para ouvir sem anúncios'}</span></div>
+          <button type="button" class="lm-acct-btn ${ytSignedIn ? 'ghost' : ''}" data-acct="yt-login">${ytSignedIn ? 'Reconectar' : 'Conectar'}</button>
+        </div>`;
+      }
+
+      const spChips = [['likes','Curtidas'],['playlists','Minhas Playlists'],['lofi','Lo-Fi'],['pop','Pop'],['rock','Rock'],['phonk','Phonk']];
+      const audChips = [['trending','Em Alta'],['lofi','Lo-Fi'],['electronic','Eletrônica'],['hip hop','Hip-Hop'],['pop','Pop'],['rock','Rock'],['phonk','Phonk']];
+
+      let listHtml = '';
+      if (loadingList) {
+        listHtml = `<div style="font-size:11px; color:var(--muted); text-align:center; padding:18px;">${esc(listMsg)}</div>`;
+      } else if (searchSrc === 'spotify' && spChip === 'playlists' && spTokens?.access_token) {
+        listHtml = spPlaylists.length
+          ? spPlaylists.map((p) => `<div class="lm-track" data-sppl="${esc(p.id)}" data-spplname="${esc(p.name || 'Playlist')}">
+              <div class="lm-t-art">${p.images?.[0]?.url ? `<img src="${esc(p.images[0].url)}" alt="" loading="lazy" />` : IC.music}</div>
+              <div class="lm-t-info">
+                <div class="lm-t-title">${esc(p.name || 'Playlist')}</div>
+                <div class="lm-t-sub">${p.tracks?.total || 0} faixas · Spotify</div>
+              </div>
+              <span style="font-size:13px; color:var(--muted);">›</span>
+            </div>`).join('')
+          : `<div style="font-size:10.8px; color:var(--muted); text-align:center; padding:18px 8px;">${esc(listMsg || 'Nenhuma playlist.')}</div>`;
+      } else {
+        listHtml = renderTrackRows(results, 'explore');
+      }
+
       body = `
-        <div class="lm-src-switch">
-          <button type="button" class="lm-src-pill ${searchSrc === 'youtube' ? 'active' : ''}" data-src="youtube">YouTube · Áudio Puro</button>
-          <button type="button" class="lm-src-pill ${searchSrc === 'audius' ? 'active' : ''}" data-src="audius">Audius · 100% Sem Anúncio</button>
+        <div class="lm-src-switch three">
+          <button type="button" class="lm-src-pill ${searchSrc === 'spotify' ? 'active' : ''}" data-src="spotify">Spotify</button>
+          <button type="button" class="lm-src-pill ${searchSrc === 'youtube' ? 'active' : ''}" data-src="youtube">YouTube</button>
+          <button type="button" class="lm-src-pill ${searchSrc === 'audius' ? 'active' : ''}" data-src="audius">Audius</button>
         </div>
+        ${acctBanner}
         <form class="lm-search-row" id="lm-search-form">
-          <input type="text" id="lm-search-inp" class="lm-search-inp" value="${esc(searchQuery)}" placeholder="${searchSrc === 'youtube' ? 'Buscar música, artista ou colar link...' : 'Buscar no Audius (zero anúncio)...'}" />
+          <input type="text" id="lm-search-inp" class="lm-search-inp" value="${esc(searchQuery)}" placeholder="${searchSrc === 'spotify' ? 'Buscar música ou artista no Spotify...' : searchSrc === 'youtube' ? 'Buscar música ou colar link do YouTube...' : 'Buscar no Audius (grátis, zero anúncio)...'}" />
           <button type="submit" class="btn-primary" style="padding:6px 12px; font-size:11px;">Ir</button>
         </form>
-        ${searchSrc === 'audius' ? `<div class="lm-chips">${chips.map(([k, l]) => `<button type="button" class="lm-chip ${activeChip === k ? 'active' : ''}" data-chip="${k}">${l}</button>`).join('')}</div>` : ''}
-        <div class="lm-list">${loadingList ? `<div style="font-size:11px; color:var(--muted); text-align:center; padding:18px;">${esc(listMsg)}</div>` : renderTrackRows(results, 'explore')}</div>`;
+        ${searchSrc === 'spotify' && spTokens?.access_token ? `<div class="lm-chips">${spChips.map(([k, l]) => `<button type="button" class="lm-chip ${spChip === k ? 'active' : ''}" data-spchip="${k}">${l}</button>`).join('')}</div>` : ''}
+        ${searchSrc === 'audius' ? `<div class="lm-chips">${audChips.map(([k, l]) => `<button type="button" class="lm-chip ${activeChip === k ? 'active' : ''}" data-chip="${k}">${l}</button>`).join('')}</div>` : ''}
+        <div class="lm-list">${listHtml}</div>`;
     } else if (libTab === 'queue') {
       body = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -896,7 +1343,7 @@
     } else if (libTab === 'likes') {
       body = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-size:10.5px; color:var(--muted);">${likes.length} curtida${likes.length === 1 ? '' : 's'}</span>
+          <span style="font-size:10.5px; color:var(--muted);">${likes.length} curtida${likes.length === 1 ? '' : 's'} no Lumo</span>
           ${likes.length ? `<button type="button" class="btn-primary" data-lact="playall" style="font-size:10px; padding:4px 9px;">▶ Tocar todas</button>` : ''}
         </div>
         <div class="lm-list">${renderTrackRows(likes, 'likes')}</div>`;
@@ -937,8 +1384,24 @@
     if (e.target.id === 'lm-search-form') {
       e.preventDefault();
       searchQuery = document.getElementById('lm-search-inp')?.value || '';
-      if (searchSrc === 'youtube') searchYouTube(searchQuery);
+      if (searchSrc === 'spotify') loadSpotifyFeed(spChip, searchQuery);
+      else if (searchSrc === 'youtube') searchYouTube(searchQuery);
       else loadAudiusFeed(activeChip, searchQuery);
+    } else if (e.target.id === 'lm-spcode-form') {
+      e.preventDefault();
+      const raw = (document.getElementById('lm-spcode-inp')?.value || '').trim();
+      const codeMatch = raw.match(/[?&]code=([^&]+)/);
+      finishSpotifyAuth(codeMatch ? decodeURIComponent(codeMatch[1]) : raw, '');
+    } else if (e.target.id === 'lm-spcfg-form') {
+      e.preventDefault();
+      const cid = (document.getElementById('lm-spcfg-inp')?.value || '').trim();
+      if (cid) {
+        spClientId = cid;
+        localStorage.setItem('lumo_sp_client_id', cid);
+        showSpSettings = false;
+        renderLibrary();
+        if (typeof say === 'function') say('Client ID do Spotify salvo ✓', 2000, true);
+      }
     } else if (e.target.id === 'lm-newpl-form') {
       e.preventDefault();
       const inp = document.getElementById('lm-newpl-inp');
@@ -950,16 +1413,33 @@
   });
 
   libEl.addEventListener('click', (e) => {
+    const acct = e.target.closest('[data-acct]');
+    if (acct) {
+      const a = acct.dataset.acct;
+      if (a === 'sp-login') startSpotifyLogin();
+      else if (a === 'sp-logout') disconnectSpotify();
+      else if (a === 'sp-cfg') { showSpSettings = !showSpSettings; renderLibrary(); }
+      else if (a === 'yt-login') openYouTubeLogin();
+      return;
+    }
+
     const ltab = e.target.closest('[data-ltab]');
     if (ltab) { libTab = ltab.dataset.ltab; openedPlaylistId = null; renderLibrary(); return; }
 
     const srcBtn = e.target.closest('[data-src]');
     if (srcBtn) {
       searchSrc = srcBtn.dataset.src;
-      if (searchSrc === 'audius') loadAudiusFeed(activeChip, searchQuery);
-      else { results = []; listMsg = 'Busque qualquer música ou cole um link do YouTube!'; renderLibrary(); }
+      if (searchSrc === 'spotify') loadSpotifyFeed(spChip, searchQuery);
+      else if (searchSrc === 'audius') loadAudiusFeed(activeChip, searchQuery);
+      else { ensureYtBridge(); results = []; listMsg = 'Busque qualquer música ou cole um link do YouTube!'; renderLibrary(); }
       return;
     }
+
+    const spChipBtn = e.target.closest('[data-spchip]');
+    if (spChipBtn) { spChip = spChipBtn.dataset.spchip; searchQuery = ''; loadSpotifyFeed(spChip, ''); return; }
+
+    const spPl = e.target.closest('[data-sppl]');
+    if (spPl) { openSpotifyPlaylist(spPl.dataset.sppl, spPl.dataset.spplname); return; }
 
     const chip = e.target.closest('[data-chip]');
     if (chip) { activeChip = chip.dataset.chip; searchQuery = ''; loadAudiusFeed(activeChip, ''); return; }
@@ -1023,4 +1503,7 @@
 
   renderHero();
   renderLibrary();
+  if (spTokens?.access_token) {
+    setTimeout(() => loadSpotifyFeed('likes', ''), 900);
+  }
 })();

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lumo Music · Spotify</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0b0e14;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      padding: 20px;
+    }
+    .box {
+      width: 100%;
+      max-width: 390px;
+      padding: 22px;
+      border-radius: 18px;
+      background: #121722;
+      border: 1px solid rgba(74, 222, 128, 0.28);
+      text-align: center;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.5);
+    }
+    h1 { margin: 0 0 8px; font-size: 18px; color: #4ade80; }
+    p { margin: 0 0 14px; font-size: 13px; color: #94a3b8; line-height: 1.45; }
+    .code {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.35);
+      color: #e2e8f0;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 9px 16px;
+      border-radius: 10px;
+      border: none;
+      background: #4ade80;
+      color: #0b0e14;
+      font-weight: 800;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1 id="title">Conectando ao Lumo Music...</h1>
+    <p id="desc">Finalizando a autenticação com o Spotify.</p>
+    <div id="fallback" style="display:none;">
+      <input id="code-inp" class="code" readonly />
+      <button id="copy-btn" type="button">Copiar código</button>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code') || '';
+    const state = params.get('state') || '';
+    const error = params.get('error') || '';
+    const payload = { type: 'lumo-sp-auth', code, state, error, ts: Date.now() };
+
+    const title = document.getElementById('title');
+    const desc = document.getElementById('desc');
+    const fb = document.getElementById('fallback');
+    const inp = document.getElementById('code-inp');
+
+    // 1. Entrega via localStorage (compartilhado com docs/spotify-player.html na mesma origem HTTPS)
+    try { localStorage.setItem('lumo_sp_cb_payload', JSON.stringify(payload)); } catch (_) {}
+
+    // 2. Entrega direta via window.opener quando disponível
+    let sentOpener = false;
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage(payload, '*');
+        sentOpener = true;
+      }
+    } catch (_) {}
+
+    if (error) {
+      title.textContent = 'Login cancelado';
+      title.style.color = '#fb7185';
+      desc.textContent = 'O Spotify retornou: ' + error + '. Você pode fechar esta janela.';
+    } else if (code) {
+      title.textContent = 'Spotify conectado ✓';
+      desc.textContent = 'Volte para o Lumo Music — esta janela fechará automaticamente. Se abriu no navegador externo, copie o código abaixo e cole no Lumo:';
+      fb.style.display = 'block';
+      inp.value = code;
+      document.getElementById('copy-btn').onclick = () => {
+        inp.select();
+        navigator.clipboard?.writeText(code).catch(() => {});
+        document.getElementById('copy-btn').textContent = 'Copiado ✓';
+      };
+      if (sentOpener) {
+        setTimeout(() => { try { window.close(); } catch (_) {} }, 1200);
+      }
+    } else {
+      title.textContent = 'Nenhum código recebido';
+      desc.textContent = 'Tente iniciar o login novamente dentro do Lumo Music.';
+    }
+  </script>
+</body>
+</html>

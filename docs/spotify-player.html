@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lumo Spotify SDK Bridge</title>
+</head>
+<body style="margin:0;background:#000;">
+  <script>
+    let player = null;
+    let currentToken = '';
+    let sdkLoaded = false;
+    let sdkReady = false;
+    let pendingInit = null;
+    let tickTimer = null;
+    let lastPos = 0;
+    let lastDur = 0;
+    let lastPaused = true;
+    let lastTrackId = '';
+    let lastEndKey = '';
+
+    function post(payload) {
+      try { window.parent.postMessage(payload, '*'); } catch (_) {}
+    }
+
+    // Repassa callback OAuth gravado por docs/spotify-cb.html (mesmo se COOP limpar window.opener)
+    function checkStoredAuth() {
+      try {
+        const raw = localStorage.getItem('lumo_sp_cb_payload');
+        if (!raw) return;
+        const p = JSON.parse(raw);
+        if (p && p.ts && (Date.now() - p.ts) < 120000) {
+          localStorage.removeItem('lumo_sp_cb_payload');
+          post(p);
+        }
+      } catch (_) {}
+    }
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'lumo_sp_cb_payload' && e.newValue) checkStoredAuth();
+    });
+    setInterval(checkStoredAuth, 600);
+    checkStoredAuth();
+
+    function stopTick() {
+      if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+    }
+    function startTick() {
+      stopTick();
+      tickTimer = setInterval(async () => {
+        if (!player || lastPaused) return;
+        try {
+          const st = await player.getCurrentState();
+          if (!st) return;
+          lastPos = st.position || 0;
+          lastDur = st.duration || lastDur;
+          post({ type: 'lumo-sp-time', current: lastPos / 1000, duration: lastDur / 1000 });
+        } catch (_) {}
+      }, 500);
+    }
+
+    function createPlayer(token, vol) {
+      currentToken = token;
+      if (player) {
+        try { player.disconnect(); } catch (_) {}
+        player = null;
+      }
+      player = new Spotify.Player({
+        name: 'Lumo Music',
+        getOAuthToken: (cb) => { cb(currentToken); },
+        volume: Math.max(0, Math.min(1, Number(vol ?? 0.7)))
+      });
+
+      player.addListener('ready', ({ device_id }) => {
+        post({ type: 'lumo-sp-ready', device_id });
+      });
+      player.addListener('not_ready', ({ device_id }) => {
+        post({ type: 'lumo-sp-not-ready', device_id });
+      });
+      player.addListener('initialization_error', ({ message }) => {
+        post({ type: 'lumo-sp-error', kind: 'init', message });
+      });
+      player.addListener('authentication_error', ({ message }) => {
+        post({ type: 'lumo-sp-error', kind: 'auth', message });
+      });
+      player.addListener('account_error', ({ message }) => {
+        post({ type: 'lumo-sp-error', kind: 'account', message });
+      });
+      player.addListener('playback_error', ({ message }) => {
+        post({ type: 'lumo-sp-error', kind: 'playback', message });
+      });
+
+      player.addListener('player_state_changed', (st) => {
+        if (!st) return;
+        const cur = st.track_window?.current_track;
+        const prevs = st.track_window?.previous_tracks || [];
+        const curId = cur?.id || '';
+        const endedNow = Boolean(
+          st.paused &&
+          st.position === 0 &&
+          !lastPaused &&
+          lastPos > 1500 &&
+          (prevs.some((t) => t.id === lastTrackId) || (lastDur > 0 && lastPos > lastDur - 4000))
+        );
+
+        lastPaused = Boolean(st.paused);
+        lastPos = st.position || 0;
+        lastDur = st.duration || 0;
+        if (curId) lastTrackId = curId;
+
+        if (lastPaused) stopTick();
+        else startTick();
+
+        post({
+          type: 'lumo-sp-state',
+          paused: lastPaused,
+          current: lastPos / 1000,
+          duration: lastDur / 1000,
+          track: cur ? {
+            id: 'sp_' + cur.id,
+            uri: cur.uri,
+            title: cur.name,
+            artist: (cur.artists || []).map((a) => a.name).join(', '),
+            artwork: cur.album?.images?.[0]?.url || ''
+          } : null
+        });
+
+        if (endedNow) {
+          const endKey = lastTrackId + ':' + Math.floor(Date.now() / 2500);
+          if (endKey !== lastEndKey) {
+            lastEndKey = endKey;
+            post({ type: 'lumo-sp-ended' });
+          }
+        }
+      });
+
+      player.connect();
+    }
+
+    window.onSpotifyWebPlaybackSDKReady = function () {
+      sdkReady = true;
+      if (pendingInit) {
+        const p = pendingInit;
+        pendingInit = null;
+        createPlayer(p.token, p.volume);
+      }
+    };
+
+    function ensureSdkScript() {
+      if (sdkLoaded) return;
+      sdkLoaded = true;
+      const s = document.createElement('script');
+      s.src = 'https://sdk.scdn.co/spotify-player.js';
+      document.head.appendChild(s);
+    }
+
+    window.addEventListener('message', (ev) => {
+      const m = ev.data || {};
+      if (!m || !m.type) return;
+      if (m.type === 'sp-init') {
+        currentToken = m.token || '';
+        if (sdkReady) createPlayer(m.token, m.volume);
+        else { pendingInit = m; ensureSdkScript(); }
+      } else if (m.type === 'sp-token') {
+        currentToken = m.token || '';
+      } else if (m.type === 'sp-pause' && player) {
+        player.pause().catch(() => {});
+      } else if (m.type === 'sp-resume' && player) {
+        player.resume().catch(() => {});
+      } else if (m.type === 'sp-toggle' && player) {
+        player.togglePlay().catch(() => {});
+      } else if (m.type === 'sp-seek' && player) {
+        player.seek(Math.max(0, Math.round(Number(m.sec || 0) * 1000))).catch(() => {});
+      } else if (m.type === 'sp-volume' && player) {
+        player.setVolume(Math.max(0, Math.min(1, Number(m.volume ?? 0.7)))).catch(() => {});
+      } else if (m.type === 'sp-disconnect') {
+        stopTick();
+        if (player) { try { player.disconnect(); } catch (_) {} player = null; }
+      }
+    });
+
+    post({ type: 'lumo-sp-bridge-up' });
+  </script>
+</body>
+</html>
