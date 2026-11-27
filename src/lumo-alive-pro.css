@@ -1,0 +1,291 @@
+/* === LUMO v3.4.0 — LUMO VIVO, SKINS DA CÁPSULA & PACOTE PRO === */
+
+/* 1. Rastreamento suave dos olhos + micro-expressões no mascote */
+#lumo-face {
+  transform: translate3d(var(--eye-x, 0px), var(--eye-y, 0px), 0);
+  transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease;
+}
+
+#lumo-pill.expr-sleepy #lumo-face {
+  transform: translate3d(0, 2px, 0) scaleY(0.42);
+  opacity: 0.78;
+}
+#lumo-pill.expr-wink #lumo-face {
+  transform: translate3d(var(--eye-x, 0px), var(--eye-y, 0px), 0) rotate(-6deg) scale(1.04);
+}
+#lumo-pill.expr-focus #lumo-face {
+  transform: translate3d(var(--eye-x, 0px), 0, 0) scaleY(0.82) scaleX(1.06);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+#lumo-pill.expr-dizzy #lumo-face {
+  animation: lumoDizzySpin 0.55s ease-in-out infinite !important;
+}
+@keyframes lumoDizzySpin {
+  0%   { transform: translate3d(-2px, -1px, 0) rotate(-9deg); }
+  50%  { transform: translate3d(2px, 1px, 0) rotate(9deg); }
+  100% { transform: translate3d(-2px, -1px, 0) rotate(-9deg); }
+}
+
+#lumo-pill.expr-jamming #lumo-face {
+  animation: lumoJamBob 0.52s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+}
+@keyframes lumoJamBob {
+  from { transform: translate3d(var(--eye-x, 0px), 1px, 0) rotate(-2.5deg) scale(1); }
+  to   { transform: translate3d(var(--eye-x, 0px), -2px, 0) rotate(2.5deg) scale(1.04); }
+}
+
+/* Óculos escuros da expressão Cool */
+#lumo-shades {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.85);
+  transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#lumo-pill.expr-cool #lumo-shades {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+#lumo-shades svg {
+  width: 56px;
+  height: 22px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+}
+
+/* Partículas orgânicas (Zzz da soneca / ✦ tonto) */
+.lumo-alive-fx {
+  position: fixed;
+  pointer-events: none;
+  z-index: 96;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+  animation: lumoFxFloat 1.55s ease-out forwards;
+}
+@keyframes lumoFxFloat {
+  0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.7); }
+  25%  { opacity: 0.95; transform: translate(-50%, -10px) scale(1.05); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 10px)), -32px) scale(0.9); }
+}
+
+/* === 2. SKINS DA CÁPSULA === */
+#lumo-pill.skin-sakura {
+  background: linear-gradient(135deg, rgba(48, 22, 38, 0.95), rgba(88, 36, 62, 0.92)) !important;
+  border-color: rgba(249, 168, 212, 0.62) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 18px rgba(244, 114, 182, 0.28) !important;
+}
+#lumo-pill.skin-obsidian-gold {
+  background: linear-gradient(145deg, #09090b, #181410 58%, #0b0a08) !important;
+  border-color: rgba(251, 191, 36, 0.72) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(254, 240, 138, 0.36), 0 0 20px rgba(245, 158, 11, 0.24) !important;
+}
+#lumo-pill.skin-prisma {
+  background: linear-gradient(125deg, #111827, #1e1b4b, #164e63, #3b0764) !important;
+  background-size: 260% 260% !important;
+  animation: lumoPrismaFlow 7s ease infinite !important;
+  border-color: rgba(165, 180, 252, 0.72) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.58), 0 0 22px rgba(129, 140, 248, 0.34) !important;
+}
+@keyframes lumoPrismaFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+#lumo-pill.skin-matrix {
+  background:
+    repeating-linear-gradient(0deg, rgba(34, 197, 94, 0.08) 0px, rgba(34, 197, 94, 0.08) 1px, transparent 1px, transparent 3px),
+    linear-gradient(180deg, #031107, #06210e) !important;
+  border-color: rgba(74, 222, 128, 0.75) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.68), 0 0 18px rgba(34, 197, 94, 0.32) !important;
+}
+#lumo-pill.skin-vaporwave {
+  background: linear-gradient(135deg, rgba(46, 16, 101, 0.96), rgba(131, 24, 67, 0.92), rgba(14, 116, 144, 0.92)) !important;
+  border-color: rgba(34, 211, 238, 0.68) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 22px rgba(232, 121, 249, 0.32) !important;
+}
+
+/* === 3. MODO KARAOKÊ NA CÁPSULA (PRO) === */
+#lumo-karaoke-pill {
+  position: fixed;
+  z-index: 92;
+  max-width: 280px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(11, 14, 22, 0.92);
+  border: 1px solid var(--accent-glow);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5), 0 0 14px var(--accent-soft);
+  opacity: 0;
+  transform: translate(-50%, 6px) scale(0.96);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#lumo-karaoke-pill.show {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+body.surface-light #lumo-karaoke-pill {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+
+/* === 4. ESTÚDIO DE SKINS, EXPRESSÕES & PRO === */
+.lp-pro-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1c1304;
+  font-size: 8.8px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 7px;
+}
+.lp-skin-btn,
+.lp-expr-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 5px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.14s ease;
+}
+body.surface-light .lp-skin-btn,
+body.surface-light .lp-expr-btn {
+  background: rgba(15, 23, 42, 0.04);
+}
+.lp-skin-btn:hover,
+.lp-expr-btn:hover {
+  border-color: var(--accent-glow);
+}
+.lp-skin-btn.active,
+.lp-expr-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.lp-skin-btn.locked {
+  opacity: 0.72;
+}
+.lp-swatch {
+  width: 24px;
+  height: 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.lp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+}
+.lp-toggle-row:first-of-type {
+  border-top: none;
+}
+.lp-toggle-sub {
+  font-size: 9.6px;
+  color: var(--muted);
+  display: block;
+}
+
+/* === 5. PERFIS DE IA (#view-ia) === */
+.lp-ai-personas {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  flex-shrink: 0;
+}
+.lp-persona-chip {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.14s ease;
+}
+.lp-persona-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* === 6. HISTÓRICO INTELIGENTE DE CLIPBOARD (PRO) === */
+.lp-clip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 185px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+.lp-clip-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.lp-clip-item.pinned {
+  border-color: var(--accent-glow);
+  background: var(--accent-soft);
+}
+.lp-clip-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 10.6px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lp-clip-act {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.lp-clip-act:hover {
+  color: var(--accent);
+}

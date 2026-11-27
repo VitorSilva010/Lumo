@@ -530,7 +530,7 @@
     if (typeof syncPlayVisuals === 'function') syncPlayVisuals();
     syncResumoMusicTile();
     window.dispatchEvent(new CustomEvent('lumo-music-state', {
-      detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' }
+      detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '', artwork: currentTrack?.artwork || '' }
     }));
 
     const mini = document.getElementById('pill-mini-player');
@@ -865,6 +865,7 @@
     }
     if (idx === activeLyricIdx) return;
     activeLyricIdx = idx;
+    window.dispatchEvent(new CustomEvent('lumo-lyric-line', { detail: { text: idx >= 0 ? lyricsLines[idx].text : '', playing: isPlaying, artwork: currentTrack?.artwork || '' } }));
     const box = document.getElementById('lm-lyrics-box');
     if (!box) return;
     box.querySelectorAll('.lm-lyric-line.active').forEach((el) => el.classList.remove('active'));
@@ -1087,7 +1088,7 @@
   }
   setTimeout(ensureResumoTilePolish, 120);
   setTimeout(ensureResumoTilePolish, 900);
-  const vr = document.getElementById('view-resumo');
+  const vr = document.querySelector('#view-resumo .home-scroll') || document.getElementById('view-resumo');
   if (vr) {
     let scTimer = 0;
     vr.addEventListener('scroll', () => {
