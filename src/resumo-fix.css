@@ -154,3 +154,17 @@ html, body {
   animation: none !important;
   opacity: 1 !important;
 }
+
+/* V395_METRIC_THEME_COLOR */
+#cpu-bar:not(.warn):not(.hot),
+#ram-bar:not(.warn):not(.hot),
+#v37-cpu-fill:not(.warn):not(.hot),
+#v37-ram-fill:not(.warn):not(.hot) {
+  background: var(--accent) !important;
+}
+#cpu-val:not(.warn):not(.hot),
+#ram-val:not(.warn):not(.hot),
+#v37-cpu-val:not(.warn):not(.hot),
+#v37-ram-val:not(.warn):not(.hot) {
+  color: var(--accent) !important;
+}

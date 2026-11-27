@@ -973,7 +973,19 @@ async function executePrompt(prompt) {
   tb.id = 'typing-bubble'; tb.className = 'msg ai'; tb.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
   box.appendChild(tb); box.scrollTop = box.scrollHeight;
   if (invoke) {
-    try { const reply = await invoke('ask_gemini', { prompt, userName: userName || null }); tb.remove(); appendMsg(reply, 'ai'); hopPill(); speakText(reply); }
+    try { /* V395_AI_PERSONA_BRIDGE */
+      let promptToSend = prompt;
+      if (isPro) {
+        const _pKey = localStorage.getItem('lumo_pro_persona') || 'default';
+        const _pMap = {
+          dev: '[Responda como engenheiro de software sênior: direto, técnico e com código limpo quando ajudar]\n\n',
+          study: '[Explique de forma didática para estudos, com tópicos claros e um exemplo prático]\n\n',
+          short: '[Responda de forma ultra objetiva, em no máximo 3 frases diretas]\n\n',
+          en: '[Reply naturally in English and include a brief Portuguese tip if helpful]\n\n'
+        };
+        if (_pMap[_pKey]) promptToSend = _pMap[_pKey] + prompt;
+      }
+      const reply = await invoke('ask_gemini', { prompt: promptToSend, userName: userName || null }); tb.remove(); appendMsg(reply, 'ai'); hopPill(); speakText(reply); }
     catch (err) { tb.remove(); appendMsg(String(err), 'ai'); }
   }
   isThinking = false; document.getElementById('lumo-pill').classList.remove('thinking'); restoreIdleExpression(); btn.disabled = false; btn.textContent = 'Enviar';
@@ -1096,7 +1108,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.4 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.5 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

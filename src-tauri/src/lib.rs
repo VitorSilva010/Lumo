@@ -901,7 +901,7 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
 
     if let Some(api_key) = personal_key {
         let url = format!(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={}",
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
             api_key
         );
         let name_ctx = match &user_name {
@@ -910,9 +910,11 @@ async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String,
         };
         let body = serde_json::json!({
             "systemInstruction": {
-                "parts": [{ "text": format!("Você é o Lumo, um assistente de desktop curioso, simpático e leve.{} Responda em português de forma clara e curta (máximo 3 frases).", name_ctx) }]
+                "parts": [{ "text": format!("Você é o Lumo, um assistente de desktop leve, direto e amigável criado por Vitor Silva.{} Responda em português do Brasil claro e natural, sem se reapresentar em toda mensagem e sem emojis desnecessários.", name_ctx) }]
             },
-            "contents": [{ "parts": [{ "text": prompt }] }]
+            "contents": [{ "parts": [{ "text": prompt }] }],
+            "tools": [{ "google_search": {} }],
+            "generationConfig": { "maxOutputTokens": 900, "thinkingConfig": { "thinkingBudget": 0 } }
         });
 
         let res = client

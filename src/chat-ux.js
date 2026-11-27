@@ -86,6 +86,7 @@
 
   // Aplica no textarea da IA e observa quando o textarea do Lumo Ping for montado
   bindTextarea(document.getElementById('ai-input'));
+  bindTextarea(document.getElementById('quick-ai-input'));
   const pfPane = document.getElementById('pf-friends-pane');
   if (pfPane) {
     new MutationObserver(() => {

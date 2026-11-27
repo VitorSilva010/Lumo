@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 300 300">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F6B974" stop-opacity="0.22"/>
+      <stop offset="65%" stop-color="#F6B974" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#070A10" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pillFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141B29"/>
+      <stop offset="100%" stop-color="#090D15"/>
+    </linearGradient>
+    <filter id="amberGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="300" height="300" fill="#070A10"/>
+  <rect width="300" height="300" fill="url(#bgGlow)"/>
+  <rect x="44" y="98" width="212" height="104" rx="52" fill="url(#pillFill)" stroke="#F6B974" stroke-width="6.5" filter="url(#amberGlow)"/>
+  <g filter="url(#amberGlow)">
+    <rect x="107" y="130" width="22" height="40" rx="11" fill="#F6B974"/>
+    <rect x="171" y="130" width="22" height="40" rx="11" fill="#F6B974"/>
+  </g>
+  <circle cx="114.5" cy="140.5" r="3.4" fill="#FFFFFF" fill-opacity="0.92"/>
+  <circle cx="178.5" cy="140.5" r="3.4" fill="#FFFFFF" fill-opacity="0.92"/>
+</svg>
