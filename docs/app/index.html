@@ -500,6 +500,150 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
+
+  <style id="v39-mobile-upgrade">
+    /* === LUMO MOBILE v3.9.0 — VISUAL NATIVO, MINI-LUMO & TEMAS DE CONVERSA === */
+    .ic-m {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: -2px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.14s ease, border-color 0.16s ease, background-color 0.16s ease;
+    }
+    .btn:active { transform: scale(0.96); }
+    .tab.active {
+      animation: mTabIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes mTabIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Avatar Mini-Lumo no Mobile */
+    .m-lumo-av {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .m-lumo-av.sm { width: 30px; height: 30px; }
+    .m-lumo-av svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+    }
+
+    /* Barra de 7 temas de conversa no Lumo Ping Mobile */
+    .m-theme-bar {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .m-theme-bar.show { display: flex; }
+    .m-theme-chip {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted, #94a3b8);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .m-theme-chip.active {
+      border-color: var(--accent, #34d399);
+      background: var(--accent-soft, rgba(52, 211, 153, 0.15));
+      color: var(--text, #f1f5f9);
+    }
+    .m-theme-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Paletas aplicadas no #m-friends-pane quando DM está aberta */
+    #m-friends-pane[data-chat-theme="lumo"] #m-dm-feed {
+      background: radial-gradient(circle at 20% 85%, var(--accent-soft, rgba(52,211,153,0.14)), rgba(0, 0, 0, 0.18));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="friend"] #m-dm-feed {
+      background: radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--friend-col, #34d399) 18%, transparent), rgba(0, 0, 0, 0.18));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="midnight"] #m-dm-feed {
+      background: linear-gradient(160deg, rgba(15, 23, 62, 0.72), rgba(7, 10, 24, 0.88));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="cyber"] #m-dm-feed {
+      background: linear-gradient(155deg, rgba(76, 29, 149, 0.42), rgba(14, 116, 144, 0.32), rgba(10, 10, 20, 0.88));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="forest"] #m-dm-feed {
+      background: linear-gradient(160deg, rgba(6, 78, 59, 0.46), rgba(6, 24, 18, 0.86));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="sunset"] #m-dm-feed {
+      background: linear-gradient(155deg, rgba(154, 52, 18, 0.4), rgba(136, 19, 55, 0.36), rgba(15, 11, 18, 0.86));
+      border-radius: 14px;
+      padding: 10px;
+    }
+    #m-friends-pane[data-chat-theme="minimal"] #m-dm-feed {
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    /* Card de convite Lumo Jam no chat mobile */
+    .m-jam-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      background: var(--accent-soft, rgba(52, 211, 153, 0.14));
+      border: 1px solid var(--accent-glow, rgba(52, 211, 153, 0.42));
+    }
+    .m-jam-head {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--accent, #34d399);
+    }
+    .m-jam-title { font-size: 12.5px; font-weight: 700; }
+    .m-jam-sub { font-size: 10.5px; color: var(--muted, #94a3b8); }
+  </style>
 </head>
 <body class="surface-obsidian">
   <div class="app-shell">
@@ -531,9 +675,9 @@
             <button type="button" class="btn" onclick="sendCmd('media','next')">⏭ Próx.</button>
           </div>
           <div class="grid-3">
-            <button type="button" class="btn sm" onclick="sendCmd('keep_awake','toggle')">☕ Café</button>
-            <button type="button" class="btn sm" onclick="sendCmd('sleep_pc', 30)">🌙 30 min</button>
-            <button type="button" class="btn sm" onclick="sendCmd('cancel_sleep', 1)">✕ Cancelar</button>
+            <button type="button" class="btn sm" onclick="sendCmd('keep_awake','toggle')">Café</button>
+            <button type="button" class="btn sm" onclick="sendCmd('sleep_pc', 30)">30 min</button>
+            <button type="button" class="btn sm" onclick="sendCmd('cancel_sleep', 1)"> Cancelar</button>
           </div>
         </div>
 
@@ -548,8 +692,8 @@
           </div>
           <input type="text" id="clip-input" placeholder="Cole texto ou link para mandar ao PC..." />
           <div class="grid-2">
-            <button type="button" class="btn" onclick="sendTextToPc(false)">📋 Enviar Ctrl+C</button>
-            <button type="button" class="btn soft" onclick="sendTextToPc(true)">🌐 Abrir no PC</button>
+            <button type="button" class="btn" onclick="sendTextToPc(false)">Enviar Ctrl+C</button>
+            <button type="button" class="btn soft" onclick="sendTextToPc(true)">Abrir no PC</button>
           </div>
         </div>
 
@@ -572,9 +716,9 @@
       <section class="tab chat-tab" id="tab-ia">
         <div class="row" style="justify-content:space-between;">
           <div class="row">
-            <button type="button" class="btn sm" onclick="toggleLinkBar()">🔗 Resumir Link</button>
+            <button type="button" class="btn sm" onclick="toggleLinkBar()">Resumir Link</button>
             <label class="btn sm" style="cursor:pointer;">
-              🎙️ Áudio
+              Áudio
               <input type="file" accept="audio/*" style="display:none;" onchange="handleMobileAudio(this)" />
             </label>
           </div>
@@ -609,10 +753,10 @@
         <div class="ping-pane hidden" id="m-rooms-pane">
           <div class="card" id="ping-head-card"></div>
           <div class="grid-4" id="ping-nudges" style="display:none;">
-            <button type="button" class="btn sm" onclick="sendPingNudge('wave')">👋 Oi</button>
-            <button type="button" class="btn sm" onclick="sendPingNudge('love')">❤️ Carinho</button>
-            <button type="button" class="btn sm" onclick="sendPingNudge('break')">☕ Pausa</button>
-            <button type="button" class="btn sm" onclick="sendPingNudge('alert')">⚡ Atenção</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('wave')">Oi</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('love')">Carinho</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('break')">Pausa</button>
+            <button type="button" class="btn sm" onclick="sendPingNudge('alert')">Atenção</button>
           </div>
           <div class="feed" id="ping-feed"></div>
           <form class="row" id="ping-form" onsubmit="submitPing(event)" style="display:none;">
@@ -630,7 +774,7 @@
           <div class="grid-2">
             <button type="button" class="btn primary" onclick="sendPocketText()">Enviar Texto/Link</button>
             <label class="btn soft" style="cursor:pointer;">
-              📎 Enviar Arquivo
+              Enviar Arquivo
               <input type="file" id="pocket-file-input" style="display:none;" onchange="sendPocketFile(this)" />
             </label>
           </div>
@@ -758,11 +902,61 @@
     let pingMsgs = [], pingSeen = new Set(), pingLastId = 0, pingUnread = 0, pingReady = false, pingPolling = false, pingTimer = null;
 
     const NUDGES = {
-      wave:  { text: 'deu um oi! 👋' },
-      love:  { text: 'mandou um carinho ❤️' },
-      break: { text: 'chamou pra uma pausa ☕' },
-      alert: { text: 'chamou sua atenção! ⚡' }
+      wave:  { text: 'deu um oi! ' },
+      love:  { text: 'mandou um carinho ' },
+      break: { text: 'chamou pra uma pausa ' },
+      alert: { text: 'chamou sua atenção! ' }
     };
+
+    
+    const M_IC = {
+      palette: '<svg class="ic-m" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".8" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".8" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/></svg>',
+      wave:    '<svg class="ic-m" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.8-5.9-2.2L3.3 16a2 2 0 0 1 2.8-2.8L8 15"/></svg>',
+      heart:   '<svg class="ic-m" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+      coffee:  '<svg class="ic-m" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/></svg>',
+      bolt:    '<svg class="ic-m" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+    };
+    const M_CHAT_THEMES = [
+      { id: 'lumo',     label: 'Cor do Lumo',  dot: 'var(--accent, #34d399)' },
+      { id: 'friend',   label: 'Cor do Amigo', dot: 'var(--friend-col, #34d399)' },
+      { id: 'midnight', label: 'Meia-Noite',   dot: '#6366f1' },
+      { id: 'cyber',    label: 'Cyber Neon',   dot: 'linear-gradient(135deg,#e879f9,#22d3ee)' },
+      { id: 'forest',   label: 'Floresta',     dot: '#10b981' },
+      { id: 'sunset',   label: 'Pôr do Sol',   dot: 'linear-gradient(135deg,#fb923c,#f43f5e)' },
+      { id: 'minimal',  label: 'Minimal',      dot: '#94a3b8' }
+    ];
+    let mThemeBarOpen = false;
+    let mChatThemes = {};
+    try { mChatThemes = JSON.parse(localStorage.getItem('lumo_mob_chat_themes') || '{}') || {}; } catch (_) {}
+    function getMobChatTheme(rc) { return mChatThemes[rc] || 'lumo'; }
+    function toggleMobThemeBar() {
+      mThemeBarOpen = !mThemeBarOpen;
+      document.getElementById('m-theme-bar')?.classList.toggle('show', mThemeBarOpen);
+    }
+    function setMobChatTheme(id) {
+      if (!activeFriend) return;
+      mChatThemes[activeFriend.room_code] = id;
+      try { localStorage.setItem('lumo_mob_chat_themes', JSON.stringify(mChatThemes)); } catch (_) {}
+      const pane = document.getElementById('m-friends-pane');
+      if (pane) pane.setAttribute('data-chat-theme', id);
+      document.querySelectorAll('#m-theme-bar .m-theme-chip').forEach((b) => {
+        b.classList.toggle('active', b.dataset.tid === id);
+      });
+    }
+    function renderMobLumoAvatar(color, online, playing) {
+      const col = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#34d399';
+      const eyes = online
+        ? (playing
+            ? `<rect x="9.5" y="15.5" width="5.5" height="3.2" rx="1.6" fill="${col}"/><rect x="21" y="15.5" width="5.5" height="3.2" rx="1.6" fill="${col}"/>`
+            : `<rect x="10.2" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${col}"/><rect x="21.4" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${col}"/>`)
+        : `<path d="M10 17.5c1 1.3 3 1.3 4 0" stroke="${col}" stroke-width="1.9" stroke-linecap="round" opacity="0.72"/><path d="M22 17.5c1 1.3 3 1.3 4 0" stroke="${col}" stroke-width="1.9" stroke-linecap="round" opacity="0.72"/>`;
+      return `<svg viewBox="0 0 36 36" fill="none"><rect x="1.8" y="6.2" width="32.4" height="23.6" rx="11.8" fill="#0b0f18" stroke="${col}" stroke-width="2.1"/><rect x="4" y="8.4" width="28" height="19.2" rx="9.6" fill="${col}" fill-opacity="0.11"/>${eyes}</svg>`;
+    }
+    function parseMobJam(body) {
+      const s = String(body || '');
+      if (!s.startsWith('::LJAM::')) return null;
+      try { return JSON.parse(s.slice(8)); } catch (_) { return null; }
+    }
 
     function esc(s) {
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -929,7 +1123,7 @@
       updatePairUI();
       pollSync();
       loadPocket(false);
-      toast('Conectado ao PC ' + pairToken + ' ✓');
+      toast('Conectado ao PC ' + pairToken + ' ');
     }
     function unpairPc() {
       pairToken = '';
@@ -943,7 +1137,7 @@
       localStorage.setItem('lm_name', userName);
       renderPingHead();
       sendFriendsHeartbeat();
-      toast('Nome salvo ✓');
+      toast('Nome salvo ');
     }
 
     async function postSync(payload) {
@@ -959,7 +1153,7 @@
     }
     async function sendCmd(action, value) {
       const ok = await postSync({ cmd: { action, value } });
-      if (ok) { hopMascot(); toast('Comando enviado ao PC ✓'); }
+      if (ok) { hopMascot(); toast('Comando enviado ao PC '); }
     }
     async function sendTextToPc(asUrl) {
       const inp = document.getElementById('clip-input'), val = inp.value.trim();
@@ -967,13 +1161,13 @@
       const action = asUrl ? 'open_url' : 'set_clip';
       const target = asUrl && !/^https?:\/\//i.test(val) ? 'https://' + val : val;
       const ok = await postSync({ cmd: { action, value: target }, clip: val });
-      if (ok) { inp.value = ''; hopMascot(); toast(asUrl ? 'Abrindo no PC...' : 'Enviado pro Ctrl+C do PC ✓'); }
+      if (ok) { inp.value = ''; hopMascot(); toast(asUrl ? 'Abrindo no PC...' : 'Enviado pro Ctrl+C do PC '); }
     }
     function copyPcClip() {
       const txt = document.getElementById('pc-clip-text').textContent;
       if (!txt) return;
       navigator.clipboard?.writeText(txt);
-      toast('Copiado ✓');
+      toast('Copiado ');
     }
     async function pollSync() {
       if (!pairToken || document.visibilityState !== 'visible') return;
@@ -1014,7 +1208,7 @@
         tasks.forEach((t, i) => {
           const row = document.createElement('div');
           row.className = 'task-item' + (t.done ? ' done' : '');
-          row.innerHTML = `<div class="task-left" onclick="toggleTask(${i})"><div class="chk">${t.done ? '✓' : ''}</div><span>${esc(t.text)}</span></div><button class="del" type="button" onclick="delTask(${i})">×</button>`;
+          row.innerHTML = `<div class="task-left" onclick="toggleTask(${i})"><div class="chk">${t.done ? '' : ''}</div><span>${esc(t.text)}</span></div><button class="del" type="button" onclick="delTask(${i})">×</button>`;
           list.appendChild(row);
         });
       }
@@ -1037,7 +1231,7 @@
       st.textContent = 'Salvando...';
       clearTimeout(notesTimer);
       notesTimer = setTimeout(async () => {
-        if (pairToken) { lastNotesTs = Date.now(); await postSync({ notes: val }); st.textContent = 'Sincronizado ✓'; }
+        if (pairToken) { lastNotesTs = Date.now(); await postSync({ notes: val }); st.textContent = 'Sincronizado '; }
         else st.textContent = 'Salvo local';
       }, 900);
     }
@@ -1055,7 +1249,7 @@
         b.type = 'button';
         b.className = 'msg-copy';
         b.textContent = 'Copiar';
-        b.onclick = () => { navigator.clipboard?.writeText(text); b.textContent = 'Copiado ✓'; setTimeout(() => { b.textContent = 'Copiar'; }, 1400); };
+        b.onclick = () => { navigator.clipboard?.writeText(text); b.textContent = 'Copiado '; setTimeout(() => { b.textContent = 'Copiar'; }, 1400); };
         div.appendChild(b);
       }
       box.appendChild(div);
@@ -1082,7 +1276,7 @@
     }
     async function summarizeMobileUrl(rawUrl) {
       const url = extractUrl(rawUrl) || rawUrl;
-      appendChat('🔗 Resumir: ' + url, 'user');
+      appendChat('Resumir: ' + url, 'user');
       setAiBusy(true);
       try {
         const res = await fetch(`${API_BASE}/summarize`, {
@@ -1091,7 +1285,7 @@
           body: JSON.stringify({ url })
         });
         const data = await res.json();
-        appendChat(data.summary ? (data.title ? `📌 ${data.title}\n\n` : '') + data.summary : (data.error || 'Não consegui resumir.'), 'ai');
+        appendChat(data.summary ? (data.title ? `${data.title}\n\n` : '') + data.summary : (data.error || 'Não consegui resumir.'), 'ai');
       } catch (_) { appendChat('Erro de conexão ao resumir.', 'ai'); }
       finally { setAiBusy(false); }
     }
@@ -1108,7 +1302,7 @@
       input.value = '';
       if (!file) return;
       if (file.size > 20 * 1024 * 1024) { toast('Áudio maior que 20 MB.'); return; }
-      appendChat(`🎙️ Transcrevendo: ${file.name}`, 'user');
+      appendChat(`Transcrevendo: ${file.name}`, 'user');
       setAiBusy(true);
       try {
         const form = new FormData();
@@ -1121,7 +1315,7 @@
         });
         const data = await res.json();
         if (data.transcript) {
-          appendChat(data.summary ? `🎙️ Resumo:\n${data.summary}\n\n— Transcrição —\n${data.transcript}` : data.transcript, 'ai');
+          appendChat(data.summary ? `Resumo:\n${data.summary}\n\n— Transcrição —\n${data.transcript}` : data.transcript, 'ai');
         } else appendChat(data.error || 'Não consegui transcrever.', 'ai');
       } catch (_) { appendChat('Erro de conexão ao transcrever.', 'ai'); }
       finally { setAiBusy(false); }
@@ -1183,27 +1377,36 @@
       if (activeFriend) {
         const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
         const stText = f.online
-          ? (f.playing ? `🎮 Jogando ${f.playing}` : '● Online agora')
+          ? (f.playing ? `Jogando ${f.playing}` : '● Online agora')
           : fmtLastSeen(f.last_seen);
         const stCls = f.online ? (f.playing ? 'playing' : 'online') : '';
+        pane.setAttribute('data-chat-theme', getMobChatTheme(f.room_code));
+        pane.style.setProperty('--friend-col', f.color || '#34d399');
         pane.innerHTML = `
           <div class="card" style="padding:10px 11px;">
             <div class="row" style="justify-content:space-between;">
               <div class="row" style="min-width:0; flex:1;">
                 <button type="button" class="btn sm" onclick="closeFriendDm()">←</button>
+                <div class="m-lumo-av sm">${renderMobLumoAvatar(f.color, f.online, f.playing)}</div>
                 <div style="min-width:0; flex:1;">
                   <div style="font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(f.display_name)}</div>
                   <div class="f-sub ${stCls}" id="m-dm-status">${esc(stText)}</div>
                 </div>
               </div>
-              <button type="button" class="btn sm" onclick="removeFriend('${esc(f.uid)}')">Remover</button>
+              <div class="row" style="gap:5px;">
+                <button type="button" class="btn sm" title="Tema da conversa" onclick="toggleMobThemeBar()">${M_IC.palette}</button>
+                <button type="button" class="btn sm" onclick="removeFriend('${esc(f.uid)}')">Remover</button>
+              </div>
             </div>
           </div>
+          <div class="m-theme-bar ${mThemeBarOpen ? 'show' : ''}" id="m-theme-bar">
+            ${M_CHAT_THEMES.map((t) => `<button type="button" class="m-theme-chip ${getMobChatTheme(f.room_code) === t.id ? 'active' : ''}" data-tid="${t.id}" onclick="setMobChatTheme('${t.id}')"><span class="m-theme-dot" style="background:${t.dot};"></span>${t.label}</button>`).join('')}
+          </div>
           <div class="grid-4">
-            <button type="button" class="btn sm" onclick="sendFriendNudge('wave')">👋 Oi</button>
-            <button type="button" class="btn sm" onclick="sendFriendNudge('love')">❤️ Carinho</button>
-            <button type="button" class="btn sm" onclick="sendFriendNudge('break')">☕ Pausa</button>
-            <button type="button" class="btn sm" onclick="sendFriendNudge('alert')">⚡ Atenção</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('wave')">${M_IC.wave} Oi</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('love')">${M_IC.heart} Carinho</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('break')">${M_IC.coffee} Pausa</button>
+            <button type="button" class="btn sm" onclick="sendFriendNudge('alert')">${M_IC.bolt} Atenção</button>
           </div>
           <div class="feed" id="m-dm-feed"></div>
           <form class="row" onsubmit="submitFriendDm(event)">
@@ -1234,8 +1437,8 @@
             const unread = Boolean(f.last_msg_id && f.last_sender_uid !== myPingId && (dmReadMap[f.room_code] || 0) < f.last_msg_id);
             const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
             const subText = unread && f.last_body
-              ? `💬 ${f.last_body}`
-              : (f.online ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
+              ? `${f.last_body}`
+              : (f.online ? (f.playing ? `Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
             const subCls = unread ? 'online' : (f.online ? (f.playing ? 'playing' : 'online') : '');
             const init = (f.display_name || '?').trim().charAt(0).toUpperCase();
             return `
@@ -1279,6 +1482,14 @@
     }
 
     function renderFriendDmFeed() {
+      const _rawDm = typeof friendDmMsgs !== 'undefined' ? friendDmMsgs : [];
+      if (Array.isArray(_rawDm)) {
+        for (let i = _rawDm.length - 1; i >= 0; i--) {
+          const jp = parseMobJam(_rawDm[i]?.body);
+          if (jp && jp.t !== 'inv') _rawDm.splice(i, 1);
+          else if (jp && jp.t === 'inv') _rawDm[i] = { ..._rawDm[i], body: 'Convite Lumo Jam: ' + (jp.ti || 'Sessão ao vivo') + (jp.ar ? ' — ' + jp.ar : '') };
+        }
+      }
       const feed = document.getElementById('m-dm-feed');
       if (!feed || !activeFriend) return;
       if (!dmMsgs.length) {
@@ -1352,7 +1563,7 @@
               pollFriendDm();
             } else {
               animateIncomingMsg(f.color, f.last_kind === 'nudge');
-              toast(`💬 ${f.display_name}: ${String(f.last_body || '').slice(0, 40)}`);
+              toast(`${f.display_name}: ${String(f.last_body || '').slice(0, 40)}`);
             }
           }
         }
@@ -1374,7 +1585,7 @@
               activeFriend = upd;
               const stEl = document.getElementById('m-dm-status');
               if (stEl) {
-                stEl.textContent = upd.online ? (upd.playing ? `🎮 Jogando ${upd.playing}` : '● Online agora') : fmtLastSeen(upd.last_seen);
+                stEl.textContent = upd.online ? (upd.playing ? `Jogando ${upd.playing}` : '● Online agora') : fmtLastSeen(upd.last_seen);
                 stEl.className = 'f-sub ' + (upd.online ? (upd.playing ? 'playing' : 'online') : '');
               }
             }
@@ -1412,7 +1623,7 @@
     function copyMyTag() {
       if (!myTag) return;
       navigator.clipboard?.writeText(myTag);
-      toast(`Tag ${myTag} copiada ✓`);
+      toast(`Tag ${myTag} copiada `);
     }
     async function addFriendByTag(e) {
       e.preventDefault();
@@ -1429,7 +1640,7 @@
         if (res.ok && data.ok) {
           inp.value = '';
           hopMascot();
-          toast(data.accepted ? `Agora você e ${data.name} são amigos! 🎉` : `Pedido enviado para ${data.name} ✓`);
+          toast(data.accepted ? `Agora você e ${data.name} são amigos! ` : `Pedido enviado para ${data.name} `);
           pollFriends();
         } else toast(data.error || 'Tag não encontrada.');
       } catch (_) { toast('Sem conexão.'); }
@@ -1467,6 +1678,8 @@
       dmTimer = setInterval(pollFriendDm, 3000);
     }
     function closeFriendDm() {
+      mThemeBarOpen = false;
+      document.getElementById('m-friends-pane')?.removeAttribute('data-chat-theme');
       activeFriend = null;
       clearInterval(dmTimer);
       dmTimer = null;
@@ -1549,7 +1762,7 @@
             <button type="button" class="btn primary" onclick="joinPingFromInput()">Entrar</button>
           </div>
           <div class="row" style="justify-content:space-between;">
-            <button type="button" class="btn sm soft" onclick="createPingRoom()">✨ Criar sala</button>
+            <button type="button" class="btn sm soft" onclick="createPingRoom()">Criar sala</button>
             <span style="font-size:11px; color:var(--muted);">Você: <strong style="color:var(--text);">${esc(userName || 'Mobile')}</strong></span>
           </div>
           ${recHtml}`;
@@ -1678,7 +1891,7 @@
     function copyPingCode() {
       if (!pingRoom) return;
       navigator.clipboard?.writeText(pingRoom);
-      toast(`Código ${pingRoom} copiado ✓`);
+      toast(`Código ${pingRoom} copiado `);
     }
     function leavePingRoom() {
       pingRoom = '';
@@ -1716,7 +1929,7 @@
         const data = await res.json();
         pocketItems = Array.isArray(data.items) ? data.items : [];
         renderPocketList();
-        if (showToast) toast('Bolso atualizado ✓');
+        if (showToast) toast('Bolso atualizado ');
       } catch (_) {
         list.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:14px;">Não foi possível carregar o Bolso Nuvem.</div>';
       }
@@ -1728,7 +1941,7 @@
         return;
       }
       list.innerHTML = pocketItems.map((it) => {
-        const origin = it.source === 'pc' ? '💻 Do PC' : '📱 Do Celular';
+        const origin = it.source === 'pc' ? 'Do PC' : 'Do Celular';
         const isImg = it.kind === 'file' && String(it.mime || '').startsWith('image/') && String(it.content || '').startsWith('data:');
         const preview = isImg
           ? `<img class="pocket-img" src="${it.content}" alt="${esc(it.name)}" />`
@@ -1770,7 +1983,7 @@
             size: raw.length
           })
         });
-        if (res.ok) { inp.value = ''; hopMascot(); toast('Enviado para o Bolso do PC ✓'); loadPocket(false); }
+        if (res.ok) { inp.value = ''; hopMascot(); toast('Enviado para o Bolso do PC '); loadPocket(false); }
         else toast('Erro ao enviar pro Bolso.');
       } catch (_) { toast('Sem conexão com o Bolso Nuvem.'); }
     }
@@ -1797,7 +2010,7 @@
               size: file.size
             })
           });
-          if (res.ok) { hopMascot(); toast('Arquivo enviado pro PC ✓'); loadPocket(false); }
+          if (res.ok) { hopMascot(); toast('Arquivo enviado pro PC '); loadPocket(false); }
           else toast('Não foi possível enviar o arquivo.');
         } catch (_) { toast('Erro de rede ao enviar arquivo.'); }
       };
@@ -1805,7 +2018,7 @@
     }
     function copyPocketItem(id) {
       const it = pocketItems.find((x) => x.id === id);
-      if (it) { navigator.clipboard?.writeText(it.content); toast('Copiado ✓'); }
+      if (it) { navigator.clipboard?.writeText(it.content); toast('Copiado '); }
     }
     function openPocketItem(id) {
       const it = pocketItems.find((x) => x.id === id);
@@ -1853,7 +2066,7 @@
         pairToken = pairParam.trim().toUpperCase();
         localStorage.setItem('lm_token', pairToken);
         history.replaceState({}, '', window.location.pathname);
-        toast('Pareado com ' + pairToken + ' ✓');
+        toast('Pareado com ' + pairToken + ' ');
       }
 
       updatePairUI();
