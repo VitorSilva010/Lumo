@@ -502,7 +502,7 @@
   </style>
 
   <style id="v39-mobile-upgrade">
-    /* === LUMO MOBILE v3.9.5 — VISUAL NATIVO, MINI-LUMO & TEMAS DE CONVERSA === */
+    /* === LUMO MOBILE v3.9.6 — VISUAL NATIVO, MINI-LUMO & TEMAS DE CONVERSA === */
     .ic-m {
       width: 15px;
       height: 15px;
@@ -1377,7 +1377,7 @@
       if (activeFriend) {
         const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
         const stText = f.online
-          ? (f.playing ? `Jogando ${f.playing}` : '● Online agora')
+          ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora')
           : fmtLastSeen(f.last_seen);
         const stCls = f.online ? (f.playing ? 'playing' : 'online') : '';
         pane.setAttribute('data-chat-theme', getMobChatTheme(f.room_code));
@@ -1438,7 +1438,7 @@
             const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
             const subText = unread && f.last_body
               ? `${f.last_body}`
-              : (f.online ? (f.playing ? `Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
+              : (f.online ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora') : fmtLastSeen(f.last_seen));
             const subCls = unread ? 'online' : (f.online ? (f.playing ? 'playing' : 'online') : '');
             const init = (f.display_name || '?').trim().charAt(0).toUpperCase();
             return `

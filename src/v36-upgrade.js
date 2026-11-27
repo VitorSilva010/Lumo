@@ -74,12 +74,12 @@
       musicTile.classList.toggle('lm-tile-playing', playingNow);
       const sub = musicTile.querySelector('#music-tile-sub') || musicTile.querySelector('.tile-sub');
       if (sub) {
-        if (musicState.title) {
-          sub.textContent = (musicState.playing ? '▶ ' : '⏸ ') + musicState.title.slice(0, 22);
-        } else if (playingNow) {
-          const mt = document.getElementById('mini-media-title')?.textContent?.trim();
-          if (mt && !/pronto para|controle de m[ií]dia|tocando agora/i.test(mt)) sub.textContent = '▶ ' + mt.slice(0, 22);
-          else sub.textContent = 'Tocando agora';
+        const mt = document.getElementById('mini-media-title')?.textContent?.trim() || '';
+        const cleanTitle = musicState.title || (mt && !/pronto para|controle de m[ií]dia|tocando agora/i.test(mt) ? mt : '');
+        if (playingNow) {
+          sub.textContent = cleanTitle ? cleanTitle.slice(0, 24) : 'Tocando agora';
+        } else if (cleanTitle) {
+          sub.textContent = 'Pausado · ' + cleanTitle.slice(0, 18);
         } else {
           sub.textContent = 'Músicas · Lo-fi · Rádio';
         }

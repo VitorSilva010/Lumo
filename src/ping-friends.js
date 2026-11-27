@@ -47,6 +47,8 @@
     return chatThemeMap[roomCode] || 'lumo';
   }
   function renderLumoAvatar(color, online, playing) {
+    const _isMusicAv = online && String(playing || '').startsWith('music:');
+    const _hpSvg = _isMusicAv ? `<path d="M5.5 17v-3.5a12.5 12.5 0 0 1 25 0V17" stroke="${/^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#f6b974'}" stroke-width="2.1" stroke-linecap="round" fill="none"/>` : '';
     const col = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#4ade80';
     const eyes = online
       ? (playing
@@ -358,7 +360,7 @@
       const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
       const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
       const statusText = f.online
-        ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora')
+        ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora')
         : fmtLastSeen(f.last_seen);
       const statusCls = f.online ? (f.playing ? 'playing' : 'online') : '';
       const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
@@ -450,8 +452,8 @@
           const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
           const cleanLast = _jp ? (_jp.t === 'inv' ? ('Convite Lumo Jam · ' + (_jp.ti || 'Ouvir juntos')) : '') : String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
           const statusLine = unread && cleanLast
-            ? `💬 ${cleanLast}`
-            : (f.online ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
+            ? `${cleanLast}`
+            : (f.online ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora') : fmtLastSeen(f.last_seen));
           const subCls = unread ? 'unread-preview' : (f.online ? (f.playing ? 'playing' : 'online') : '');
           const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
           return `
@@ -571,9 +573,12 @@
   // === HEARTBEAT & POLLING DE ALTA CONFIABILIDADE ===
   async function sendHeartbeat() {
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
+    /* V396_PING_MUSIC_STATUS */
+    const _lmPlaying = Boolean(window._lumoPingMusicTitle);
     const playing = (showGameStatus && window.isPlayingGame && window.currentGameName)
       ? String(window.currentGameName).slice(0, 40)
-      : '';
+      : (_lmPlaying ? ('music:' + window._lumoPingMusicTitle).slice(0, 44) : '');
+    const _unusedOld = (false) ? '' : '';
     try {
       const { ok, data } = await apiPost({
         action: 'heartbeat',
@@ -1080,4 +1085,15 @@
     await pollFriends();
     startReliableClock();
   }, 600);
+
+  let _pingMusicTimer = 0;
+  window.addEventListener('lumo-music-state', (ev) => {
+    const d = ev.detail || {};
+    const nextTitle = d.playing && d.title ? String(d.title).trim().slice(0, 36) : '';
+    if (nextTitle !== (window._lumoPingMusicTitle || '')) {
+      window._lumoPingMusicTitle = nextTitle;
+      clearTimeout(_pingMusicTimer);
+      _pingMusicTimer = setTimeout(() => { if (typeof sendHeartbeat === 'function') sendHeartbeat(); }, 1200);
+    }
+  });
 })();

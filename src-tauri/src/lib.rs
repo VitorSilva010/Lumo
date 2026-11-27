@@ -890,6 +890,28 @@ fn delete_api_key(provider: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn open_youtube_login(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(win) = app.get_webview_window("youtube_login") {
+        let _ = win.show();
+        let _ = win.unminimize();
+        let _ = win.set_focus();
+        return Ok(());
+    }
+    let url = tauri::Url::parse(
+        "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/"
+    ).map_err(|e| e.to_string())?;
+    tauri::WebviewWindowBuilder::new(&app, "youtube_login", tauri::WebviewUrl::External(url))
+        .title("Conectar YouTube Premium — Lumo")
+        .inner_size(520.0, 680.0)
+        .center()
+        .resizable(true)
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        .build()
+        .map_err(|e| format!("Não foi possível abrir a janela do YouTube: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
     let client = reqwest::Client::new();
 
@@ -1398,6 +1420,7 @@ pub fn run() {
             save_api_key,
             delete_api_key,
             activate_license,
+            open_youtube_login,
             ask_gemini
         ])
         .run(tauri::generate_context!())

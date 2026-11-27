@@ -105,3 +105,22 @@ body.surface-light .v38-resumo-look {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* V396_MATCH_TILE_TYPO */
+#v38-resumo-look .v38-goto-title {
+  font-family: inherit !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: normal !important;
+  color: var(--text) !important;
+}
+#v38-resumo-look .v38-goto-sub {
+  font-family: inherit !important;
+  font-size: 9.7px !important;
+  font-weight: 400 !important;
+  line-height: 1.25 !important;
+  color: var(--muted) !important;
+  opacity: 0.72 !important;
+  margin-top: 2px !important;
+}

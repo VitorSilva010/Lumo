@@ -67,6 +67,7 @@
   let listMsg = spTokens?.access_token ? 'Carregando sua biblioteca do Spotify...' : 'Busque qualquer música ou conecte Spotify / YouTube Premium!';
   let results = [];
   let spPlaylists = [];
+  let activeSpPlaylist = null;
   let showSpManualBox = false;
   let showSpSettings = false;
 
@@ -391,14 +392,21 @@
     renderLibrary();
   }
 
-  function openYouTubeLogin() {
-    const url = 'https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/';
-    window.open(url, 'lumo_yt_login', 'width=480,height=680');
-    ytSignedIn = true;
-    localStorage.setItem('lumo_yt_signed_in', 'true');
-    destroyYtPlayer(); // Força recriar iframe já com o novo cookie na próxima reprodução
-    renderLibrary();
-    if (typeof say === 'function') say('Entre na sua conta Google/YouTube na janela aberta para ativar o YouTube Premium!', 4200, true);
+  async function openYouTubeLogin() {
+    try {
+      if (typeof invoke === 'function') {
+        await invoke('open_youtube_login');
+      } else {
+        window.open('https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/', 'lumo_yt_login', 'width=520,height=680');
+      }
+      ytSignedIn = true;
+      localStorage.setItem('lumo_yt_signed_in', 'true');
+      destroyYtPlayer();
+      renderLibrary();
+      if (typeof say === 'function') say('Faça login na janela do YouTube aberta e feche-a ao terminar!', 4500, true);
+    } catch (err) {
+      if (typeof say === 'function') say('Erro ao abrir login do YouTube: ' + String(err), 3600, true);
+    }
   }
 
   // === LISTENER GLOBAL DE POSTMESSAGE (YOUTUBE + SPOTIFY SDK + CALLBACK) ===
@@ -966,7 +974,7 @@
         renderLibrary();
         return;
       } else {
-        url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(chip)}&type=track&limit=10`;
+        url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(chip)}&type=track&limit=20`;
       }
 
       const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
@@ -984,20 +992,64 @@
     renderLibrary();
   }
 
+  async function playSpotifyPlaylistDirect(plId, plName) {
+    const token = await spGetValidToken();
+    if (!token) {
+      if (typeof say === 'function') say('Conecte sua conta Spotify Premium primeiro.', 2600, true);
+      return;
+    }
+    try {
+      if (typeof ensureSpDevice === 'function') {
+        const dev = await ensureSpDevice();
+        if (dev) {
+          const r = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(dev)}`, {
+            method: 'PUT',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ context_uri: `spotify:playlist:${plId}` })
+          });
+          if (r.ok || r.status === 204) {
+            if (typeof say === 'function') say(`Tocando playlist "${plName || 'Spotify'}"!`, 2400, true);
+            return;
+          }
+        }
+      }
+      if (typeof say === 'function') say('Não consegui iniciar a playlist diretamente. Tente dar play em uma música primeiro.', 3200, true);
+    } catch (_) {
+      if (typeof say === 'function') say('Falha ao tocar playlist no Spotify.', 2600, true);
+    }
+  }
+
   async function openSpotifyPlaylist(plId, plName) {
     const token = await spGetValidToken();
     if (!token) return;
+    activeSpPlaylist = { id: plId, name: plName || 'Playlist' };
     loadingList = true;
-    listMsg = `Abrindo "${plName}"...`;
+    results = [];
+    listMsg = `Abrindo "${activeSpPlaylist.name}"...`;
     spChip = 'pl-view';
     renderLibrary();
     try {
-      const res = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(plId)}/tracks?limit=30`, {
+      let res = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(plId)}/items?limit=50`, {
         headers: { Authorization: 'Bearer ' + token }
       });
-      const data = await res.json();
-      results = (data.items || []).map((x) => mapSpotifyTrack(x.track)).filter(Boolean);
-      listMsg = results.length ? '' : 'Essa playlist está vazia.';
+      if (res.status === 404 || res.status === 400) {
+        res = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(plId)}/tracks?limit=50`, {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+      }
+      if (res.status === 403) {
+        results = [];
+        listMsg = 'O Spotify restringe listar faixas de playlists de outros criadores no modo dev. Clique em "Tocar playlist" acima para ouvir direto!';
+      } else if (!res.ok) {
+        results = [];
+        listMsg = `Não consegui abrir essa playlist (HTTP ${res.status}).`;
+      } else {
+        const data = await res.json();
+        results = (data.items || [])
+          .map((x) => mapSpotifyTrack(x?.item || x?.track || x))
+          .filter(Boolean);
+        listMsg = results.length ? '' : 'Essa playlist está vazia ou sem faixas reproduzíveis.';
+      }
     } catch (_) {
       results = [];
       listMsg = 'Não consegui abrir essa playlist.';
@@ -1367,14 +1419,24 @@
       let listHtml = '';
       if (loadingList) {
         listHtml = `<div style="font-size:11px; color:var(--muted); text-align:center; padding:18px;">${esc(listMsg)}</div>`;
+      } else if (searchSrc === 'spotify' && spChip === 'pl-view' && activeSpPlaylist) {
+        const plHeader = `<div class="lm-pl-back-bar" style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 9px; margin-bottom:6px; border-radius:10px; background:rgba(255,255,255,0.035); border:1px solid var(--border);">
+          <button type="button" class="lm-chip" data-sppl-back="1" style="padding:4px 9px;">← Playlists</button>
+          <span style="font-size:11px; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(activeSpPlaylist.name)}</span>
+          <button type="button" class="lm-chip active" data-sppl-play="${esc(activeSpPlaylist.id)}" data-spplname="${esc(activeSpPlaylist.name)}" style="padding:4px 9px;">Tocar</button>
+        </div>`;
+        listHtml = plHeader + (results.length
+          ? results.map((t, i) => renderTrackRow(t, i, 'search')).join('')
+          : `<div style="font-size:10.8px; color:var(--muted); text-align:center; padding:14px;">${esc(listMsg || 'Nenhuma faixa encontrada.')}</div>`);
       } else if (searchSrc === 'spotify' && spChip === 'playlists' && spTokens?.access_token) {
         listHtml = spPlaylists.length
           ? spPlaylists.map((p) => `<div class="lm-track" data-sppl="${esc(p.id)}" data-spplname="${esc(p.name || 'Playlist')}">
               <div class="lm-t-art">${p.images?.[0]?.url ? `<img src="${esc(p.images[0].url)}" alt="" loading="lazy" />` : IC.music}</div>
               <div class="lm-t-info">
                 <div class="lm-t-title">${esc(p.name || 'Playlist')}</div>
-                <div class="lm-t-sub">${p.tracks?.total || 0} faixas · Spotify</div>
+                <div class="lm-t-sub">${(p.items?.total ?? p.tracks?.total) ? `${p.items?.total ?? p.tracks?.total} faixas · Spotify` : 'Playlist · Spotify'}</div>
               </div>
+              <button type="button" class="lm-t-btn" data-sppl-play="${esc(p.id)}" data-spplname="${esc(p.name || 'Playlist')}" title="Tocar playlist" style="margin-right:4px;">${IC.play}</button>
               <span style="font-size:13px; color:var(--muted);">›</span>
             </div>`).join('')
           : `<div style="font-size:10.8px; color:var(--muted); text-align:center; padding:18px 8px;">${esc(listMsg || 'Nenhuma playlist.')}</div>`;
@@ -1667,4 +1729,31 @@
   if (spTokens?.access_token) {
     setTimeout(() => loadSpotifyFeed('likes', ''), 900);
   }
+
+  // V396_SPPL_CAPTURE: garante que cliques nas playlists do Spotify nunca caiam em Curtidas ou .lm-track
+  document.addEventListener('click', (e) => {
+    const backBtn = e.target.closest('[data-sppl-back]');
+    if (backBtn) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      activeSpPlaylist = null;
+      spChip = 'playlists';
+      if (spPlaylists.length) { listMsg = ''; renderLibrary(); }
+      else loadSpotifyFeed('playlists');
+      return;
+    }
+    const playPl = e.target.closest('[data-sppl-play]');
+    if (playPl) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      playSpotifyPlaylistDirect(playPl.dataset.spplPlay, playPl.dataset.spplname || 'Playlist');
+      return;
+    }
+    const plRow = e.target.closest('[data-sppl]');
+    if (plRow) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openSpotifyPlaylist(plRow.dataset.sppl, plRow.dataset.spplname || 'Playlist');
+    }
+  }, true);
 })();
