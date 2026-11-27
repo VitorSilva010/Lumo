@@ -9,7 +9,8 @@
     sync:    S('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>'),
     trash:   S('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>'),
     send:    S('<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/>'),
-    copy:    S('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>')
+    copy:    S('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'),
+    palette: S('<circle cx="13.5" cy="6.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".8" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".8" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/>')
   };
 
   let myUid = localStorage.getItem('lumo_ping_uid');
@@ -30,6 +31,34 @@
   let replyTarget = null;
   let confirmRemoveUid = null;
   let confirmRemoveTimer = null;
+  let themeBarOpen = false;
+  const CHAT_THEMES = [
+    { id: 'lumo',     label: 'Cor do Lumo',  dot: 'var(--accent)' },
+    { id: 'friend',   label: 'Cor do Amigo', dot: 'var(--friend-col, #4ade80)' },
+    { id: 'midnight', label: 'Meia-Noite',   dot: '#6366f1' },
+    { id: 'cyber',    label: 'Cyber Neon',   dot: 'linear-gradient(135deg,#e879f9,#22d3ee)' },
+    { id: 'forest',   label: 'Floresta',     dot: '#10b981' },
+    { id: 'sunset',   label: 'Pôr do Sol',   dot: 'linear-gradient(135deg,#fb923c,#f43f5e)' },
+    { id: 'minimal',  label: 'Minimal',      dot: '#94a3b8' }
+  ];
+  let chatThemeMap = {};
+  try { chatThemeMap = JSON.parse(localStorage.getItem('lumo_ping_chat_themes') || '{}') || {}; } catch (_) {}
+  function getChatTheme(roomCode) {
+    return chatThemeMap[roomCode] || 'lumo';
+  }
+  function renderLumoAvatar(color, online, playing) {
+    const col = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#4ade80';
+    const eyes = online
+      ? (playing
+          ? `<rect x="9.5" y="15.5" width="5.5" height="3.2" rx="1.6" fill="${col}"/><rect x="21" y="15.5" width="5.5" height="3.2" rx="1.6" fill="${col}"/>`
+          : `<rect x="10.2" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${col}"/><rect x="21.4" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${col}"/>`)
+      : `<path d="M10 17.5c1 1.3 3 1.3 4 0" stroke="${col}" stroke-width="1.9" stroke-linecap="round" opacity="0.72"/><path d="M22 17.5c1 1.3 3 1.3 4 0" stroke="${col}" stroke-width="1.9" stroke-linecap="round" opacity="0.72"/>`;
+    return `<svg class="pf-lumo-svg" viewBox="0 0 36 36" fill="none">
+      <rect x="1.8" y="6.2" width="32.4" height="23.6" rx="11.8" fill="#0b0f18" stroke="${col}" stroke-width="2.1"/>
+      <rect x="4" y="8.4" width="28" height="19.2" rx="9.6" fill="${col}" fill-opacity="0.11"/>
+      ${eyes}
+    </svg>`;
+  }
 
   let readMap = {};
   try {
@@ -336,12 +365,12 @@
       const confirming = confirmRemoveUid === f.uid;
 
       pane.innerHTML = `
-        <div class="pf-dm-shell">
+        <div class="pf-dm-shell" data-chat-theme="${esc(getChatTheme(f.room_code))}" style="--friend-col:${esc(f.color || '#4ade80')};">
           <div class="pf-dm-head">
             <div class="pf-dm-head-left">
               <button type="button" class="pf-icon-btn" title="Voltar" onclick="LumoFriends.closeDm()">${IC.back}</button>
-              <div class="pf-avatar-wrap sm" style="background:${esc(f.color || '#4ade80')};">
-                ${esc(initial)}
+              <div class="pf-avatar-wrap sm lumo-av">
+                ${renderLumoAvatar(f.color, f.online, f.playing)}
                 <span class="pf-status-dot ${dotCls}"></span>
               </div>
               <div class="pf-info">
@@ -352,11 +381,15 @@
               </div>
             </div>
             <div class="pf-dm-head-actions">
+              <button type="button" class="pf-icon-btn ${themeBarOpen ? 'active' : ''}" id="pf-theme-btn" title="Tema da conversa" onclick="LumoFriends.toggleThemeBar()">${IC.palette}</button>
               <button type="button" class="pf-icon-btn" id="pf-sync-btn" title="Sincronizar agora" onclick="LumoFriends.forceSync()">${IC.sync}</button>
               <button type="button" class="pf-icon-btn danger ${confirming ? 'confirm' : ''}" id="pf-rem-btn" title="Remover amigo" onclick="LumoFriends.removeFriend('${esc(f.uid)}')">${confirming ? 'Confirmar?' : IC.trash}</button>
             </div>
           </div>
 
+          <div class="pf-theme-bar ${themeBarOpen ? 'show' : ''}" id="pf-theme-bar">
+            ${CHAT_THEMES.map((t) => `<button type="button" class="pf-theme-chip ${getChatTheme(f.room_code) === t.id ? 'active' : ''}" onclick="LumoFriends.setChatTheme('${t.id}')"><span class="pf-theme-dot" style="background:${t.dot};"></span>${t.label}</button>`).join('')}
+          </div>
           <div class="pf-dm-nudges">
             <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('wave')">👋 Oi</button>
             <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('love')">❤️ Carinho</button>
@@ -423,8 +456,8 @@
           const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
           return `
             <div class="pf-friend-item ${f.online ? '' : 'offline'} ${unread ? 'has-unread' : ''}" onclick="LumoFriends.openDm('${esc(f.uid)}')">
-              <div class="pf-avatar-wrap" style="background:${esc(f.color || '#4ade80')};">
-                ${esc(initial)}
+              <div class="pf-avatar-wrap lumo-av">
+                ${renderLumoAvatar(f.color, f.online, f.playing)}
                 <span class="pf-status-dot ${dotCls}"></span>
               </div>
               <div class="pf-info">
@@ -938,7 +971,23 @@
       renderFriendsPane();
       pollActiveDm();
     },
+    toggleThemeBar() {
+      themeBarOpen = !themeBarOpen;
+      document.getElementById('pf-theme-bar')?.classList.toggle('show', themeBarOpen);
+      document.getElementById('pf-theme-btn')?.classList.toggle('active', themeBarOpen);
+    },
+    setChatTheme(themeId) {
+      if (!activeFriend) return;
+      chatThemeMap[activeFriend.room_code] = themeId;
+      try { localStorage.setItem('lumo_ping_chat_themes', JSON.stringify(chatThemeMap)); } catch (_) {}
+      const shell = document.querySelector('.pf-dm-shell');
+      if (shell) shell.setAttribute('data-chat-theme', themeId);
+      document.querySelectorAll('#pf-theme-bar .pf-theme-chip').forEach((b) => {
+        b.classList.toggle('active', (b.getAttribute('onclick') || '').includes("'" + themeId + "'"));
+      });
+    },
     closeDm() {
+      themeBarOpen = false;
       activeFriend = null;
       replyTarget = null;
       confirmRemoveUid = null;

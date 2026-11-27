@@ -1,0 +1,397 @@
+/* === LUMO v3.6.0 — HALO DA CÁPSULA, ONDAS NO CARD/PLAYER, AMBIENTE, TEMAS DO PING & MINI-LUMO === */
+
+/* 1. Brilho pulsante (aumentando e diminuindo) ao redor da cápsula tocando música */
+#lumo-pill.music-aura {
+  animation: lumoMusicHalo 2.6s ease-in-out infinite !important;
+}
+#lumo-pill.music-aura::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1.5px solid var(--accent);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+  animation: lumoMusicRing 2.6s ease-in-out infinite;
+}
+@keyframes lumoMusicHalo {
+  0%, 100% {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.58), 0 0 12px 1px var(--accent-soft), 0 0 0 1px var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.62), 0 0 28px 6px var(--accent-glow), 0 0 0 1.5px var(--accent);
+  }
+}
+@keyframes lumoMusicRing {
+  0%, 100% { transform: scale(1); opacity: 0.22; }
+  50%      { transform: scale(1.045, 1.12); opacity: 0.62; }
+}
+body.lumo-eco #lumo-pill.music-aura,
+body.reduced-motion #lumo-pill.music-aura,
+body.lumo-eco #lumo-pill.music-aura::before,
+body.reduced-motion #lumo-pill.music-aura::before {
+  animation: none !important;
+}
+
+/* 2. Ondas animadas na caixinha do Lumo Music no Resumo */
+.hub-tile[data-lm-tile="1"] {
+  position: relative;
+}
+.lm-tile-waves {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 15px;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+.hub-tile.lm-tile-playing .lm-tile-waves {
+  opacity: 1;
+  transform: scale(1);
+}
+.lm-tile-waves i {
+  display: block;
+  width: 2.5px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform-origin: bottom center;
+  transform: scaleY(0.25);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+.hub-tile.lm-tile-playing .lm-tile-waves i {
+  animation: lmTileWave 0.78s ease-in-out infinite alternate;
+}
+.lm-tile-waves i:nth-child(1) { animation-delay: 0.00s; animation-duration: 0.68s; }
+.lm-tile-waves i:nth-child(2) { animation-delay: 0.16s; animation-duration: 0.54s; }
+.lm-tile-waves i:nth-child(3) { animation-delay: 0.30s; animation-duration: 0.76s; }
+.lm-tile-waves i:nth-child(4) { animation-delay: 0.12s; animation-duration: 0.60s; }
+.lm-tile-waves i:nth-child(5) { animation-delay: 0.24s; animation-duration: 0.72s; }
+@keyframes lmTileWave {
+  0%   { transform: scaleY(0.22); opacity: 0.55; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+.hub-tile.lm-tile-playing {
+  border-color: var(--accent) !important;
+  animation: lmTilePulse 2.8s ease-in-out infinite;
+}
+@keyframes lmTilePulse {
+  0%, 100% { box-shadow: 0 0 10px var(--accent-soft); }
+  50%      { box-shadow: 0 0 22px var(--accent-glow); }
+}
+
+/* 3. Painel Now Playing do Lumo Music reagindo quando está tocando */
+.lm-hero {
+  transition: border-color 0.28s ease, box-shadow 0.28s ease;
+}
+.lm-hero.is-playing {
+  border-color: var(--accent-glow) !important;
+  animation: lmHeroPulse 3s ease-in-out infinite;
+}
+@keyframes lmHeroPulse {
+  0%, 100% { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3), 0 0 12px var(--accent-soft); }
+  50%      { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34), 0 0 26px var(--accent-glow); }
+}
+.lm-hero.is-playing .lm-play-btn {
+  animation: lmPlayBeat 1.8s ease-in-out infinite;
+}
+@keyframes lmPlayBeat {
+  0%, 100% { box-shadow: 0 6px 18px var(--accent-glow); }
+  50%      { box-shadow: 0 6px 26px var(--accent), 0 0 0 5px var(--accent-soft); }
+}
+.lm-hero-waves {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.32s ease;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+}
+.lm-hero.is-playing .lm-hero-waves {
+  opacity: 0.38;
+}
+.lm-hero-waves i {
+  flex: 1;
+  height: 18px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(to top, var(--accent), transparent);
+  transform-origin: bottom center;
+  transform: scaleY(0.18);
+}
+.lm-hero.is-playing .lm-hero-waves i {
+  animation: lmHeroBar 0.85s ease-in-out infinite alternate;
+}
+.lm-hero-waves i:nth-child(3n)   { animation-duration: 0.62s; animation-delay: 0.1s; }
+.lm-hero-waves i:nth-child(3n+1) { animation-duration: 0.84s; animation-delay: 0.25s; }
+.lm-hero-waves i:nth-child(3n+2) { animation-duration: 0.72s; animation-delay: 0.42s; }
+@keyframes lmHeroBar {
+  0%   { transform: scaleY(0.16); }
+  100% { transform: scaleY(1); }
+}
+
+/* 4. Mixer da aba Ambiente */
+.lm-amb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.lm-amb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+.lm-amb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+body.surface-light .lm-amb-card {
+  background: rgba(15, 23, 42, 0.04);
+}
+.lm-amb-card:hover {
+  border-color: var(--accent-glow);
+}
+.lm-amb-card.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px var(--accent-soft);
+}
+.lm-amb-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lm-amb-ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lm-amb-card.on .lm-amb-ic {
+  background: var(--accent);
+  color: #0b0e14;
+}
+.lm-amb-ic svg {
+  width: 14px;
+  height: 14px;
+}
+.lm-amb-name {
+  font-size: 11.2px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+}
+.lm-amb-sub {
+  font-size: 9.2px;
+  color: var(--muted);
+}
+.lm-amb-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+  cursor: pointer;
+}
+body.surface-light .lm-amb-slider {
+  background: rgba(15, 23, 42, 0.15);
+}
+.lm-amb-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+.lm-amb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10.4px;
+  color: var(--muted);
+}
+
+/* 5. Avatares Mini-Lumo no Lumo Ping e Lumo Jam */
+.pf-avatar-wrap.lumo-av,
+.lm-jam-av.lumo-av {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.pf-lumo-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.42));
+}
+
+/* 6. Temas das conversas do Lumo Ping */
+.pf-theme-bar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+  animation: pfThemeDrop 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pf-theme-bar.show {
+  display: flex;
+}
+@keyframes pfThemeDrop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pf-theme-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 9.8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+}
+.pf-theme-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.pf-theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Paletas dos temas da conversa (aplicados sobre .pf-dm-shell) */
+.pf-dm-shell[data-chat-theme="friend"] .pf-feed-wrap {
+  background: radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--friend-col, var(--accent)) 16%, transparent), rgba(0, 0, 0, 0.22));
+  border-color: color-mix(in srgb, var(--friend-col, var(--accent)) 35%, transparent);
+}
+.pf-dm-shell[data-chat-theme="friend"] .pf-dm-row.them .pf-dm-bubble {
+  background: color-mix(in srgb, var(--friend-col, var(--accent)) 15%, rgba(15, 19, 28, 0.85));
+  border-color: color-mix(in srgb, var(--friend-col, var(--accent)) 40%, transparent);
+}
+
+.pf-dm-shell[data-chat-theme="lumo"] .pf-feed-wrap {
+  background: radial-gradient(circle at 20% 85%, var(--accent-soft), rgba(0, 0, 0, 0.22));
+  border-color: var(--accent-glow);
+}
+
+.pf-dm-shell[data-chat-theme="midnight"] .pf-feed-wrap {
+  background: linear-gradient(160deg, rgba(15, 23, 62, 0.72), rgba(7, 10, 24, 0.88));
+  border-color: rgba(99, 102, 241, 0.34);
+}
+.pf-dm-shell[data-chat-theme="midnight"] .pf-dm-row.me .pf-dm-bubble {
+  background: rgba(99, 102, 241, 0.24);
+  border-color: rgba(129, 140, 248, 0.5);
+}
+
+.pf-dm-shell[data-chat-theme="cyber"] .pf-feed-wrap {
+  background: linear-gradient(155deg, rgba(76, 29, 149, 0.45), rgba(14, 116, 144, 0.34), rgba(10, 10, 20, 0.88));
+  border-color: rgba(232, 121, 249, 0.38);
+}
+.pf-dm-shell[data-chat-theme="cyber"] .pf-dm-row.me .pf-dm-bubble {
+  background: rgba(232, 121, 249, 0.2);
+  border-color: rgba(232, 121, 249, 0.52);
+}
+.pf-dm-shell[data-chat-theme="cyber"] .pf-dm-row.them .pf-dm-bubble {
+  background: rgba(34, 211, 238, 0.14);
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.pf-dm-shell[data-chat-theme="forest"] .pf-feed-wrap {
+  background: linear-gradient(160deg, rgba(6, 78, 59, 0.48), rgba(6, 24, 18, 0.86));
+  border-color: rgba(52, 211, 153, 0.35);
+}
+.pf-dm-shell[data-chat-theme="forest"] .pf-dm-row.me .pf-dm-bubble {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(52, 211, 153, 0.48);
+}
+
+.pf-dm-shell[data-chat-theme="sunset"] .pf-feed-wrap {
+  background: linear-gradient(155deg, rgba(154, 52, 18, 0.42), rgba(136, 19, 55, 0.38), rgba(15, 11, 18, 0.86));
+  border-color: rgba(251, 146, 60, 0.38);
+}
+.pf-dm-shell[data-chat-theme="sunset"] .pf-dm-row.me .pf-dm-bubble {
+  background: rgba(251, 146, 60, 0.22);
+  border-color: rgba(251, 146, 60, 0.52);
+}
+
+.pf-dm-shell[data-chat-theme="minimal"] .pf-feed-wrap {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: var(--border);
+}
+.pf-dm-shell[data-chat-theme="minimal"] .pf-dm-row.me .pf-dm-bubble {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 7. Micro-animações e transições suaves (GPU, sem afetar scroll do Resumo) */
+.view:not(#view-resumo).active > .card,
+.view:not(#view-resumo).active > #lm-music-pane > .card,
+.view:not(#view-resumo).active > #lm-ambient-pane > .card {
+  animation: lumoCardFadeUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.view:not(#view-resumo).active > .card:nth-child(2),
+.view:not(#view-resumo).active > #lm-music-pane > .card:nth-child(2) {
+  animation-delay: 0.04s;
+}
+@keyframes lumoCardFadeUp {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lm-track {
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.14s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lm-track:active {
+  transform: scale(0.985);
+}
+body.lumo-eco .view:not(#view-resumo).active > .card,
+body.reduced-motion .view:not(#view-resumo).active > .card {
+  animation: none !important;
+}

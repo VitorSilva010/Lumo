@@ -345,8 +345,8 @@
               ? 'Ouvindo junto com você'
               : (st ? 'Convite enviado' : (f.online ? 'Online no Lumo Ping' : 'Offline'));
             return `<div class="lm-jam-row">
-              <div class="lm-jam-av" style="background:${esc(f.color || '#4ade80')};">
-                ${esc(init)}
+              <div class="lm-jam-av lumo-av">
+                <svg class="pf-lumo-svg" viewBox="0 0 36 36" fill="none"><rect x="1.8" y="6.2" width="32.4" height="23.6" rx="11.8" fill="#0b0f18" stroke="${esc(f.color || '#4ade80')}" stroke-width="2.2"/><rect x="10.2" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${esc(f.color || '#4ade80')}"/><rect x="21.4" y="13.8" width="4.4" height="6.8" rx="2.2" fill="${esc(f.color || '#4ade80')}"/></svg>
                 <span class="dot ${f.online ? 'on' : ''}"></span>
               </div>
               <div class="lm-jam-finfo">
