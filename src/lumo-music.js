@@ -34,7 +34,8 @@
     lyrics:  S('<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>'),
     stop:    S('<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>'),
     vol:     S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'),
-    muted:   S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>')
+    muted:   S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'),
+    wave:    S('<path d="M3 12h2"/><path d="M7 8v8"/><path d="M11 5v14"/><path d="M15 9v6"/><path d="M19 7v10"/><path d="M22 12h-1"/>')
   };
 
   function esc(s) {
@@ -302,6 +303,7 @@
     }
     if (typeof syncPlayVisuals === 'function') syncPlayVisuals();
     syncResumoMusicTile();
+    window.dispatchEvent(new CustomEvent('lumo-music-state', { detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' } }));
 
     const mini = document.getElementById('pill-mini-player');
     if (mini) {
@@ -471,6 +473,7 @@
     if (usingYtEmbed()) sendYt({ type: 'volume', volume });
     const vi = document.getElementById('lm-vol');
     if (vi) { vi.value = String(volume); vi.style.setProperty('--vpct', volume + '%'); }
+    window.dispatchEvent(new CustomEvent('lumo-music-state', { detail: { playing: Boolean(currentTrack && isPlaying), volume, title: currentTrack?.title || '' } }));
   }
 
   // === LETRAS SINCRONIZADAS (LRCLIB) ===
@@ -782,6 +785,7 @@
           </div>
           <div class="lm-hero-actions">
             <button type="button" class="lm-icon-btn ${liked ? 'liked' : ''}" data-hact="like" title="Curtir">${IC.heart}</button>
+            <button type="button" class="lm-icon-btn ${window.LumoWave && window.LumoWave.getMode() !== 'off' ? 'active' : ''}" data-hact="wave" title="Ondas na cápsula: ${window.LumoWave ? window.LumoWave.getLabel() : 'Barras'}">${IC.wave}</button>
             <button type="button" class="lm-icon-btn ${lyricsOpen ? 'active' : ''}" data-hact="lyrics" title="Letra sincronizada">${IC.lyrics}</button>
             ${currentTrack ? `<button type="button" class="lm-icon-btn" data-hact="stop" title="Parar e liberar RAM">${IC.stop}</button>` : ''}
           </div>
@@ -819,7 +823,7 @@
     else if (act === 'repeat') {
       repeatMode = repeatMode === 'off' ? 'all' : (repeatMode === 'all' ? 'one' : 'off');
       renderHero();
-    } else if (act === 'lyrics') {
+    } else if (act === 'wave' && window.LumoWave) { window.LumoWave.cycleMode(); renderHero(); } else if (act === 'lyrics') {
       lyricsOpen = !lyricsOpen; renderHero(); renderLyricsBox();
       if (lyricsOpen && currentTrack) fetchLyricsFor(currentTrack);
     }

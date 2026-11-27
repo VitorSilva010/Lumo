@@ -1,0 +1,42 @@
+/* === LUMO v3.2.1 — VISUALIZADOR DE ONDAS DE ÁUDIO NA CÁPSULA === */
+
+#pill-wave-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
+#pill-wave-layer.active {
+  opacity: 0.92;
+}
+#pill-wave-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Mantém rosto, HUD e barra de Pomodoro sempre acima do visualizador */
+#lumo-pill > #lumo-face,
+#lumo-pill > #pill-hud {
+  position: relative;
+  z-index: 2;
+}
+#lumo-pill > #pill-pomo-track {
+  z-index: 3;
+}
+
+body.surface-light #pill-wave-layer.active {
+  opacity: 0.72;
+}
+
+/* Pausa visualmente no Modo Economia ou Movimento Reduzido */
+body.lumo-eco #pill-wave-layer,
+body.reduced-motion #pill-wave-layer {
+  opacity: 0 !important;
+}
