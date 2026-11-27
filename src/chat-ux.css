@@ -1,0 +1,74 @@
+/* === LUMO v3.0.6 — SELEÇÃO DE TEXTO, SHIFT+ENTER & MARKDOWN NA IA === */
+
+/* 1. Libera seleção de texto nas mensagens da IA e do Lumo Ping */
+#chat-box .msg,
+#chat-box .msg *,
+.pf-dm-bubble,
+.pf-dm-bubble *,
+.ping-msg {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+#chat-box .msg,
+.pf-dm-bubble {
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#chat-box .msg button,
+.pf-dm-bubble button {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: pointer !important;
+}
+
+/* 2. Textarea auto-expansível (Enter envia, Shift+Enter quebra linha) */
+textarea#ai-input,
+textarea#pf-dm-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  max-height: 96px;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.38;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+textarea#ai-input:focus,
+textarea#pf-dm-input:focus {
+  border-color: var(--accent);
+}
+#view-ia .inline-form,
+.pf-dm-form {
+  align-items: flex-end !important;
+}
+
+/* 3. Markdown limpo nas respostas da IA */
+#chat-box .msg.ai strong {
+  color: var(--text);
+  font-weight: 700;
+}
+#chat-box .msg.ai em {
+  font-style: italic;
+  opacity: 0.94;
+}
+#chat-box .msg.ai code {
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+body.surface-light #chat-box .msg.ai code {
+  background: rgba(15, 23, 42, 0.07);
+}

@@ -263,7 +263,7 @@
           <button type="button" class="del-btn" onclick="LumoFriends.cancelReply()">×</button>
         </div>
         <form class="pf-dm-form" onsubmit="LumoFriends.submitDm(event)">
-          <input type="text" id="pf-dm-input" placeholder="Mensagem para ${esc(f.display_name)}..." maxlength="380" autocomplete="off" />
+          <textarea id="pf-dm-input" rows="1" placeholder="Mensagem... (Shift+Enter quebra linha)" maxlength="400"></textarea>
           <button type="submit" class="cp-mini" style="padding:0 12px; background:var(--accent); color:#0b0e14; border-color:var(--accent); font-weight:700;">Enviar</button>
         </form>`;
       renderDmFeed();
