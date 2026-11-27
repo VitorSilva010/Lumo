@@ -483,57 +483,72 @@
   function renderStudioUI() {
     const proNow = isPro();
 
-    // 7a. Card Skins da Cápsula + Switches Pro
+    // 7a. Card Skins da Cápsula + Switches Pro (atualiza classes sem recriar DOM no clique)
     const box = document.getElementById('lp-studio-card');
     if (box) {
-      box.innerHTML = `
-        <div class="label-xs">
-          <span>Skins da Cápsula</span>
-          <span class="lp-pro-tag">${proNow ? 'PRO ATIVO' : 'SKINS + PRO'}</span>
-        </div>
-        <div class="lp-grid">
-          ${SKINS.map((s) => `
-            <button type="button" class="lp-skin-btn ${activeSkin === s.id ? 'active' : ''} ${s.pro && !proNow ? 'locked' : ''}" data-skin="${s.id}">
-              <span class="lp-swatch" style="background:${s.swatch};"></span>
-              <span>${s.name}</span>
-              ${s.pro ? '<span class="lp-pro-tag">PRO</span>' : '<span style="font-size:8.5px; color:var(--muted);">Grátis</span>'}
-            </button>`).join('')}
-        </div>
-        <div style="margin-top:10px;">
-          <div class="lp-toggle-row">
-            <div>
-              <strong>Karaokê na Cápsula</strong> <span class="lp-pro-tag">PRO</span>
-              <span class="lp-toggle-sub">Mostra a letra da música flutuando na cápsula</span>
-            </div>
-            <label class="lp-switch"><input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" /><span class="lp-switch-track"></span></label>
+      if (box.dataset.proState === String(proNow) && box.querySelector('[data-skin]')) {
+        box.querySelectorAll('[data-skin]').forEach((b) => {
+          const sk = SKINS.find((s) => s.id === b.dataset.skin);
+          b.classList.toggle('active', b.dataset.skin === activeSkin);
+          b.classList.toggle('locked', Boolean(sk && sk.pro && !proNow));
+        });
+      } else {
+        box.dataset.proState = String(proNow);
+        box.innerHTML = `
+          <div class="label-xs">
+            <span>Skins da Cápsula</span>
+            <span class="lp-pro-tag">${proNow ? 'PRO ATIVO' : 'SKINS + PRO'}</span>
           </div>
-          <div class="lp-toggle-row">
-            <div>
-              <strong>Cor Dinâmica pela Capa</strong> <span class="lp-pro-tag">PRO</span>
-              <span class="lp-toggle-sub">Tema acompanha a cor do álbum tocando</span>
-            </div>
-            <label class="lp-switch"><input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" /><span class="lp-switch-track"></span></label>
+          <div class="lp-grid">
+            ${SKINS.map((s) => `
+              <button type="button" class="lp-skin-btn ${activeSkin === s.id ? 'active' : ''} ${s.pro && !proNow ? 'locked' : ''}" data-skin="${s.id}">
+                <span class="lp-swatch" style="background:${s.swatch};"></span>
+                <span>${s.name}</span>
+                ${s.pro ? '<span class="lp-pro-tag">PRO</span>' : '<span style="font-size:8.5px; color:var(--muted);">Grátis</span>'}
+              </button>`).join('')}
           </div>
-        </div>`;
+          <div style="margin-top:10px;">
+            <div class="lp-toggle-row">
+              <div>
+                <strong>Karaokê na Cápsula</strong> <span class="lp-pro-tag">PRO</span>
+                <span class="lp-toggle-sub">Mostra a letra da música flutuando na cápsula</span>
+              </div>
+              <label class="lp-switch"><input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" /><span class="lp-switch-track"></span></label>
+            </div>
+            <div class="lp-toggle-row">
+              <div>
+                <strong>Cor Dinâmica pela Capa</strong> <span class="lp-pro-tag">PRO</span>
+                <span class="lp-toggle-sub">Tema acompanha a cor do álbum tocando</span>
+              </div>
+              <label class="lp-switch"><input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" /><span class="lp-switch-track"></span></label>
+            </div>
+          </div>`;
+      }
     }
 
-    // 7b. Card Expressões Rápidas (na sub-aba Mascote)
+    // 7b. Card Expressões Rápidas (atualiza classe ativa sem piscar)
     const exprBox = document.getElementById('lp-expr-card');
     if (exprBox) {
-      const exprs = [
-        ['normal', ALP_IC.normal, 'Normal'],
-        ['cool',   ALP_IC.cool,   'Óculos'],
-        ['wink',   ALP_IC.wink,   'Piscar'],
-        ['focus',  ALP_IC.focus,  'Foco'],
-        ['sleepy', ALP_IC.sleepy, 'Soneca'],
-        ['dizzy',  ALP_IC.dizzy,  'Tonto']
-      ];
-      exprBox.innerHTML = `
-        <div class="label-xs"><span>Expressões Rápidas</span></div>
-        <div class="lp-grid">
-          ${exprs.map(([id, ic, lbl]) => `
-            <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${ic}<span>${lbl}</span></button>`).join('')}
-        </div>`;
+      if (exprBox.querySelector('[data-expr]')) {
+        exprBox.querySelectorAll('[data-expr]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.expr === activeExpr);
+        });
+      } else {
+        const exprs = [
+          ['normal', ALP_IC.normal, 'Normal'],
+          ['cool',   ALP_IC.cool,   'Óculos'],
+          ['wink',   ALP_IC.wink,   'Piscar'],
+          ['focus',  ALP_IC.focus,  'Foco'],
+          ['sleepy', ALP_IC.sleepy, 'Soneca'],
+          ['dizzy',  ALP_IC.dizzy,  'Tonto']
+        ];
+        exprBox.innerHTML = `
+          <div class="label-xs"><span>Expressões Rápidas</span></div>
+          <div class="lp-grid">
+            ${exprs.map(([id, ic, lbl]) => `
+              <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${ic}<span>${lbl}</span></button>`).join('')}
+          </div>`;
+      }
     }
   }
 

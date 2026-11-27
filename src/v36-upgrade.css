@@ -354,17 +354,7 @@ body.surface-light .lm-amb-slider {
 }
 
 /* 7. Micro-animações e transições suaves (GPU, sem afetar scroll do Resumo) */
-.view:not(#view-resumo).active > .card,
-.view:not(#view-resumo).active > #lm-music-pane > .card,
-.view:not(#view-resumo).active > #lm-ambient-pane > .card {
-  animation: lumoCardFadeUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.view:not(#view-resumo).active > .card:nth-child(2),
-.view:not(#view-resumo).active > #lm-music-pane > .card:nth-child(2) {
-  animation-delay: 0.04s;
-}
-@keyframes lumoCardFadeUp {
-  from { opacity: 0; transform: translateY(7px); }
+/* Animação de cards em opacity: 0 removida para evitar flash em janela transparente WebView2 */
   to   { opacity: 1; transform: translateY(0); }
 }
 .lm-track {

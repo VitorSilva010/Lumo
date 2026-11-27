@@ -149,10 +149,9 @@
 
 /* 4. Movimentação mais clean nas trocas de tela, sub-abas, gavetas, botões e letras */
 .view.active {
-  animation: lumoCleanViewIn 0.24s var(--ease-clean) both !important;
+  animation: none !important;
+  opacity: 1 !important;
 }
-@keyframes lumoCleanViewIn {
-  from { opacity: 0; transform: translate3d(0, 6px, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
@@ -190,7 +189,9 @@
   animation: lumoDrawerClean 0.26s var(--ease-clean) both;
 }
 @keyframes lumoDrawerClean {
-  from { opacity: 0; transform: translate3d(0, -5px, 0); }
+  from { opacity: 0.94; transform: translate3d(0, -3px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
