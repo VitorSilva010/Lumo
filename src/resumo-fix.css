@@ -1,0 +1,37 @@
+/* === LUMO v3.2.2 — ESTABILIDADE DE SCROLL E LAYOUT NO RESUMO === */
+
+#view-resumo {
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
+}
+
+#view-resumo > * {
+  flex-shrink: 0 !important;
+  min-width: 0;
+}
+
+/* Impede os cards de pularem no eixo Y quando o cursor passa durante o scroll */
+#view-resumo .hub-tile,
+#view-resumo .hero-bento,
+#view-resumo .motd-card,
+#view-resumo .mini-media-strip,
+#view-resumo .card {
+  contain: layout style;
+  will-change: auto !important;
+}
+#view-resumo .hub-tile:hover,
+#view-resumo .hub-tile:active,
+#view-resumo .motd-card:hover,
+#view-resumo .mini-media-strip:hover {
+  transform: none !important;
+}
+
+/* Congela efeitos de hover enquanto a roda do mouse está rolando */
+#view-resumo.is-scrolling .hub-tile::after,
+#view-resumo.is-scrolling .motd-card::after,
+#view-resumo.is-scrolling .mini-media-strip::after {
+  opacity: 0 !important;
+  transition: none !important;
+}

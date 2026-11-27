@@ -699,6 +699,16 @@
   }
   setTimeout(ensureResumoTilePolish, 120);
   setTimeout(ensureResumoTilePolish, 900);
+  // Congela efeitos de hover enquanto o usuário rola o Resumo
+  const vr = document.getElementById('view-resumo');
+  if (vr) {
+    let scTimer = 0;
+    vr.addEventListener('scroll', () => {
+      vr.classList.add('is-scrolling');
+      clearTimeout(scTimer);
+      scTimer = setTimeout(() => vr.classList.remove('is-scrolling'), 150);
+    }, { passive: true });
+  }
 
   function isLiked(id) { return likes.some((x) => x.id === id); }
   function toggleLike(track) {

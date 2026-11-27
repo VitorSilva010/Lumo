@@ -156,24 +156,36 @@
   async function apiGet(query) {
     const sep = query.includes('?') ? '&' : '?';
     const url = `${FRIENDS_API}${query}${sep}_t=${Date.now()}`;
-    const res = await fetch(url, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' },
-      signal: AbortSignal.timeout(6500)
-    });
-    if (!res.ok) return null;
-    return await res.json();
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 7000) : null;
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        cache: 'no-store',
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
   async function apiPost(payload) {
-    const res = await fetch(FRIENDS_API, {
-      method: 'POST',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(8000)
-    });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, data };
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 8000) : null;
+    try {
+      const res = await fetch(FRIENDS_API, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, data };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 
   // === ANIMAÇÃO DE MENSAGEM CHEGANDO NA CÁPSULA ===
@@ -872,22 +884,33 @@
 
   // === RELÓGIO ANTI-THROTTLING VIA WEB WORKER (NÃO DESACELERA EM SEGUNDO PLANO) ===
   let tickCount = 0;
+  let lastTickAt = 0;
   function onClockTick() {
+    lastTickAt = Date.now();
     tickCount++;
     pollFriends();
     if (activeFriend) pollActiveDm();
-    if (tickCount % 10 === 0) sendHeartbeat(); // Heartbeat a cada ~20s
+    if (tickCount % 10 === 0) sendHeartbeat();
   }
 
   function startReliableClock() {
+    let fallbackInterval = null;
+    const ensureFallback = () => {
+      if (!fallbackInterval) fallbackInterval = setInterval(onClockTick, 2000);
+    };
     try {
       const code = 'setInterval(() => postMessage(1), 2000);';
       const blob = new Blob([code], { type: 'application/javascript' });
       const worker = new Worker(URL.createObjectURL(blob));
       worker.onmessage = onClockTick;
+      worker.onerror = ensureFallback;
     } catch (_) {
-      setInterval(onClockTick, 2000);
+      ensureFallback();
     }
+    // Watchdog: se o Worker ficar parado por mais de 3.5s, força tick
+    setInterval(() => {
+      if (Date.now() - lastTickAt > 3500) onClockTick();
+    }, 3500);
   }
 
   window.addEventListener('focus', () => { pollFriends(); if (activeFriend) pollActiveDm(); });

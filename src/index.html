@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="./chat-ux.css" />
   <link rel="stylesheet" href="./lumo-music.css" />
   <link rel="stylesheet" href="./pill-visualizer.css" />
+  <link rel="stylesheet" href="./resumo-fix.css" />
 </head>
 <body>
   <div id="app">
@@ -234,9 +235,9 @@
               <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg></div>
               <div><div class="tile-title">Foco & PC</div><div class="tile-sub" id="sub-util">25:00 · Café</div></div>
             </button>
-            <button class="hub-tile" id="tile-midia" onclick="openView('midia')">
+            <button data-lm-tile="1" class="hub-tile" id="tile-midia" onclick="openView('midia')">
               <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg></div>
-              <div><div class="tile-title">Ambiente</div><div data-lm-tile="1" class="tile-sub" id="sub-midia"><span id="music-tile-sub">Músicas · Lo-fi · Rádio</span></div></div>
+              <div><div class="tile-title">Lumo Music</div><div class="tile-sub" id="sub-midia"><span id="music-tile-sub">Músicas · Lo-fi · Rádio</span></div></div>
             </button>
             <button class="hub-tile" onclick="hideForGame('Fui pro canto! Use Alt+Espaço pra me chamar.')">
               <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg></div>
@@ -544,7 +545,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="label-xs"><span>Plano · Lumo v3.2.1</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
+          <div class="label-xs"><span>Plano · Lumo v3.2.2</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
             <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
@@ -690,7 +691,7 @@
             <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v3.2.1</div></div>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v3.2.2</div></div>
             <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
