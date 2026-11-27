@@ -500,77 +500,81 @@
     renderClipCard();
   }
 
-  // === 7. ESTÚDIO DE SKINS, EXPRESSÕES & EXTRAS PRO NA ABA DE AJUSTES ===
-  const studioParent =
-    document.getElementById('view-config') ||
-    document.getElementById('view-settings') ||
-    document.getElementById('view-ajustes') ||
-    document.getElementById('view-custom') ||
-    document.getElementById('view-util');
+  // === 7. ESTÚDIO DE SKINS (CÁPSULA) & EXPRESSÕES (MASCOTE) ===
+  const capsuleHost = () =>
+    document.getElementById('v38-pane-capsule') ||
+    document.getElementById('view-config');
+  const mascotHost = () =>
+    document.getElementById('v38-pane-mascot') ||
+    document.getElementById('view-config');
 
   function renderStudioUI() {
-    const box = document.getElementById('lp-studio-card');
-    if (!box) return;
     const proNow = isPro();
-    const exprs = [
-      ['normal', ALP_IC.normal, 'Normal'],
-      ['cool',   ALP_IC.cool,   'Óculos'],
-      ['wink',   ALP_IC.wink,   'Piscar'],
-      ['focus',  ALP_IC.focus,  'Foco'],
-      ['sleepy', ALP_IC.sleepy, 'Soneca'],
-      ['dizzy',  ALP_IC.dizzy,  'Tonto']
-    ];
-    box.innerHTML = `
-      <div class="label-xs">
-        <span>Skins & Vida da Cápsula</span>
-        <span class="lp-pro-tag">${proNow ? 'PRO ATIVO' : 'SKINS + PRO'}</span>
-      </div>
-      <div class="lp-grid">
-        ${SKINS.map((s) => `
-          <button type="button" class="lp-skin-btn ${activeSkin === s.id ? 'active' : ''} ${s.pro && !proNow ? 'locked' : ''}" data-skin="${s.id}">
-            <span class="lp-swatch" style="background:${s.swatch};"></span>
-            <span>${s.name}</span>
-            ${s.pro ? '<span class="lp-pro-tag">PRO</span>' : '<span style="font-size:8.5px; color:var(--muted);">Grátis</span>'}
-          </button>`).join('')}
-      </div>
-      <div class="label-xs" style="margin-top:11px;"><span>Expressões rápidas</span></div>
-      <div class="lp-grid">
-        ${exprs.map(([id, ic, lbl]) => `
-          <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${ic}<span>${lbl}</span></button>`).join('')}
-      </div>
-      <div style="margin-top:10px;">
-        <div class="lp-toggle-row">
-          <div>
-            <strong>Karaokê na Cápsula</strong> <span class="lp-pro-tag">PRO</span>
-            <span class="lp-toggle-sub">Mostra a letra da música flutuando na cápsula</span>
-          </div>
-          <label class="lp-switch"><input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" /><span class="lp-switch-track"></span></label>
+
+    // 7a. Card Skins da Cápsula + Switches Pro
+    const box = document.getElementById('lp-studio-card');
+    if (box) {
+      box.innerHTML = `
+        <div class="label-xs">
+          <span>Skins da Cápsula</span>
+          <span class="lp-pro-tag">${proNow ? 'PRO ATIVO' : 'SKINS + PRO'}</span>
         </div>
-        <div class="lp-toggle-row">
-          <div>
-            <strong>Cor Dinâmica pela Capa</strong> <span class="lp-pro-tag">PRO</span>
-            <span class="lp-toggle-sub">Tema acompanha a cor do álbum tocando</span>
-          </div>
-          <label class="lp-switch"><input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" /><span class="lp-switch-track"></span></label>
+        <div class="lp-grid">
+          ${SKINS.map((s) => `
+            <button type="button" class="lp-skin-btn ${activeSkin === s.id ? 'active' : ''} ${s.pro && !proNow ? 'locked' : ''}" data-skin="${s.id}">
+              <span class="lp-swatch" style="background:${s.swatch};"></span>
+              <span>${s.name}</span>
+              ${s.pro ? '<span class="lp-pro-tag">PRO</span>' : '<span style="font-size:8.5px; color:var(--muted);">Grátis</span>'}
+            </button>`).join('')}
         </div>
-      </div>`;
+        <div style="margin-top:10px;">
+          <div class="lp-toggle-row">
+            <div>
+              <strong>Karaokê na Cápsula</strong> <span class="lp-pro-tag">PRO</span>
+              <span class="lp-toggle-sub">Mostra a letra da música flutuando na cápsula</span>
+            </div>
+            <label class="lp-switch"><input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" /><span class="lp-switch-track"></span></label>
+          </div>
+          <div class="lp-toggle-row">
+            <div>
+              <strong>Cor Dinâmica pela Capa</strong> <span class="lp-pro-tag">PRO</span>
+              <span class="lp-toggle-sub">Tema acompanha a cor do álbum tocando</span>
+            </div>
+            <label class="lp-switch"><input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" /><span class="lp-switch-track"></span></label>
+          </div>
+        </div>`;
+    }
+
+    // 7b. Card Expressões Rápidas (na sub-aba Mascote)
+    const exprBox = document.getElementById('lp-expr-card');
+    if (exprBox) {
+      const exprs = [
+        ['normal', ALP_IC.normal, 'Normal'],
+        ['cool',   ALP_IC.cool,   'Óculos'],
+        ['wink',   ALP_IC.wink,   'Piscar'],
+        ['focus',  ALP_IC.focus,  'Foco'],
+        ['sleepy', ALP_IC.sleepy, 'Soneca'],
+        ['dizzy',  ALP_IC.dizzy,  'Tonto']
+      ];
+      exprBox.innerHTML = `
+        <div class="label-xs"><span>Expressões Rápidas</span></div>
+        <div class="lp-grid">
+          ${exprs.map(([id, ic, lbl]) => `
+            <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${ic}<span>${lbl}</span></button>`).join('')}
+        </div>`;
+    }
   }
 
-  if (studioParent && !document.getElementById('lp-studio-card')) {
+  const cParent = capsuleHost();
+  if (cParent && !document.getElementById('lp-studio-card')) {
     const card = document.createElement('div');
     card.className = 'card';
     card.id = 'lp-studio-card';
-    studioParent.insertBefore(card, studioParent.firstChild);
+    cParent.insertBefore(card, cParent.firstChild);
 
     card.addEventListener('click', (e) => {
       const sk = e.target.closest('[data-skin]');
-      if (sk) { applySkin(sk.dataset.skin); return; }
-      const ex = e.target.closest('[data-expr]');
-      if (ex) {
-        const id = ex.dataset.expr;
-        setAliveExpression(id, id === 'dizzy' || id === 'wink' ? 2400 : 0);
-        return;
-      }
+      if (sk) applySkin(sk.dataset.skin);
     });
     card.addEventListener('change', (e) => {
       const t = e.target.dataset?.protog;
@@ -590,8 +594,23 @@
         if (!dynamicColorEnabled) restoreThemeColor();
       }
     });
-    renderStudioUI();
   }
+
+  const mParent = mascotHost();
+  if (mParent && !document.getElementById('lp-expr-card')) {
+    const ecard = document.createElement('div');
+    ecard.className = 'card';
+    ecard.id = 'lp-expr-card';
+    mParent.appendChild(ecard);
+
+    ecard.addEventListener('click', (e) => {
+      const ex = e.target.closest('[data-expr]');
+      if (!ex) return;
+      const id = ex.dataset.expr;
+      setAliveExpression(id, id === 'dizzy' || id === 'wink' ? 2400 : 0);
+    });
+  }
+  renderStudioUI();
 
   // === 8. SCROLL GUARD REAL NA .home-scroll DO RESUMO ===
   const homeScroll = document.querySelector('#view-resumo > .home-scroll') || document.querySelector('#view-resumo .home-scroll');

@@ -35,7 +35,7 @@ let pocketFiles = [];
 const viewTitles = {
   resumo: 'Lumo', kit: 'Kit Rápido', midia: 'Lumo Music',
   bolso: 'Bandeja Mágica', ia: 'IA Lumo', util: 'Foco & PC',
-  mobile: 'Lumo Celular', config: 'Configurações'
+  mobile: 'Lumo Celular', aparencia: 'Aparência', config: 'Configurações'
 };
 
 const themes = {
@@ -1079,7 +1079,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.7.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.8.0 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);
