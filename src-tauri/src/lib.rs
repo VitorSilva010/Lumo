@@ -890,7 +890,7 @@ fn delete_api_key(provider: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn open_youtube_login(app: tauri::AppHandle) -> Result<(), String> {
+async fn open_youtube_login(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(win) = app.get_webview_window("youtube_login") {
         let _ = win.show();
         let _ = win.unminimize();
@@ -900,20 +900,31 @@ fn open_youtube_login(app: tauri::AppHandle) -> Result<(), String> {
     let url = tauri::Url::parse(
         "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/"
     ).map_err(|e| e.to_string())?;
-    tauri::WebviewWindowBuilder::new(&app, "youtube_login", tauri::WebviewUrl::External(url))
+    let win = tauri::WebviewWindowBuilder::new(&app, "youtube_login", tauri::WebviewUrl::External(url))
         .title("Conectar YouTube Premium — Lumo")
         .inner_size(520.0, 680.0)
         .center()
         .resizable(true)
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36")
         .build()
         .map_err(|e| format!("Não foi possível abrir a janela do YouTube: {}", e))?;
+    let main_handle = app.clone();
+    win.on_window_event(move |ev| {
+        if let tauri::WindowEvent::Destroyed = ev {
+            if let Some(main_win) = main_handle.get_webview_window("main") {
+                let _ = main_win.emit("yt-login-closed", ());
+            }
+        }
+    });
     Ok(())
 }
 
 #[tauri::command]
 async fn ask_gemini(prompt: String, user_name: Option<String>) -> Result<String, String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(20))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
 
     let personal_key = Entry::new("lumo-assistant", "gemini")
         .ok()
@@ -1350,8 +1361,10 @@ pub fn run() {
             _instance_lock: lock,
         })
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::Focused(false) = event {
-                let _ = window.emit("window-blur", ());
+            if window.label() == "main" {
+                if let tauri::WindowEvent::Focused(false) = event {
+                    let _ = window.emit("window-blur", ());
+                }
             }
         })
         .setup(|app| {

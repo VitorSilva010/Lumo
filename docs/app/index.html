@@ -17,9 +17,9 @@
       --border: rgba(255, 255, 255, 0.09);
       --text: #f3f5fa;
       --muted: #8f97ad;
-      --accent: #4ade80;
-      --accent-soft: rgba(74, 222, 128, 0.14);
-      --accent-glow: rgba(74, 222, 128, 0.36);
+      --accent: #f6b974;
+      --accent-soft: rgba(246, 185, 116, 0.14);
+      --accent-glow: rgba(246, 185, 116, 0.36);
       --radius: 16px;
     }
     body.surface-oled {
@@ -116,7 +116,7 @@
       cursor: pointer;
     }
     .pair-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; }
-    .pair-dot.on { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.85); }
+    .pair-dot.on { background: #f6b974; box-shadow: 0 0 8px rgba(246, 185, 116, 0.85); }
 
     /* Main / Tabs */
     main { flex: 1; min-height: 0; position: relative; overflow: hidden; }
@@ -383,7 +383,7 @@
       border: 2px solid var(--surface);
       background: #64748b;
     }
-    .status-dot.online { background: #4ade80; box-shadow: 0 0 7px rgba(74, 222, 128, 0.85); }
+    .status-dot.online { background: #f6b974; box-shadow: 0 0 7px rgba(246, 185, 116, 0.85); }
     .status-dot.playing { background: #a78bfa; box-shadow: 0 0 8px rgba(167, 139, 250, 0.9); }
     .f-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .f-sub.online { color: #86efac; }
@@ -397,8 +397,8 @@
       gap: 6px;
       padding: 5px 10px;
       border-radius: 999px;
-      background: rgba(74, 222, 128, 0.12);
-      border: 1px solid rgba(74, 222, 128, 0.34);
+      background: rgba(246, 185, 116, 0.12);
+      border: 1px solid rgba(246, 185, 116, 0.34);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.5px;
@@ -435,7 +435,7 @@
     .dots { display: flex; flex-wrap: wrap; gap: 10px; }
     .dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
     .dot.active { border-color: var(--text); transform: scale(1.12); }
-    .dot.rgb { background: conic-gradient(#ff6b8b, #f6b974, #4ade80, #38bdf8, #a78bfa, #ff6b8b); }
+    .dot.rgb { background: conic-gradient(#ff6b8b, #f6b974, #f6b974, #38bdf8, #a78bfa, #ff6b8b); }
     .surf-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
     /* Bottom Nav */
@@ -502,7 +502,7 @@
   </style>
 
   <style id="v39-mobile-upgrade">
-    /* === LUMO MOBILE v3.9.7 — VISUAL NATIVO, MINI-LUMO & TEMAS DE CONVERSA === */
+    /* === LUMO MOBILE v3.9.8 — VISUAL NATIVO, MINI-LUMO & TEMAS DE CONVERSA === */
     .ic-m {
       width: 15px;
       height: 15px;
@@ -577,7 +577,7 @@
     }
     .m-theme-chip.active {
       border-color: var(--accent, #34d399);
-      background: var(--accent-soft, rgba(52, 211, 153, 0.15));
+      background: var(--accent-soft, rgba(246, 185, 116, 0.15));
       color: var(--text, #f1f5f9);
     }
     .m-theme-dot {
@@ -589,7 +589,7 @@
 
     /* Paletas aplicadas no #m-friends-pane quando DM está aberta */
     #m-friends-pane[data-chat-theme="lumo"] #m-dm-feed {
-      background: radial-gradient(circle at 20% 85%, var(--accent-soft, rgba(52,211,153,0.14)), rgba(0, 0, 0, 0.18));
+      background: radial-gradient(circle at 20% 85%, var(--accent-soft, rgba(246, 185, 116, 0.14)), rgba(0, 0, 0, 0.18));
       border-radius: 14px;
       padding: 10px;
     }
@@ -631,8 +631,8 @@
       gap: 4px;
       padding: 8px 10px;
       border-radius: 11px;
-      background: var(--accent-soft, rgba(52, 211, 153, 0.14));
-      border: 1px solid var(--accent-glow, rgba(52, 211, 153, 0.42));
+      background: var(--accent-soft, rgba(246, 185, 116, 0.14));
+      border: 1px solid var(--accent-glow, rgba(246, 185, 116, 0.42));
     }
     .m-jam-head {
       font-size: 10px;
@@ -859,7 +859,7 @@
   <script>
     const API_BASE = 'https://lumo-ai.sivavieiravitor.workers.dev';
     const ACCENTS = [
-      { id: 'emerald', hex: '#4ade80', soft: 'rgba(74,222,128,0.14)', glow: 'rgba(74,222,128,0.38)' },
+      { id: 'emerald', hex: '#f6b974', soft: 'rgba(246, 185, 116, 0.14)', glow: 'rgba(246, 185, 116, 0.38)' },
       { id: 'amber',   hex: '#f6b974', soft: 'rgba(246,185,116,0.14)', glow: 'rgba(246,185,116,0.38)' },
       { id: 'cyan',    hex: '#67e8f9', soft: 'rgba(103,232,249,0.14)', glow: 'rgba(103,232,249,0.38)' },
       { id: 'cobalt',  hex: '#60a5fa', soft: 'rgba(96,165,250,0.14)',  glow: 'rgba(96,165,250,0.38)' },
@@ -980,7 +980,7 @@
     }
     function getAccentHex() {
       const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-      return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#4ade80';
+      return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#f6b974';
     }
     function toast(msg) {
       const el = document.getElementById('toast');
@@ -1443,7 +1443,7 @@
             const init = (f.display_name || '?').trim().charAt(0).toUpperCase();
             return `
               <div class="friend-item ${f.online ? '' : 'offline'} ${unread ? 'has-unread' : ''}" onclick="openFriendDm('${esc(f.uid)}')">
-                <div class="avatar-wrap" style="background:${esc(f.color || '#4ade80')};">
+                <div class="avatar-wrap" style="background:${esc(f.color || '#f6b974')};">
                   ${esc(init)}
                   <span class="status-dot ${dotCls}"></span>
                 </div>

@@ -197,7 +197,7 @@ async function readPocketDoc(idx, askAfter = false) {
       headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
       body: JSON.stringify({ title: f.name, text: text.slice(0, 11000) })
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     stopAiLoading(tb);
     if (data.summary) {
       appendMsg(`📄 ${f.name}\n\n${data.summary}`, 'ai');
@@ -228,7 +228,7 @@ async function transcribePocketAudio(idx) {
       headers: { 'X-Lumo-Client': 'lumo-desktop-v1' },
       body: form
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     stopAiLoading(tb);
 
     if (data.transcript) {

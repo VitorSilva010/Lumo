@@ -314,7 +314,7 @@
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body
       });
-      const d = await res.json();
+      const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.access_token) {
         if (typeof say === 'function') say('Erro ao concluir login Spotify: ' + (d.error_description || d.error || 'tente novamente'), 3800, true);
         return;
@@ -367,7 +367,7 @@
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body
       });
-      const d = await res.json();
+      const d = await res.json().catch(() => ({}));
       if (res.ok && d.access_token) {
         spTokens.access_token = d.access_token;
         if (d.refresh_token) spTokens.refresh_token = d.refresh_token;
@@ -966,7 +966,7 @@
         const pr = await fetch('https://api.spotify.com/v1/me/playlists?limit=20', {
           headers: { Authorization: 'Bearer ' + token }
         });
-        const pd = await pr.json();
+        const pd = pr.ok ? await pr.json().catch(() => ({})) : {};
         spPlaylists = Array.isArray(pd.items) ? pd.items : [];
         results = [];
         listMsg = spPlaylists.length ? '' : 'Nenhuma playlist encontrada na sua conta.';
@@ -978,7 +978,7 @@
       }
 
       const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
-      const data = await res.json();
+      const data = res.ok ? await res.json().catch(() => ({})) : {};
       const rawItems = query.trim() || (chip !== 'likes')
         ? (data.tracks?.items || [])
         : (data.items || []).map((x) => x.track);
@@ -1078,7 +1078,7 @@
             ? `${AUDIUS_API}/tracks/trending?app_name=LumoMusic&limit=18`
             : `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(chip)}&app_name=LumoMusic&limit=18`);
       const res = await fetch(url, { signal: AbortSignal.timeout(7000) });
-      const json = await res.json();
+      const json = res.ok ? await res.json().catch(() => ({})) : {};
       results = (Array.isArray(json.data) ? json.data : []).map(mapAudiusTrack);
       listMsg = results.length ? '' : 'Nenhuma faixa encontrada no Audius.';
     } catch (_) {
@@ -1756,4 +1756,14 @@
       openSpotifyPlaylist(plRow.dataset.sppl, plRow.dataset.spplname || 'Playlist');
     }
   }, true);
+
+  if (window.__TAURI__?.event?.listen) {
+    window.__TAURI__.event.listen('yt-login-closed', () => {
+      destroyYtPlayer();
+      ytSignedIn = true;
+      localStorage.setItem('lumo_yt_signed_in', 'true');
+      renderLibrary();
+      if (typeof say === 'function') say('Sessão do YouTube atualizada!', 2200, true);
+    });
+  }
 })();

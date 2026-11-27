@@ -70,8 +70,9 @@ async function loadNews(cat = currentNewsCat, force = false) {
   list.innerHTML = '<div style="font-size:11px; color:var(--muted); padding:4px;">Buscando manchetes de hoje...</div>';
   try {
     const base = typeof API_BASE !== 'undefined' ? API_BASE : 'https://lumo-ai.sivavieiravitor.workers.dev';
-    const res = await fetch(`${base}/news?cat=${encodeURIComponent(cat)}`);
-    const data = await res.json();
+    const res = await fetch(`${base}/news?cat=${encodeURIComponent(cat)}`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json().catch(() => ({}));
     if (Array.isArray(data.items) && data.items.length) {
       localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), items: data.items }));
       renderNewsList(data.items);

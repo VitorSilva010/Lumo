@@ -264,7 +264,7 @@
       const url = `${PING_API}?room=${encodeURIComponent(currentRoom)}&since=${lastId}`;
       const res = await fetch(url);
       if (!res.ok) return;
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       const incoming = Array.isArray(data.messages) ? data.messages : [];
       let added = false;
 
