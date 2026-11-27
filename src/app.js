@@ -314,7 +314,19 @@ async function togglePanel(forceState) {
 }
 
 function openView(viewName) {
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + viewName));
+  const _prevView = document.querySelector('.view.active');
+  const _nextView = document.getElementById('view-' + viewName);
+  const _goingBack = viewName === 'resumo' && _prevView && _prevView.id !== 'view-resumo';
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.remove('v39-enter-fwd', 'v39-enter-back');
+    v.classList.toggle('active', v.id === 'view-' + viewName);
+  });
+  if (_nextView && _prevView !== _nextView && !window.lumoEcoMode) {
+    void _nextView.offsetWidth;
+    const _cls = _goingBack ? 'v39-enter-back' : 'v39-enter-fwd';
+    _nextView.classList.add(_cls);
+    _nextView.addEventListener('animationend', () => _nextView.classList.remove(_cls), { once: true });
+  }
   document.getElementById('back-btn').classList.toggle('show', viewName !== 'resumo');
   document.getElementById('topbar-label').textContent = viewTitles[viewName] || 'Lumo';
   document.getElementById('cfg-btn').classList.toggle('active-btn', viewName === 'config');
@@ -1084,7 +1096,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.3 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.4 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

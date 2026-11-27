@@ -148,7 +148,7 @@
 }
 
 /* 4. Movimentação mais clean nas trocas de tela, sub-abas, gavetas, botões e letras */
-.view.active {
+.view.active:not(.v39-enter-fwd):not(.v39-enter-back) {
   animation: none !important;
   opacity: 1 !important;
 }
@@ -211,5 +211,62 @@ body.lumo-eco .lm-hero-waves i,
 body.reduced-motion .lm-hero-waves i,
 body.lumo-eco .view.active,
 body.reduced-motion .view.active {
+  animation: none !important;
+}
+
+/* V394_SMOOTH_NAV_TRANSITIONS */
+.view.active.v39-enter-fwd {
+  animation: lumoSlideFwdClean 0.19s var(--ease-clean) both !important;
+}
+.view.active.v39-enter-back {
+  animation: lumoSlideBackClean 0.19s var(--ease-clean) both !important;
+}
+@keyframes lumoSlideFwdClean {
+  from { opacity: 0.86; transform: translate3d(12px, 0, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+@keyframes lumoSlideBackClean {
+  from { opacity: 0.86; transform: translate3d(-12px, 0, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+
+/* Transição suave ao alternar sub-abas internas (sem flash de transparência) */
+#view-aparencia .v38-pane:not(.v37-hidden),
+#lm-music-pane:not(.hidden),
+#lm-ambient-pane:not(.hidden),
+#lm-legacy-pane:not(.hidden),
+#view-kit > .card:not(.v37-hidden),
+#view-util > .card:not(.v37-hidden) {
+  animation: lumoSubPaneIn 0.17s var(--ease-clean) both;
+}
+@keyframes lumoSubPaneIn {
+  from { opacity: 0.88; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+
+/* Micro-resposta tátil ao clicar nas opções (fora do scroll ativo) */
+.v37-subtab:active,
+.lm-subtab:active,
+.lm-lib-tab:active,
+.lm-src-pill:active,
+.lm-chip:active,
+.lp-skin-btn:active,
+.lp-expr-btn:active,
+.lp-persona-chip:active,
+.v37-filter-btn:active,
+.skin-btn:active,
+.cs-btn:active {
+  transform: scale(0.965) !important;
+}
+
+body.lumo-eco .view.active.v39-enter-fwd,
+body.lumo-eco .view.active.v39-enter-back,
+body.reduced-motion .view.active.v39-enter-fwd,
+body.reduced-motion .view.active.v39-enter-back,
+body.lumo-eco #view-aparencia .v38-pane,
+body.reduced-motion #view-aparencia .v38-pane,
+body.lumo-eco #lm-music-pane,
+body.lumo-eco #lm-ambient-pane,
+body.lumo-eco #lm-legacy-pane {
   animation: none !important;
 }
