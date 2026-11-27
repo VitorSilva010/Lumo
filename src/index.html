@@ -4,832 +4,64 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lumo</title>
-  <style>
-    :root {
-      --accent: #f6b974;
-      --accent-soft: rgba(246, 185, 116, 0.14);
-      --accent-glow: rgba(246, 185, 116, 0.34);
-      --bg-pill: rgba(12, 13, 18, 0.95);
-      --bg-panel: rgba(13, 14, 20, 0.96);
-      --surface: rgba(255, 255, 255, 0.036);
-      --surface-2: rgba(255, 255, 255, 0.058);
-      --surface-hover: rgba(255, 255, 255, 0.082);
-      --border: rgba(255, 255, 255, 0.095);
-      --border-strong: rgba(255, 255, 255, 0.16);
-      --text: #f3f4f6;
-      --muted: #94a3b8;
-      --danger: #f87171;
-      --warn: #fbbf24;
-      --ok: #34d399;
-      --love: #fb7185;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      background: transparent !important;
-      overflow: hidden;
-      color: var(--text);
-    }
-
-    svg.ic {
-      width: 16px; height: 16px; stroke: currentColor; fill: none;
-      stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
-    }
-    svg.ic-xs { width: 12px; height: 12px; }
-    svg.ic-sm { width: 14px; height: 14px; }
-    svg.ic-lg { width: 19px; height: 19px; }
-
-    #app {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column; align-items: center;
-      padding-top: 8px; position: relative;
-      transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #app.comfort-warm { filter: sepia(0.14) saturate(1.06); }
-    #app.shutting-down { opacity: 0; transform: translateY(-22px) scale(0.82); }
-
-    #corner-sensor {
-      display: none; position: fixed; top: 6px; right: 6px;
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(12, 13, 18, 0.94); border: 1px solid var(--accent);
-      box-shadow: 0 0 18px var(--accent-glow);
-      align-items: center; justify-content: center; cursor: pointer;
-      animation: pulseCorner 2.2s infinite ease-in-out;
-    }
-    #corner-sensor .dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 10px var(--accent);
-    }
-    @keyframes pulseCorner {
-      0%, 100% { transform: scale(0.92); opacity: 0.72; }
-      50% { transform: scale(1.06); opacity: 1; }
-    }
-
-    /* Cápsula Obsidian */
-    #lumo-pill {
-      position: relative; flex-shrink: 0; min-width: 156px; height: 54px;
-      padding: 0 20px; border-radius: 999px;
-      background: var(--bg-pill); border: 1px solid var(--border);
-      box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.62),
-        0 0 26px var(--accent-soft),
-        inset 0 1px 0 rgba(255, 255, 255, 0.16);
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      cursor: pointer;
-      animation: pillBoot 0.75s cubic-bezier(0.22, 1, 0.36, 1), pillBreath 4.6s ease-in-out 0.8s infinite;
-      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.25s ease;
-    }
-    #lumo-pill.thinking {
-      border-color: var(--accent);
-      animation: pillThinking 1.15s ease-in-out infinite alternate;
-    }
-    @keyframes pillThinking {
-      from { box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 18px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.2); }
-      to { box-shadow: 0 12px 36px rgba(0,0,0,0.65), 0 0 38px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.3); }
-    }
-    #lumo-pill.drag-over {
-      border-color: var(--accent); transform: scale(1.09);
-      box-shadow: 0 0 36px var(--accent-glow);
-    }
-    @keyframes pillBoot {
-      from { opacity: 0; transform: translateY(-28px) scale(0.7); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes pillBreath {
-      0%, 100% { box-shadow: 0 14px 34px rgba(0,0,0,0.62), 0 0 22px var(--accent-soft), inset 0 1px 0 rgba(255,255,255,0.16); }
-      50% { box-shadow: 0 16px 38px rgba(0,0,0,0.66), 0 0 34px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.22); }
-    }
-    #lumo-pill:hover { transform: translateY(1px) scale(1.035); }
-    #lumo-pill:active { transform: scale(0.95, 1.05); }
-    #lumo-pill.hop { animation: hopBounce 0.48s cubic-bezier(0.22, 1, 0.36, 1); }
-    @keyframes hopBounce {
-      0% { transform: scale(1); }
-      35% { transform: translateY(-7px) scale(1.07, 0.93); }
-      70% { transform: translateY(2px) scale(0.97, 1.03); }
-      100% { transform: scale(1); }
-    }
-
-    .fx-particle {
-      position: fixed; pointer-events: none; z-index: 60;
-      font-size: 13px; font-weight: 700;
-      animation: particleBurst 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    @keyframes particleBurst {
-      0% { opacity: 1; transform: translate(0, 0) scale(0.6) rotate(0deg); }
-      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.25) rotate(var(--rot)); }
-    }
-
-    #sweat-drop {
-      position: absolute; top: 4px; right: -6px; width: 7px; height: 10px;
-      border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
-      background: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.75);
-      opacity: 0; pointer-events: none;
-    }
-    .face.sweat #sweat-drop { animation: sweatFall 1.3s infinite ease-in; }
-    @keyframes sweatFall {
-      0% { opacity: 0; transform: translateY(-4px) scale(0.7); }
-      30% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(14px) scale(1); }
-    }
-
-    #float-emote {
-      position: absolute; top: -6px; right: 12px;
-      font-size: 13px; font-weight: 700; color: var(--accent);
-      opacity: 0; pointer-events: none;
-    }
-    #float-emote.show { animation: floatUp 1.6s ease-out infinite; }
-    @keyframes floatUp {
-      0% { opacity: 0; transform: translateY(4px) scale(0.8); }
-      30% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(-14px) scale(1.1); }
-    }
-
-    .eq-bars { display: none; align-items: flex-end; gap: 2px; height: 14px; }
-    .eq-bars.show { display: flex; }
-    .eq-bar { width: 3px; background: var(--accent); border-radius: 2px; animation: eqDance 0.7s infinite ease-in-out alternate; }
-    .eq-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
-    .eq-bar:nth-child(2) { height: 13px; animation-delay: 0.2s; }
-    .eq-bar:nth-child(3) { height: 8px; animation-delay: 0.4s; }
-    @keyframes eqDance { from { transform: scaleY(0.35); } to { transform: scaleY(1.1); } }
-
-    .face {
-      position: relative; display: flex; align-items: center; justify-content: center;
-      gap: 18px; width: 68px; height: 32px; will-change: transform;
-    }
-    .eye {
-      width: 13px; height: 19px; border-radius: 999px;
-      background: var(--accent); box-shadow: 0 0 14px var(--accent-glow);
-      position: relative;
-      transition: height 0.14s ease, width 0.14s ease, border-radius 0.16s ease, transform 0.16s ease, background 0.3s ease, box-shadow 0.3s ease;
-    }
-    .eye::after {
-      content: ''; position: absolute; top: 3px; left: 3px;
-      width: 4px; height: 4px; border-radius: 50%; background: rgba(255, 255, 255, 0.88); transition: opacity 0.12s ease;
-    }
-    .face.blink .eye { height: 3px; border-radius: 4px; }
-    .face.blink .eye::after { opacity: 0; }
-    .face.happy .eye {
-      height: 11px; width: 15px; background: transparent; box-shadow: none;
-      border-top: 3.5px solid var(--accent); border-radius: 50% 50% 0 0; transform: translateY(3px);
-    }
-    .face.happy .eye::after { opacity: 0; }
-    .face.love .eye {
-      background: var(--love); box-shadow: 0 0 16px rgba(251, 113, 133, 0.65);
-      height: 16px; width: 16px; border-radius: 50%; animation: lovePulse 0.55s infinite alternate ease-in-out;
-    }
-    @keyframes lovePulse { from { transform: scale(0.92); } to { transform: scale(1.16); } }
-    .blush {
-      position: absolute; bottom: 2px; width: 11px; height: 5px; border-radius: 50%;
-      background: rgba(251, 113, 133, 0.65); filter: blur(2px); opacity: 0; transition: opacity 0.25s ease;
-    }
-    .blush.left { left: 1px; } .blush.right { right: 1px; }
-    .face.happy .blush, .face.love .blush { opacity: 1; }
-    .face.focused .eye { height: 11px; width: 15px; border-radius: 3px 3px 8px 8px; transform: translateY(1px); }
-    .face.sweat .eye { height: 12px; width: 14px; border-radius: 6px; transform: translateY(1px) scaleX(0.95); }
-    .face.music .eye { animation: musicBob 0.55s infinite alternate cubic-bezier(0.22, 1, 0.36, 1); }
-    .face.music .eye.right { animation-delay: 0.12s; }
-    @keyframes musicBob { from { transform: translateY(2px) scaleY(0.92); } to { transform: translateY(-3px) scaleY(1.06); } }
-    .face.thinking .eye { animation: thinkEye 0.9s infinite alternate ease-in-out; }
-    .face.thinking .eye.right { animation-delay: 0.22s; }
-    @keyframes thinkEye {
-      from { transform: translate(-2px, -2px) scaleY(0.82); opacity: 0.78; }
-      to { transform: translate(2px, -3px) scaleY(1.08); opacity: 1; }
-    }
-    .face.bored .eye { height: 9px; border-radius: 3px 3px 10px 10px; transform: translateY(3px); }
-    .face.sleepy .eye, .face.goodbye .eye {
-      height: 3.5px; width: 15px; border-radius: 0 0 12px 12px; opacity: 0.65; transform: translateY(3px);
-    }
-    .face.sleepy .eye::after, .face.goodbye .eye::after { opacity: 0; }
-    .face.surprised .eye { width: 16px; height: 22px; }
-    .face.dizzy .eye {
-      height: 14px; width: 14px; border-radius: 50%;
-      border: 3px dashed var(--accent); background: transparent; box-shadow: none;
-      animation: spinDizzy 0.6s linear infinite;
-    }
-    .face.dizzy .eye::after { opacity: 0; }
-    @keyframes spinDizzy { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .face.listening .eye { animation: listenPulse 0.6s infinite alternate ease-in-out; }
-    @keyframes listenPulse { from { transform: scaleY(0.8); } to { transform: scaleY(1.22); } }
-
-    #pill-badge {
-      display: none; font-size: 11px; font-weight: 600; color: var(--accent);
-      background: var(--accent-soft); padding: 3px 8px; border-radius: 999px;
-    }
-    #pill-badge.show { display: inline-block; }
-
-    #speech-bubble {
-      position: fixed; top: 68px; left: 50%;
-      transform: translateX(-50%) translateY(-6px) scale(0.95);
-      width: max-content; max-width: 294px; padding: 7px 14px; border-radius: 14px;
-      background: rgba(14, 15, 22, 0.96); border: 1px solid var(--border-strong);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); font-size: 12px; line-height: 1.35;
-      color: var(--text); text-align: center; opacity: 0; pointer-events: none; z-index: 20;
-      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #speech-bubble.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-    #speech-bubble.clickable { pointer-events: auto; cursor: pointer; border-color: var(--accent); }
-
-    /* Painel Principal com Brilho Ambiente */
-    #panel {
-      position: relative;
-      display: none; margin-top: 10px; width: 424px; height: 540px;
-      border-radius: 24px;
-      background-color: var(--bg-panel);
-      background-image: radial-gradient(ellipse 80% 35% at 50% 0%, var(--accent-soft), transparent 70%);
-      border: 1px solid var(--border-strong);
-      box-shadow: 0 28px 68px rgba(0, 0, 0, 0.82), 0 0 34px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-      flex-direction: column; overflow: hidden;
-      transform-origin: top center;
-    }
-    #panel.open {
-      display: flex;
-      animation: panelOpen 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    #panel.closing {
-      display: flex;
-      animation: panelClose 0.16s ease forwards;
-      pointer-events: none;
-    }
-    @keyframes panelOpen {
-      from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes panelClose {
-      from { opacity: 1; transform: translateY(0) scale(1); }
-      to { opacity: 0; transform: translateY(-8px) scale(0.95); }
-    }
-
-    /* Barra Superior */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 14px 9px; border-bottom: 1px solid rgba(255, 255, 255, 0.065); gap: 8px;
-      flex-shrink: 0;
-    }
-    .nav-left { display: flex; align-items: center; gap: 8px; }
-    .brand-title {
-      font-size: 13px; font-weight: 600; letter-spacing: 0.2px;
-      display: flex; align-items: center; gap: 7px; color: var(--text);
-    }
-    .brand-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 10px var(--accent);
-      transition: background 0.3s ease, box-shadow 0.3s ease;
-    }
-    .back-btn {
-      display: none; align-items: center; gap: 4px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      color: var(--text); font-size: 11.5px; font-weight: 500;
-      padding: 5px 10px; border-radius: 10px; cursor: pointer;
-      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .back-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-2px); }
-    .back-btn.show { display: inline-flex; animation: fadeSlideRight 0.2s ease; }
-    @keyframes fadeSlideRight { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: translateX(0); } }
-
-    .icon-actions { display: flex; gap: 5px; }
-    .circle-btn {
-      width: 29px; height: 29px; border-radius: 9px;
-      border: 1px solid var(--border); background: var(--surface);
-      color: var(--muted); cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .circle-btn:hover, .circle-btn.active-btn {
-      border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-1px);
-    }
-    .circle-btn:active { transform: scale(0.92); }
-    .circle-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: rgba(248,113,113,0.12); }
-    .circle-btn.recording { background: rgba(248, 113, 113, 0.2); border-color: var(--danger); color: var(--danger); }
-
-    /* Views */
-    .view {
-      display: none; flex: 1; padding: 13px 15px; overflow-y: auto;
-      flex-direction: column; gap: 10px;
-    }
-    .view.active {
-      display: flex;
-      animation: viewEnter 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    @keyframes viewEnter {
-      from { opacity: 0; transform: translateY(8px) scale(0.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .view::-webkit-scrollbar, .home-scroll::-webkit-scrollbar, #chat-box::-webkit-scrollbar { width: 4px; }
-    .view::-webkit-scrollbar-thumb, .home-scroll::-webkit-scrollbar-thumb, #chat-box::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.16); border-radius: 4px;
-    }
-
-    #view-resumo { padding: 0; overflow: hidden; gap: 0; }
-    .home-scroll {
-      flex: 1; min-height: 0; overflow-y: auto; padding: 12px 14px 16px;
-      display: flex; flex-direction: column; gap: 9px;
-    }
-    .home-scroll > *, .view > .card, .view > .drop-zone { flex-shrink: 0; }
-
-    /* === NOVA TELA RESUMO (BENTO AO VIVO) === */
-    .hero-bento {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 18px;
-      padding: 12px 14px;
-      display: flex; flex-direction: column; gap: 10px;
-      position: relative; overflow: hidden;
-    }
-    .hero-bento::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-    }
-    .hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-    .hero-clock {
-      font-size: 27px; font-weight: 700; letter-spacing: -1px; line-height: 1;
-      color: var(--text); font-variant-numeric: tabular-nums;
-    }
-    .hero-clock .colon { color: var(--accent); animation: colonBlink 2s infinite; }
-    @keyframes colonBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.35; } }
-    .hero-greet { font-size: 13px; font-weight: 600; margin-top: 5px; color: var(--text); }
-    .hero-date { font-size: 10.8px; color: var(--muted); text-transform: capitalize; margin-top: 1px; }
-
-    .hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-    .weather-chip {
-      display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent);
-      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.22);
-      padding: 4px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap;
-    }
-    .uptime-chip { font-size: 10px; color: var(--muted); }
-
-    /* Barras ao vivo CPU & RAM */
-    .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .metric-box {
-      background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.065);
-      border-radius: 11px; padding: 7px 9px; display: flex; flex-direction: column; gap: 5px;
-    }
-    .metric-head { display: flex; justify-content: space-between; align-items: center; font-size: 10px; }
-    .metric-label { color: var(--muted); font-weight: 600; letter-spacing: 0.4px; }
-    .metric-val { font-weight: 600; color: var(--ok); font-variant-numeric: tabular-nums; }
-    .metric-val.warn { color: var(--warn); }
-    .metric-val.hot { color: var(--danger); }
-    .mini-track { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
-    .mini-fill {
-      height: 100%; width: 0%; border-radius: 999px; background: var(--ok);
-      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
-    }
-    .mini-fill.warn { background: var(--warn); }
-    .mini-fill.hot { background: var(--danger); }
-
-    /* Faixa de Lembrete Ativo */
-    #active-reminder-strip {
-      display: none; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 7px 11px; border-radius: 12px;
-      background: var(--accent-soft); border: 1px solid rgba(246, 185, 116, 0.35);
-      font-size: 11.5px; color: var(--text);
-    }
-    #active-reminder-strip.show { display: flex; animation: viewEnter 0.22s ease; }
-
-    /* Mini-Player direto no Resumo */
-    .mini-media-strip {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 7px 11px; border-radius: 14px;
-      background: var(--surface); border: 1px solid var(--border);
-    }
-    .mini-media-info { display: flex; align-items: center; gap: 8px; overflow: hidden; }
-    .mini-media-icon {
-      width: 28px; height: 28px; border-radius: 9px;
-      background: var(--accent-soft); color: var(--accent);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .mini-media-text { font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-media-sub { font-size: 9.8px; color: var(--muted); }
-    .mini-media-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-    .mm-btn {
-      width: 27px; height: 27px; border-radius: 8px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.04); color: var(--text);
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: all 0.16s ease;
-    }
-    .mm-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .mm-btn.play { background: var(--accent); color: #111318; border-color: var(--accent); }
-    .mm-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-
-    #onboarding-card {
-      display: none;
-      background: linear-gradient(135deg, rgba(246, 185, 116, 0.14), rgba(255, 255, 255, 0.03));
-      border: 1px solid rgba(246, 185, 116, 0.35); border-radius: 16px; padding: 11px 13px;
-    }
-    #onboarding-card.show { display: block; animation: viewEnter 0.3s ease; }
-
-    /* Grid de Botões */
-    .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-    .hub-tile {
-      position: relative; display: flex; flex-direction: column;
-      align-items: flex-start; justify-content: space-between; gap: 6px;
-      padding: 9px 10px; border-radius: 14px;
-      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.075);
-      color: var(--text); cursor: pointer; text-align: left;
-      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.18s, border-color 0.18s, box-shadow 0.2s;
-    }
-    .hub-tile:hover {
-      background: var(--surface-hover); border-color: rgba(246, 185, 116, 0.45);
-      transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
-    }
-    .hub-tile:active { transform: translateY(0) scale(0.96); }
-    .hub-tile.active-tile { background: var(--accent-soft); border-color: var(--accent); }
-    .tile-icon {
-      width: 27px; height: 27px; border-radius: 8px;
-      background: rgba(255, 255, 255, 0.055); color: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-    }
-    .hub-tile:hover .tile-icon { transform: scale(1.08); }
-    .hub-tile.active-tile .tile-icon { background: var(--accent); color: #111318; }
-    .tile-title { font-size: 11.5px; font-weight: 600; line-height: 1.15; }
-    .tile-sub { font-size: 9.6px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-
-    /* Progresso integrado nas Tarefas */
-    .progress-wrap { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
-    .progress-track { flex: 1; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
-    .progress-fill {
-      height: 100%; width: 0%; border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), #fff3d6);
-      box-shadow: 0 0 10px var(--accent-glow);
-      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .progress-pct { font-size: 10px; font-weight: 600; color: var(--accent); min-width: 28px; text-align: right; }
-
-    /* Barra Inteligente no Rodapé + Chips de Atalho */
-    .quick-ai-dock {
-      flex-shrink: 0; padding: 7px 13px 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(10, 11, 16, 0.96);
-      display: flex; flex-direction: column; gap: 6px;
-    }
-    .cmd-chips { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 1px; }
-    .cmd-chips::-webkit-scrollbar { display: none; }
-    .cmd-chip {
-      font-size: 9.8px; color: var(--muted); background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.075); border-radius: 999px;
-      padding: 2px 8px; cursor: pointer; white-space: nowrap; transition: all 0.16s ease;
-    }
-    .cmd-chip:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-
-    .quick-ai-form {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(255, 255, 255, 0.048); border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 13px; padding: 3px 4px 3px 10px;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-    .quick-ai-form:focus-within {
-      border-color: var(--accent); background: rgba(255, 255, 255, 0.065);
-      box-shadow: 0 0 18px var(--accent-soft);
-    }
-    .sparkle-ic { color: var(--accent); animation: gentlePulse 2.8s infinite ease-in-out; }
-    @keyframes gentlePulse { 0%, 100% { opacity: 0.75; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.06); } }
-    .quick-ai-form input, .quick-ai-form textarea {
-      flex: 1; background: transparent; border: none; padding: 6px 2px;
-      color: var(--text); font-size: 11.8px; outline: none;
-    }
-    .quick-ai-send {
-      width: 29px; height: 29px; border-radius: 9px;
-      background: var(--accent); color: #111318; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: transform 0.18s ease;
-    }
-    .quick-ai-send:hover { transform: scale(1.06); }
-    .quick-ai-send:active { transform: scale(0.92); }
-
-    /* Kit Rápido */
-    .color-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-    .color-chip {
-      display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.045); border: 1px solid var(--border);
-      font-size: 11px; cursor: pointer; transition: transform 0.18s, border-color 0.18s;
-    }
-    .color-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-    .swatch-dot { width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.28); }
-
-    .qr-preview {
-      display: none; margin-top: 10px; flex-direction: column; align-items: center; gap: 6px;
-      padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.04);
-      animation: msgPop 0.25s ease;
-    }
-    .qr-preview.show { display: flex; }
-    .qr-preview img { width: 136px; height: 136px; border-radius: 10px; background: #fff; padding: 6px; }
-
-    .pwd-box {
-      margin-top: 8px; padding: 8px 10px; border-radius: 10px;
-      background: rgba(0, 0, 0, 0.38); border: 1px solid rgba(255, 255, 255, 0.1);
-      font-family: Consolas, monospace; font-size: 12px; color: var(--accent);
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      user-select: text;
-    }
-
-    .pro-badge {
-      font-size: 9px; padding: 2px 6px; border-radius: 999px;
-      background: linear-gradient(135deg, #f6b974, #f59e0b);
-      color: #111; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
-    }
-
-    .card {
-      background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.075);
-      border-radius: 16px; padding: 11px 13px;
-    }
-    .card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .label-xs {
-      font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
-      color: var(--accent); font-weight: 600; margin-bottom: 5px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    #update-banner {
-      display: none; background: rgba(52, 211, 153, 0.12);
-      border: 1px solid rgba(52, 211, 153, 0.35); border-radius: 13px;
-      padding: 8px 11px; font-size: 11.5px; align-items: center; justify-content: space-between; gap: 8px;
-    }
-    #update-banner.show { display: flex; animation: viewEnter 0.25s ease; }
-
-    .drop-zone {
-      border: 1.5px dashed rgba(255, 255, 255, 0.18); border-radius: 15px;
-      padding: 16px 12px; text-align: center; cursor: pointer;
-      transition: all 0.22s ease; background: rgba(255, 255, 255, 0.02);
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-    }
-    .drop-zone:hover, .drop-zone.active { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.01); }
-    .drop-zone p { font-size: 11px; color: var(--muted); }
-
-    .pocket-item {
-      background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 13px; padding: 9px 10px; display: flex; flex-direction: column; gap: 7px; font-size: 11.5px;
-      animation: msgPop 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .pocket-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .pocket-thumb {
-      width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
-      background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: var(--accent);
-    }
-    .pocket-actions { display: flex; gap: 5px; flex-wrap: wrap; }
-
-    .media-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 12px 0 8px; }
-    .media-btn {
-      width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05); color: var(--text);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .media-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.08); }
-    .media-btn:active { transform: scale(0.92); }
-    .media-btn.main-play {
-      width: 52px; height: 52px; background: var(--accent); color: #111; border: none;
-      box-shadow: 0 0 22px var(--accent-glow);
-    }
-    .vol-row { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-
-    .ambient-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 8px; }
-    .ambient-btn {
-      padding: 11px 6px; border-radius: 13px; border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.03); color: var(--text); font-size: 11px;
-      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
-      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .ambient-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.22); }
-    .ambient-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-
-    .switch { position: relative; width: 36px; height: 19px; display: inline-block; flex-shrink: 0; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.15); border-radius: 999px; cursor: pointer; transition: 0.22s; }
-    .slider::before { content: ''; position: absolute; width: 13px; height: 13px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-    input:checked + .slider { background: var(--accent); }
-    input:checked + .slider::before { transform: translateX(17px); background: #111; }
-
-    .task-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
-    .task-item {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 6px 9px; border-radius: 10px; background: rgba(255, 255, 255, 0.025); font-size: 12px;
-      transition: background 0.18s ease;
-    }
-    .task-item:hover { background: rgba(255, 255, 255, 0.055); }
-    .task-left { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; overflow: hidden; }
-    .task-left span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.2s ease; }
-    .check-circle {
-      width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--muted);
-      display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0;
-      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .task-item.done .check-circle {
-      background: var(--accent); border-color: var(--accent); color: #111; font-weight: bold;
-      animation: checkPop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    @keyframes checkPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.22); } 100% { transform: scale(1); } }
-    .task-item.done span { text-decoration: line-through; color: var(--muted); }
-    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; padding: 2px; transition: color 0.15s; }
-    .del-btn:hover { color: var(--danger); }
-
-    .inline-form { display: flex; gap: 6px; margin-top: 7px; }
-    input[type="text"], input[type="password"], select, textarea {
-      flex: 1; background: rgba(0, 0, 0, 0.36); border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px; padding: 7px 10px; color: var(--text); font-size: 12px; outline: none;
-      transition: border-color 0.2s ease;
-    }
-    select option { background: #12131a; color: #f3f4f6; }
-    textarea { width: 100%; resize: none; min-height: 68px; user-select: text; line-height: 1.4; }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-
-    .btn-primary {
-      background: var(--accent); color: #111318; border: none; border-radius: 10px;
-      padding: 7px 12px; font-size: 11.5px; font-weight: 600; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-    }
-    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
-    .btn-primary:active { transform: scale(0.95); }
-    .btn-ghost {
-      background: rgba(255, 255, 255, 0.055); color: var(--text); border: 1px solid var(--border);
-      border-radius: 9px; padding: 5px 10px; font-size: 11px; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-      transition: all 0.18s ease;
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-    #chat-box { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 4px; }
-    .msg {
-      padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.42; max-width: 88%; user-select: text;
-      animation: msgPop 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    @keyframes msgPop {
-      from { opacity: 0; transform: translateY(8px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .msg.user { align-self: flex-end; background: var(--accent-soft); border: 1px solid var(--accent-glow); }
-    .msg.ai { align-self: flex-start; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .copy-mini { display: block; margin-top: 6px; font-size: 10px; color: var(--accent); cursor: pointer; opacity: 0.85; }
-
-    .typing-dots { display: inline-flex; align-items: center; gap: 4px; padding: 4px 2px; }
-    .typing-dots span {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-      animation: dotBounce 1.1s infinite ease-in-out both;
-    }
-    .typing-dots span:nth-child(1) { animation-delay: -0.24s; }
-    .typing-dots span:nth-child(2) { animation-delay: -0.12s; }
-    @keyframes dotBounce {
-      0%, 80%, 100% { transform: scale(0.55); opacity: 0.45; }
-      40% { transform: scale(1.05); opacity: 1; }
-    }
-
-    .timer-display { font-size: 28px; font-weight: 700; text-align: center; color: var(--accent); letter-spacing: 1px; margin: 2px 0 6px; }
-    .preset-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-    .theme-dots { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 7px; align-items: center; }
-    .theme-dot.custom-dot {
-      background: conic-gradient(#fb7185, #fb923c, #facc15, #34d399, #67e8f9, #a78bfa, #f472b6, #fb7185);
-      display: flex; align-items: center; justify-content: center;
-      color: #111318; font-size: 13px; font-weight: 800; position: relative;
-    }
-    .theme-dot.custom-dot::after {
-      content: '+'; line-height: 1; text-shadow: 0 0 4px rgba(255,255,255,0.6);
-    }
-    .theme-dot { width: 23px; height: 23px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s ease, border-color 0.2s ease; }
-    .theme-dot:hover { transform: scale(1.12); }
-    .theme-dot.active { border-color: #fff; transform: scale(1.15); }
-  
-    /* Acessórios Reativos na Pílula */
-    .acc-svg {
-      position: absolute; pointer-events: none; opacity: 0;
-      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      color: var(--accent); filter: drop-shadow(0 0 6px var(--accent-glow));
-    }
-    #acc-headphones { top: -11px; left: 50%; width: 76px; height: 42px; transform: translateX(-50%) scale(0.85); }
-    .face.music #acc-headphones { opacity: 0.95; transform: translateX(-50%) scale(1); }
-
-    #acc-glasses { top: 4px; left: 50%; width: 64px; height: 24px; transform: translateX(-50%) scale(0.85); }
-    .face.focused #acc-glasses { opacity: 0.95; transform: translateX(-50%) scale(1); }
-
-    /* Modo Respiração na Pílula */
-    #lumo-pill.breathing-in {
-      transform: scale(1.16) !important;
-      border-color: var(--accent);
-      box-shadow: 0 0 42px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.28) !important;
-      transition: transform 4s ease-in-out, box-shadow 4s ease-in-out !important;
-    }
-    #lumo-pill.breathing-hold {
-      transform: scale(1.16) !important;
-      border-color: var(--accent);
-      box-shadow: 0 0 38px var(--accent-glow) !important;
-      transition: transform 0.3s ease !important;
-    }
-    #lumo-pill.breathing-out {
-      transform: scale(0.95) !important;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.55), 0 0 14px var(--accent-soft) !important;
-      transition: transform 4s ease-in-out, box-shadow 4s ease-in-out !important;
-    }
-
-  
-    /* === LUMO v1.5.0 — VISUAL & ANIMAÇÕES === */
-    #lumo-pill:hover {
-      transform: translateY(1px) scale(1.045) rotate(var(--tilt, 0deg));
-      border-color: rgba(255, 255, 255, 0.22);
-    }
-
-    /* Aura pulsante quando está tocando música/ambiente */
-    #lumo-pill:has(.face.music) {
-      border-color: rgba(246, 185, 116, 0.45);
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 34px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    }
-
-    /* Reflexo secundário dos olhos + Piscadinha (wink) */
-    .eye::before {
-      content: ''; position: absolute; bottom: 4px; right: 3px;
-      width: 2.5px; height: 2.5px; border-radius: 50%;
-      background: rgba(255, 255, 255, 0.6); opacity: 0;
-      transition: opacity 0.16s ease;
-    }
-    .face.wink .eye.right {
-      height: 3.5px !important; border-radius: 4px !important; transform: translateY(1px);
-    }
-    .face.wink .eye.right::after, .face.wink .eye.right::before { opacity: 0 !important; }
-
-    /* Estilo Fofo (Kawaii) */
-    .face.style-kawaii .eye {
-      width: 15px; height: 18px; border-radius: 50%;
-    }
-    .face.style-kawaii .eye::after { width: 5px; height: 5px; top: 3px; left: 3px; }
-    .face.style-kawaii .eye::before { opacity: 0.9; }
-    .face.style-kawaii .blush { opacity: 0.48; }
-    .face.style-kawaii.happy .blush, .face.style-kawaii.love .blush { opacity: 1; }
-    .face.style-kawaii.blink .eye::before,
-    .face.style-kawaii.sleepy .eye::before,
-    .face.style-kawaii.goodbye .eye::before,
-    .face.style-kawaii.happy .eye::before { opacity: 0; }
-
-    /* Estilo Cyber (Visor) */
-    .face.style-cyber .eye {
-      width: 17px; height: 11px; border-radius: 3px;
-      box-shadow: 0 0 18px var(--accent-glow), inset 0 0 6px rgba(255, 255, 255, 0.4);
-    }
-    .face.style-cyber .eye::after { width: 6px; height: 2.5px; border-radius: 2px; top: 2px; left: 3px; }
-    .face.style-cyber.surprised .eye { width: 18px; height: 16px; border-radius: 4px; }
-
-    /* Efeito Spotlight seguindo o cursor nos cards e botões */
-    .hub-tile, .hero-bento, .mini-media-strip, .card {
-      position: relative;
-      overflow: hidden;
-    }
-    .hub-tile::after, .hero-bento::after, .mini-media-strip::after, .card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(155px circle at var(--mx, -200px) var(--my, -200px), var(--accent-soft), transparent 72%);
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      pointer-events: none;
-    }
-    .hub-tile:hover::after, .hero-bento:hover::after, .mini-media-strip:hover::after, .card:hover::after {
-      opacity: 1;
-    }
-
-    /* Cascata suave ao abrir o painel */
-    .cascade-in {
-      animation: cascadeFade 0.34s cubic-bezier(0.22, 1, 0.36, 1) var(--cdelay, 0ms) backwards;
-    }
-    @keyframes cascadeFade {
-      from { opacity: 0; transform: translateY(10px) scale(0.965); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Brilho deslizante (shimmer) na barra de progresso e Hero */
-    .progress-fill {
-      background: linear-gradient(90deg, var(--accent), #fff3d6, var(--accent));
-      background-size: 200% 100%;
-      animation: shimmerSlide 3s linear infinite;
-    }
-    @keyframes shimmerSlide {
-      from { background-position: 200% 0; }
-      to { background-position: -200% 0; }
-    }
-
-    .eye-style-row { display: flex; gap: 6px; margin-top: 6px; }
-    .eye-style-btn {
-      flex: 1; padding: 7px 6px; border-radius: 10px;
-      border: 1px solid var(--border); background: rgba(255, 255, 255, 0.035);
-      color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer;
-      transition: all 0.18s ease;
-    }
-    .eye-style-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); }
-    .eye-style-btn.active-btn {
-      background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
-    }
-
-    #quick-ai-input { min-height: 36px; max-height: 92px; height: 36px; resize: none; overflow-y: auto; line-height: 1.35; padding: 8px 10px; font-family: inherit; }
-  </style>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./cinema.css" />
+  <link rel="stylesheet" href="./polish.css" />
+  <link rel="stylesheet" href="./custom.css" />
+  <link rel="stylesheet" href="./alive.css" />
+  <link rel="stylesheet" href="./player.css" />
+  <link rel="stylesheet" href="./skins.css" />
+  <link rel="stylesheet" href="./redesign.css" />
+  <link rel="stylesheet" href="./ping.css" />
+  <link rel="stylesheet" href="./pill-hud.css" />
+  <link rel="stylesheet" href="./pocket-sync.css" />
+  <link rel="stylesheet" href="./ping-friends.css" />
+  <link rel="stylesheet" href="./perf-motion.css" />
+  <link rel="stylesheet" href="./download-hud.css" />
+  <link rel="stylesheet" href="./capsule-skins.css" />
+  <link rel="stylesheet" href="./hover-fx.css" />
+  <link rel="stylesheet" href="./spotlight-reminders.css" />
+  <link rel="stylesheet" href="./chat-ux.css" />
+  <link rel="stylesheet" href="./lumo-music.css" />
+  <link rel="stylesheet" href="./pill-visualizer.css" />
+  <link rel="stylesheet" href="./resumo-fix.css" />
+  <link rel="stylesheet" href="./lumo-alive-pro.css" />
+  <link rel="stylesheet" href="./lumo-jam.css" />
+  <link rel="stylesheet" href="./v36-upgrade.css" />
+  <link rel="stylesheet" href="./v37-tools.css" />
+  <link rel="stylesheet" href="./v38-appearance.css" />
+  <link rel="stylesheet" href="./v39-motion.css" />
 </head>
 <body>
   <div id="app">
+    <div id="cinema-stage">
+      <svg id="mothership" viewBox="0 0 160 64" fill="none">
+        <defs>
+          <linearGradient id="hullGrad" x1="0" y1="0" x2="160" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2a2e42" />
+            <stop offset="55%" stop-color="#141622" />
+            <stop offset="100%" stop-color="#0b0c12" />
+          </linearGradient>
+        </defs>
+        <ellipse cx="80" cy="40" rx="68" ry="13" fill="url(#hullGrad)" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />
+        <path d="M44 33 C52 13, 108 13, 116 33 Z" fill="#1c2032" stroke="var(--accent)" stroke-opacity="0.6" stroke-width="1.4" />
+        <ellipse cx="80" cy="24" rx="18" ry="5" fill="var(--accent)" fill-opacity="0.34" />
+        <circle cx="42" cy="40" r="3" fill="var(--accent)" />
+        <circle cx="80" cy="43" r="3.5" fill="var(--accent)" />
+        <circle cx="118" cy="40" r="3" fill="var(--accent)" />
+        <rect x="64" y="48" width="32" height="5" rx="2.5" fill="var(--accent)" fill-opacity="0.72" />
+      </svg>
+      <div id="drop-beam"></div>
+      <div id="impact-ring"></div>
+      <div id="drop-capsule">
+        <div class="cine-face" id="cine-face">
+          <div class="cine-eye"></div>
+          <div class="cine-eye"></div>
+        </div>
+      </div>
+      <div id="cinema-bubble"></div>
+      <button id="cinema-skip" onclick="finishArrivalCinema()">Pular</button>
+    </div>
     <div id="corner-sensor" title="Chamar o Lumo (ou Alt + Espaço)" onclick="wakeFromGame()">
       <div class="dot"></div>
     </div>
@@ -865,9 +97,8 @@
       <!-- TOPBAR -->
       <div class="topbar">
         <div class="nav-left">
-          <button class="back-btn" id="back-btn" onclick="openView('resumo')">
+          <button class="back-btn" id="back-btn" title="Voltar ao Resumo" onclick="openView('resumo')">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
-            Resumo
           </button>
           <div class="brand-title">
             <span class="brand-dot"></span>
@@ -878,16 +109,17 @@
           <button class="circle-btn" id="mobile-btn" title="Conectar Celular (PWA)" onclick="openView('mobile')">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><line x1="12" x2="12.01" y1="18" y2="18"/></svg>
           </button>
-          <button class="circle-btn" id="pin-btn" title="Fixar painel aberto (não encolher ao clicar fora)" onclick="togglePin()">
+          <button class="circle-btn" id="pin-btn" title="Fixar painel aberto" onclick="togglePin()">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
           </button>
           <button class="circle-btn" id="mic-btn" title="Comando de voz" onclick="toggleVoice()">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
           </button>
-          <button class="circle-btn" id="stealth-btn" title="Modo Furtivo (silencia em calls)" onclick="toggleStealth()">
+          <button class="circle-btn" id="stealth-btn" title="Modo Furtivo" onclick="toggleStealth()">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>
           </button>
-          <button class="circle-btn" id="cfg-btn" title="Configurações & Pro" onclick="openView('config')">
+          <button class="circle-btn" id="look-btn" title="Aparência, Skins & Temas" onclick="openView('aparencia')"><svg class="ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".8" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".8" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/></svg></button>
+        <button class="circle-btn" id="cfg-btn" title="Configurações & Pro" onclick="openView('config')">
             <svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
           </button>
           <button class="circle-btn" title="Recolher (Esc)" onclick="togglePanel(false)">
@@ -899,12 +131,12 @@
         </div>
       </div>
 
-      <!-- VIEW 1: RESUMO AO VIVO (BENTO) -->
+      <!-- VIEW 1: RESUMO -->
       <div class="view active" id="view-resumo">
         <div class="home-scroll">
           <div id="update-banner">
             <span id="update-text">Nova versão disponível!</span>
-            <button class="btn-primary" id="update-btn" style="padding:5px 10px; font-size:11px;" onclick="installRealUpdate()">Atualizar</button>
+            <button class="btn-primary" id="update-btn" style="padding:5px 10px; font-size:11px;" onclick="installRealUpdate(false)">Atualizar</button>
           </div>
 
           <div id="onboarding-card">
@@ -916,23 +148,21 @@
             </form>
           </div>
 
-          <!-- HERO BENTO: RELÓGIO + CLIMA + TELEMETRIA AO VIVO -->
           <div class="hero-bento">
             <div class="hero-row">
               <div>
                 <div class="hero-clock" id="live-clock">00<span class="colon">:</span>00</div>
-                <div class="hero-greet" id="greeting-text">Bom dia!</div>
-                <div class="hero-date" id="daily-date">Carregando data...</div>
+                <div class="hero-greet" id="greeting-text">Olá!</div>
+                <div class="hero-date" id="daily-date">Hoje</div>
               </div>
               <div class="hero-right">
-                <span class="weather-chip" onclick="fetchWeather(true)" title="Clique para atualizar clima" style="cursor:pointer;">
+                <span class="weather-chip" onclick="fetchWeather(true)" title="Atualizar clima">
                   <svg class="ic ic-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
                   <span id="weather-text">--°C</span>
                 </span>
                 <span class="uptime-chip" id="uptime-text">Ativo há 0m</span>
               </div>
             </div>
-
             <div class="telemetry-grid">
               <div class="metric-box">
                 <div class="metric-head">
@@ -951,24 +181,30 @@
             </div>
           </div>
 
-          <!-- LEMBRETE ATIVO (SE HOUVER) -->
-          <div id="active-reminder-strip">
-            <div style="display:flex; align-items:center; gap:7px; overflow:hidden;">
-              <svg class="ic ic-sm" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-              <span id="active-reminder-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                    <div class="motd-card">
+            <div class="motd-head">
+              <span>✦ Mensagem do Dia</span>
+              <button class="tiny-icon-btn" type="button" title="Outra mensagem" onclick="nextMotd()">
+                <svg class="ic ic-xs" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+              </button>
             </div>
-            <button class="del-btn" title="Cancelar lembrete" onclick="cancelReminder()">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-            </button>
+            <div class="motd-text" id="motd-text"></div>
           </div>
 
-          <!-- MINI-PLAYER RÁPIDO DIRETO NO RESUMO -->
-          <div class="mini-media-strip">
-            <div class="mini-media-info" onclick="openView('midia')" style="cursor:pointer;">
+          <div id="active-reminder-strip">
+            <span id="active-reminder-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+            <button class="del-btn" onclick="cancelReminder()">×</button>
+          </div>
+
+          <div class="mini-media-strip" id="mini-media-strip">
+            <div class="mini-media-info" onclick="openView('midia')">
               <div class="mini-media-icon">
-                <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <svg class="ic ic-sm mini-note-ic" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <div class="mini-eq">
+                  <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                </div>
               </div>
-              <div>
+              <div style="overflow:hidden;">
                 <div class="mini-media-text" id="mini-media-title">Controle de Mídia</div>
                 <div class="mini-media-sub" id="mini-media-sub">Spotify · YouTube · Lo-fi</div>
               </div>
@@ -977,82 +213,45 @@
               <button class="mm-btn" title="Anterior" onclick="sendMedia('prev')">
                 <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>
               </button>
-              <button class="mm-btn play" title="Play / Pause" onclick="sendMedia('play_pause')">
-                <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              <button class="mm-btn play" id="mm-play-btn" title="Play / Pause" onclick="sendMedia('play_pause')">
+                <svg class="ic ic-xs" id="mm-play-svg" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
               </button>
               <button class="mm-btn" title="Próxima" onclick="sendMedia('next')">
                 <svg class="ic ic-xs" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
               </button>
-              <button class="mm-btn" id="mm-lofi-btn" title="Ativar/desativar Lo-fi rápido" onclick="toggleAmbient('lofi')">
+              <button class="mm-btn" id="mm-lofi-btn" title="Lo-fi rápido" onclick="toggleAmbient('lofi')">
                 <svg class="ic ic-xs" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- HUB 6 BOTÕES -->
           <div class="hub-grid">
             <button class="hub-tile" id="tile-ia" onclick="openView('ia')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">IA Lumo</div>
-                <div class="tile-sub">Chat integrado</div>
-              </div>
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg></div>
+              <div><div class="tile-title">IA Lumo</div><div class="tile-sub">Chat integrado</div></div>
             </button>
-
-            <button class="hub-tile" id="tile-kit" onclick="openView('kit')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Kit Rápido</div>
-                <div class="tile-sub">Cor · QR · Senha</div>
-              </div>
+            <button data-lm-tile="1" class="hub-tile" id="tile-midia" onclick="openView('midia')">
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg></div>
+              <div><div class="tile-title">Lumo Music</div><div class="tile-sub" id="sub-midia"><span id="music-tile-sub">Músicas · Lo-fi · Rádio</span></div></div>
             </button>
-
             <button class="hub-tile" id="tile-bolso" onclick="openView('bolso')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Bolso</div>
-                <div class="tile-sub" id="sub-bolso">Soltar arquivos</div>
-              </div>
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+              <div><div class="tile-title">Bolso</div><div class="tile-sub" id="sub-bolso">Docs · Áudio · Img</div></div>
             </button>
-
             <button class="hub-tile" id="tile-util" onclick="openView('util')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Foco & PC</div>
-                <div class="tile-sub" id="sub-util">25:00 · Lembrete</div>
-              </div>
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg></div>
+              <div><div class="tile-title">Foco & PC</div><div class="tile-sub" id="sub-util">25:00 · Café</div></div>
             </button>
-
-            <button class="hub-tile" id="tile-midia" onclick="openView('midia')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Ambiente</div>
-                <div class="tile-sub" id="sub-midia">Lo-fi · Chuva</div>
-              </div>
+            <button class="hub-tile" id="tile-kit" onclick="openView('kit')">
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg></div>
+              <div><div class="tile-title">Kit Rápido</div><div class="tile-sub">Cor · QR · Senha</div></div>
             </button>
-
             <button class="hub-tile" onclick="hideForGame('Fui pro canto! Use Alt+Espaço pra me chamar.')">
-              <div class="tile-icon">
-                <svg class="ic" viewBox="0 0 24 24"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg>
-              </div>
-              <div>
-                <div class="tile-title">Modo Jogo</div>
-                <div class="tile-sub">Ir pro canto</div>
-              </div>
+              <div class="tile-icon"><svg class="ic" viewBox="0 0 24 24"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg></div>
+              <div><div class="tile-title">Modo Jogo</div><div class="tile-sub">Ir pro canto</div></div>
             </button>
           </div>
 
-          <!-- TAREFAS COM PROGRESSO EM TEMPO REAL -->
           <div class="card">
             <div class="label-xs">
               <span>Tarefas de Hoje</span>
@@ -1068,27 +267,40 @@
               <button type="submit" class="btn-primary">Add</button>
             </form>
           </div>
+
+          <div class="news-card">
+            <div class="label-xs" style="margin-bottom:0;">
+              <span>Notícias de Hoje</span>
+              <div class="news-tabs">
+                <button class="news-tab active" type="button" data-cat="geral" onclick="loadNews('geral', true)">Geral</button>
+                <button class="news-tab" type="button" data-cat="tech" onclick="loadNews('tech', true)">Tech</button>
+                <button class="news-tab" type="button" data-cat="games" onclick="loadNews('games', true)">Games</button>
+              </div>
+            </div>
+            <div class="news-list" id="news-list">
+              <div style="font-size:11px; color:var(--muted); padding:4px;">Buscando manchetes de hoje...</div>
+            </div>
+          </div>
         </div>
 
-        <!-- BARRA INTELIGENTE NO RODAPÉ -->
         <div class="quick-ai-dock">
           <div class="cmd-chips">
+            <button class="cmd-chip" type="button" onclick="fillCmd('/resumir ')">/resumir</button>
+            <button class="cmd-chip" type="button" onclick="fillCmd('/doc ')">/doc</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/g ')">/g Google</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/yt ')">/yt YouTube</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/cor')">/cor</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('/qr ')">/qr</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/senha')">/senha</button>
-            <button class="cmd-chip" type="button" onclick="runCmdDirect('/d20')">/d20</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/cafe')">/cafe</button>
             <button class="cmd-chip" type="button" onclick="runCmdDirect('/respirar')">/respirar</button>
+            <button class="cmd-chip" type="button" onclick="runCmdDirect('/d20')">/d20</button>
             <button class="cmd-chip" type="button" onclick="fillCmd('=')">=Calc</button>
           </div>
           <form class="quick-ai-form" onsubmit="quickCommand(event)">
             <svg class="ic ic-sm sparkle-ic" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-            <textarea rows="1" id="quick-ai-input" placeholder="Pergunte à IA ou digite um comando..." oninput="onUserTyping()" onblur="stopTypingLook()" ></textarea>
-            <button type="submit" class="quick-ai-send" title="Executar ou enviar para IA">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
+            <textarea rows="1" id="quick-ai-input" placeholder="Pergunte à IA ou digite um comando..." oninput="onUserTyping()" onblur="stopTypingLook()"></textarea>
+            <button type="submit" class="quick-ai-send" title="Enviar"><svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
           </form>
         </div>
       </div>
@@ -1096,27 +308,20 @@
       <!-- VIEW 2: KIT RÁPIDO -->
       <div class="view" id="view-kit">
         <div class="card">
-          <div class="label-xs">
-            <span>Conta-Gotas de Tela</span>
-            <span style="color:var(--muted); font-weight:400;">#HEX em 1 clique</span>
-          </div>
+          <div class="label-xs"><span>Conta-Gotas de Tela</span><span style="color:var(--muted); font-weight:400;">#HEX</span></div>
           <div class="card-row">
             <span style="font-size:11.5px; color:var(--muted);">Capture a cor de qualquer pixel do Windows.</span>
-            <button class="btn-primary" onclick="pickScreenColor()">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
-              Capturar
-            </button>
+            <button class="btn-primary" onclick="pickScreenColor()">Capturar</button>
           </div>
           <div class="color-row" id="color-history"></div>
         </div>
-
         <div class="card">
           <div class="label-xs">
             <span>QR Code (PC → Celular)</span>
             <button class="btn-ghost" style="padding:2px 7px; font-size:10px;" onclick="qrFromClipboard()">Usar Ctrl+C</button>
           </div>
           <form class="inline-form" style="margin-top:4px;" onsubmit="generateQR(event)">
-            <input type="text" id="qr-input" placeholder="Cole um link ou texto para ler no celular..." />
+            <input type="text" id="qr-input" placeholder="Cole um link ou texto..." />
             <button type="submit" class="btn-primary">Gerar</button>
           </form>
           <div class="qr-preview" id="qr-preview">
@@ -1124,14 +329,11 @@
             <span style="font-size:10.5px; color:var(--muted);">Aponte a câmera do celular para abrir na hora.</span>
           </div>
         </div>
-
         <div class="card">
           <div class="label-xs">
             <span>Gerador de Senha Segura</span>
-            <select id="pwd-len" style="flex:0; padding:2px 6px; font-size:10.5px;">
-              <option value="12">12 chars</option>
-              <option value="16" selected>16 chars</option>
-              <option value="24">24 chars</option>
+            <select id="pwd-len" onmousedown="lockBlur()" onchange="unlockBlur()" onblur="unlockBlur()" style="flex:0; padding:2px 6px; font-size:10.5px;">
+              <option value="12">12 chars</option><option value="16" selected>16 chars</option><option value="24">24 chars</option>
             </select>
           </div>
           <div class="pwd-box">
@@ -1144,57 +346,84 @@
       <!-- VIEW 3: MÍDIA & AMBIENTE -->
       <div class="view" id="view-midia">
         <div class="card">
-          <div class="label-xs">
-            <span>Controle Universal do Windows</span>
-            <span style="color:var(--ok);">Spotify · YouTube</span>
-          </div>
+          <div class="label-xs"><span>Controle Universal</span><span style="color:var(--ok);">Spotify · YouTube</span></div>
+          <div style="text-align:center; font-size:12px; font-weight:600; margin-top:4px;" id="midia-view-track">Pronto para controlar sua mídia</div>
           <div class="media-controls">
-            <button class="media-btn" title="Anterior" onclick="sendMedia('prev')">
-              <svg class="ic" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>
-            </button>
-            <button class="media-btn main-play" title="Play / Pause" onclick="sendMedia('play_pause')">
-              <svg class="ic ic-lg" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-            </button>
-            <button class="media-btn" title="Próxima" onclick="sendMedia('next')">
-              <svg class="ic" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
-            </button>
+            <button class="media-btn" onclick="sendMedia('prev')"><svg class="ic" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg></button>
+            <button class="media-btn main-play" onclick="sendMedia('play_pause')"><svg class="ic ic-lg" id="main-play-svg" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg></button>
+            <button class="media-btn" onclick="sendMedia('next')"><svg class="ic" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg></button>
           </div>
           <div class="vol-row">
-            <button class="btn-ghost" onclick="sendMedia('vol_down')">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> -
-            </button>
-            <button class="btn-ghost" onclick="sendMedia('mute')">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg> Mudo
-            </button>
-            <button class="btn-ghost" onclick="sendMedia('vol_up')">
-              <svg class="ic ic-sm" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> +
-            </button>
+            <button class="btn-ghost" onclick="sendMedia('vol_down')">Vol -</button>
+            <button class="btn-ghost" onclick="sendMedia('mute')">Mudo</button>
+            <button class="btn-ghost" onclick="sendMedia('vol_up')">Vol +</button>
           </div>
         </div>
-
-        <div class="card" style="flex:1;">
+        <div class="card">
           <div class="label-xs">
-            <span>Som Ambiente Offline</span>
-            <span class="pro-badge" id="ambient-pro-badge">PRO</span>
+            <span>Player do Lumo</span>
+            <span style="color:var(--ok);">Sem navegador</span>
           </div>
-          <p style="font-size:11px; color:var(--muted);">Áudio sintetizado em 0 MB extras — anima o Lumo no ritmo.</p>
+          <div class="player-tabs">
+            <button type="button" class="ptab-btn active" data-ptab="radio" onclick="switchPlayerTab('radio')">Rádios</button>
+            <button type="button" class="ptab-btn" data-ptab="local" onclick="switchPlayerTab('local')">Músicas</button>
+            <button type="button" class="ptab-btn" data-ptab="favs" onclick="switchPlayerTab('favs')">Favoritas</button>
+          </div>
+
+          <div class="player-now-bar" id="player-now-bar">
+            <div class="pnow-top">
+              <div class="pnow-info">
+                <div class="pnow-title" id="pnow-title">—</div>
+                <div class="pnow-sub" id="pnow-sub">Player Lumo</div>
+              </div>
+              <button type="button" class="btn-ghost" style="padding:3px 8px; font-size:10.5px;" onclick="stopInternalPlayer(false)">Parar</button>
+            </div>
+            <div class="pnow-seek-row" id="pnow-seek-row">
+              <span id="pnow-cur">0:00</span>
+              <input type="range" id="pnow-seek" min="0" max="1000" value="0" oninput="seekInternalTrack(this.value)" />
+              <span id="pnow-dur">0:00</span>
+            </div>
+          </div>
+
+          <div id="radio-tools-wrap" style="display:flex; flex-direction:column; gap:7px;">
+            <form class="inline-form" onsubmit="searchRadios(event)">
+              <input type="text" id="radio-search-input" placeholder="Buscar rádio (ex: lofi, mpb, synthwave)..." />
+              <button type="submit" class="btn-primary" style="padding:0 11px;">Ir</button>
+            </form>
+            <div class="genre-row">
+              <button type="button" class="genre-chip active" data-genre="lofi" onclick="loadRadioGenre('lofi', this)">Lo-fi</button>
+              <button type="button" class="genre-chip" data-genre="synthwave" onclick="loadRadioGenre('synthwave', this)">Synth</button>
+              <button type="button" class="genre-chip" data-genre="mpb" onclick="loadRadioGenre('mpb', this)">MPB</button>
+              <button type="button" class="genre-chip" data-genre="chillout" onclick="loadRadioGenre('chillout', this)">Chill</button>
+              <button type="button" class="genre-chip" data-genre="rock" onclick="loadRadioGenre('rock', this)">Rock</button>
+              <button type="button" class="genre-chip" data-genre="anime" onclick="loadRadioGenre('anime', this)">Anime</button>
+            </div>
+          </div>
+
+          <div id="local-tools-wrap" style="display:none; flex-direction:column; gap:6px;">
+            <button type="button" class="btn-primary" onclick="openLocalMusicPicker()">+ Adicionar Músicas do PC (.mp3 / .wav / .ogg)</button>
+            <input type="file" id="local-music-picker" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" multiple style="display:none;" onchange="onLocalMusicPicked(this.files)" />
+          </div>
+
+          <div class="station-list" id="station-list"></div>
+
+          <div class="pvol-row">
+            <span>Vol</span>
+            <input type="range" id="pvol-slider" min="0" max="100" value="65" oninput="setInternalVolume(this.value)" />
+            <span id="pvol-val" style="min-width:30px; text-align:right; font-weight:600; color:var(--accent);">65%</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label-xs"><span>Som Ambiente Offline</span><span class="pro-badge" id="ambient-pro-badge">PRO</span></div>
+          <p style="font-size:11px; color:var(--muted);">Áudio sintetizado em 0 MB extras — ativa fones animados.</p>
           <div class="ambient-grid">
-            <button class="ambient-btn" id="amb-lofi" onclick="toggleAmbient('lofi')">
-              <svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              <span>Lo-fi Zen</span>
-            </button>
-            <button class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain')">
-              <svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
-              <span>Chuva</span>
-            </button>
-            <button class="ambient-btn" id="amb-brown" onclick="toggleAmbient('brown')">
-              <svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
-              <span>Foco</span>
-            </button>
+            <button class="ambient-btn" id="amb-lofi" onclick="toggleAmbient('lofi')"><span>♪</span><span>Lo-fi Zen</span></button>
+            <button class="ambient-btn" id="amb-rain" onclick="toggleAmbient('rain')"><span>🌧</span><span>Chuva</span></button>
+            <button class="ambient-btn" id="amb-brown" onclick="toggleAmbient('brown')"><span>〰</span><span>Foco</span></button>
           </div>
-          <div style="margin-top:14px; display:flex; align-items:center; gap:8px;">
+          <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
             <span style="font-size:11px; color:var(--muted);">Volume</span>
-            <input type="range" id="ambient-vol" min="0" max="100" value="35" oninput="updateAmbientVol(this.value)" style="flex:1; accent-color: var(--accent);" />
+            <input type="range" id="ambient-vol" min="0" max="100" value="35" oninput="updateAmbientVol(this.value)" style="flex:1; accent-color:var(--accent);" />
           </div>
         </div>
       </div>
@@ -1204,40 +433,35 @@
         <div class="drop-zone" id="drop-zone" onclick="openFilePicker()">
           <svg class="ic ic-lg" style="color:var(--accent);" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
           <div style="font-size:12.5px; font-weight:600;">Bandeja Mágica</div>
-          <p>Arraste arquivos aqui (ou no rostinho) para guardar ou converter imagens.</p>
+          <p>Arraste imagens, PDFs, textos ou áudios (.ogg/.mp3) para converter, resumir ou transcrever.</p>
           <input type="file" id="file-picker" multiple style="display:none;" onchange="onFilePicked(this.files)" />
         </div>
-
         <div class="card" style="padding:8px 12px;">
           <div class="card-row">
-            <span style="font-size:11px; color:var(--muted);">Compressão JPG/WebP: <strong id="q-val" style="color:var(--accent);">80%</strong></span>
+            <span style="font-size:11px; color:var(--muted);">Compressão: <strong id="q-val" style="color:var(--accent);">80%</strong></span>
             <input type="range" id="img-quality" min="25" max="95" value="80" oninput="document.getElementById('q-val').textContent=this.value+'%'" style="width:110px; accent-color:var(--accent);" />
           </div>
         </div>
-
-        <div id="pocket-list" style="display:flex; flex-direction:column; gap:8px; flex:1;">
-          <div style="font-size:11.5px; color:var(--muted); text-align:center; margin-top:14px;">
-            Nenhum arquivo ainda. Salvos em <strong>Área de Trabalho\Lumo_Arquivos</strong>.
-          </div>
+        <div id="pocket-list" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:11.5px; color:var(--muted); text-align:center; margin-top:12px;">Salvos em <strong>Área de Trabalho\Lumo_Arquivos</strong>.</div>
         </div>
       </div>
 
       <!-- VIEW 5: IA -->
       <div class="view" id="view-ia">
         <div class="card-row">
-          <span class="label-xs" style="margin:0;">Lumo AI · Integrada</span>
+          <span class="label-xs" style="margin:0;">Lumo AI · Multi-Model</span>
           <button class="btn-ghost" onclick="clearChat()">Limpar</button>
         </div>
-        <div id="chat-box">
-          <div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div>
-        </div>
+        <div id="doc-ctx-bar"></div>
+        <div id="chat-box"><div class="msg ai">Oi! Pergunte qualquer coisa sem precisar abrir o navegador.</div></div>
         <form class="inline-form" onsubmit="sendPrompt(event)">
-          <input type="text" id="ai-input" placeholder="Pergunte ao Lumo..." oninput="onUserTyping()" onblur="stopTypingLook()" />
+          <textarea id="ai-input" rows="1" placeholder="Pergunte ao Lumo... (Shift+Enter para parágrafo)" oninput="onUserTyping()" onblur="stopTypingLook()"></textarea>
           <button type="submit" class="btn-primary" id="ai-send-btn">Enviar</button>
         </form>
       </div>
 
-      <!-- VIEW 6: FOCO, LEMBRETES & PC -->
+      <!-- VIEW 6: FOCO & PC -->
       <div class="view" id="view-util">
         <div class="card">
           <div class="label-xs">Timer Pomodoro</div>
@@ -1249,13 +473,9 @@
             <button class="btn-primary" id="timer-toggle-btn" onclick="toggleTimer()">Iniciar</button>
           </div>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Lembrete Rápido</span>
-            <span id="rem-status" style="color:var(--muted); font-weight:400;">Nenhum ativo</span>
-          </div>
-          <input type="text" id="rem-label-input" placeholder="Ex: Tirar comida do forno, entrar na call..." style="width:100%; margin-bottom:7px;" />
+          <div class="label-xs"><span>Lembrete Rápido</span><span id="rem-status" style="color:var(--muted); font-weight:400;">Nenhum ativo</span></div>
+          <input type="text" id="rem-label-input" placeholder="Ex: Tirar comida do forno..." style="width:100%; margin-bottom:7px;" />
           <div class="preset-row">
             <button class="btn-ghost" onclick="startReminder(5)">5m</button>
             <button class="btn-ghost" onclick="startReminder(15)">15m</button>
@@ -1264,21 +484,15 @@
             <button class="btn-ghost" style="color:var(--danger);" onclick="cancelReminder()">Limpar</button>
           </div>
         </div>
-
-
         <div class="card">
           <div class="card-row">
             <div>
               <div style="font-size:12px; font-weight:600;">Modo Café (Manter PC Acordado)</div>
               <div style="font-size:10.5px; color:var(--muted);" id="cafe-status">Impede tela de apagar e hibernação</div>
             </div>
-            <label class="switch">
-              <input type="checkbox" id="cafe-toggle" onchange="toggleKeepAwake(this.checked)" />
-              <span class="slider"></span>
-            </label>
+            <label class="switch"><input type="checkbox" id="cafe-toggle" onchange="toggleKeepAwake(this.checked)" /><span class="slider"></span></label>
           </div>
         </div>
-
         <div class="card">
           <div class="card-row">
             <div>
@@ -1288,12 +502,8 @@
             <button class="btn-primary" id="breath-btn" onclick="startBreathing()">Iniciar</button>
           </div>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Modo Soneca (Desligar PC)</span>
-            <span id="sleep-status" style="color:var(--muted); font-weight:400;">Inativo</span>
-          </div>
+          <div class="label-xs"><span>Modo Soneca (Desligar PC)</span><span id="sleep-status" style="color:var(--muted); font-weight:400;">Inativo</span></div>
           <div class="preset-row">
             <button class="btn-ghost" onclick="schedulePcSleep(30)">30m</button>
             <button class="btn-ghost" onclick="schedulePcSleep(60)">1h</button>
@@ -1301,37 +511,27 @@
             <button class="btn-ghost" style="color:var(--danger);" onclick="cancelPcSleep()">Cancelar</button>
           </div>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Bloco de Notas Rápido</span>
-            <span class="pro-badge" id="notes-pro-badge">PRO</span>
-          </div>
+          <div class="label-xs"><span>Bloco de Notas Rápido</span><span class="pro-badge" id="notes-pro-badge">PRO</span></div>
           <textarea id="quick-notes" placeholder="Anote ideias ou rascunhos..." oninput="saveQuickNotes(this.value)"></textarea>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Histórico de Ctrl+C</span>
-            <span class="pro-badge" id="clip-pro-badge">PRO</span>
-          </div>
+          <div class="label-xs"><span>Histórico de Ctrl+C</span><span class="pro-badge" id="clip-pro-badge">PRO</span></div>
           <div class="task-list" id="clipboard-list"></div>
         </div>
       </div>
 
-      
-      <!-- VIEW: PAREAMENTO CELULAR (PWA) -->
+      <!-- VIEW 7: CELULAR (PWA) -->
       <div class="view" id="view-mobile">
         <div class="card" style="text-align:center;">
-          <div class="label-xs">
-            <span>Lumo Mobile (Android & iPhone)</span>
-            <span id="mob-sync-badge" style="color:var(--ok);">Ativo</span>
+          <div class="label-xs"><span>Lumo Mobile (Android & iPhone)</span><span id="mob-sync-status" style="color:var(--muted);">Desativado</span></div>
+          <div class="card-row" style="margin:6px 0 8px; text-align:left;">
+            <div><div style="font-size:11.5px; font-weight:600;">Sincronizar com celular</div><div style="font-size:10px; color:var(--muted);">Ative apenas quando parear um aparelho</div></div>
+            <label class="switch"><input type="checkbox" id="mobsync-toggle" onchange="toggleMobileSync(this.checked)" /><span class="slider"></span></label>
           </div>
-          <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">
-            Aponte a câmera do celular para o QR Code abaixo e adicione à tela inicial para controlar mídia, tarefas, notas e Ctrl+C.
-          </p>
+          <p style="font-size:11.5px; color:var(--muted); margin-bottom:10px;">Escaneie o QR Code com o celular para controlar mídia, tarefas, notas e Ctrl+C.</p>
           <div style="display:flex; justify-content:center; margin:6px 0 10px;">
-            <img id="mob-qr-img" alt="QR Pareamento" style="width:152px; height:152px; border-radius:12px; background:#fff; padding:6px;" />
+            <img id="mob-qr-img" alt="QR Pareamento" style="width:150px; height:150px; border-radius:12px; background:#fff; padding:6px;" />
           </div>
           <div style="font-family:Consolas,monospace; font-size:14px; font-weight:700; color:var(--accent); letter-spacing:1px; margin-bottom:10px;" id="mob-token-text"></div>
           <div class="preset-row">
@@ -1342,7 +542,10 @@
         </div>
       </div>
 
-      <!-- VIEW 7: CONFIGURAÇÕES -->
+      <!-- VIEW 8: CONFIGURAÇÕES -->
+      <!-- VIEW: APARÊNCIA -->
+      <div class="view" id="view-aparencia"></div>
+
       <div class="view" id="view-config">
         <div class="card">
           <div class="label-xs">Como devo te chamar?</div>
@@ -1351,27 +554,22 @@
             <button type="submit" class="btn-primary">Salvar</button>
           </form>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Plano · Lumo v1.5.0</span>
-            <span id="plan-status-badge" class="pro-badge">GRÁTIS</span>
-          </div>
+          <div class="label-xs"><span>Plano · Lumo v3.9.7</span><span id="plan-status-badge" class="pro-badge">GRÁTIS</span></div>
           <form class="inline-form" onsubmit="activateLicense(event)">
-            <input type="text" id="license-input" placeholder="Chave Pro (ex: LUMO-FRIEND)" />
+            <input type="text" id="license-input" placeholder="Cole sua chave Lumo Pro..." />
             <button type="submit" class="btn-primary" id="license-btn">Ativar</button>
           </form>
         </div>
-
         <div class="card">
           <div class="label-xs">Personalidade & Voz</div>
           <div class="inline-form" style="margin-top:4px;">
-            <select id="personality-select" onchange="setPersonality(this.value)">
+            <select id="personality-select" onmousedown="lockBlur()" onchange="setPersonality(this.value); unlockBlur()" onblur="unlockBlur()">
               <option value="zen">Zen (silencioso)</option>
               <option value="balanced" selected>Equilibrado</option>
               <option value="companion">Companheiro</option>
             </select>
-            <select id="voice-select" onchange="setVoiceMode(this.value)">
+            <select id="voice-select" onmousedown="lockBlur()" onchange="setVoiceMode(this.value); unlockBlur()" onblur="unlockBlur()">
               <option value="mascot">Voz Mascote</option>
               <option value="spoken">Voz Falada</option>
               <option value="chimes">Só Chimes</option>
@@ -1379,63 +577,116 @@
             </select>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-row" style="margin-bottom:7px;">
-            <div>
-              <div style="font-size:12px; font-weight:600;">Encolher ao clicar fora</div>
-              <div style="font-size:10.5px; color:var(--muted);">Recolhe o painel ao focar outro app</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autoclose-toggle" checked onchange="toggleAutoClose(this.checked)" />
-              <span class="slider"></span>
-            </label>
+                    <div class="card-row" style="margin-bottom:7px;">
+            <div><div style="font-size:12px; font-weight:600;">Só na bandeja do sistema</div><div style="font-size:10.5px; color:var(--muted);">Oculta a cápsula; abra pelo ícone perto do relógio</div></div>
+            <label class="switch"><input type="checkbox" id="trayonly-toggle" onchange="toggleTrayOnly(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row" style="margin-bottom:7px;">
-            <div>
-              <div style="font-size:12px; font-weight:600;">Iniciar com o Windows</div>
-              <div style="font-size:10.5px; color:var(--muted);">Acorda junto ao ligar o PC</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autostart-toggle" onchange="toggleAutostart(this.checked)" />
-              <span class="slider"></span>
-            </label>
+            <div><div style="font-size:12px; font-weight:600;">Encolher ao clicar fora</div><div style="font-size:10.5px; color:var(--muted);">Recolhe o painel ao focar outro app</div></div>
+            <label class="switch"><input type="checkbox" id="autoclose-toggle" checked onchange="toggleAutoClose(this.checked)" /><span class="slider"></span></label>
+          </div>
+          <div class="card-row" style="margin-bottom:7px;">
+            <div><div style="font-size:12px; font-weight:600;">Iniciar com o Windows</div><div style="font-size:10.5px; color:var(--muted);">Acorda junto ao ligar o PC</div></div>
+            <label class="switch"><input type="checkbox" id="autostart-toggle" onchange="toggleAutostart(this.checked)" /><span class="slider"></span></label>
           </div>
           <div class="card-row">
-            <div>
-              <div style="font-size:12px; font-weight:600;">Dicas de Jogos + Auto-esconder</div>
-              <div style="font-size:10.5px; color:var(--muted);">Mostra dica no loading e vai pro canto</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autohide-toggle" checked />
-              <span class="slider"></span>
-            </label>
+            <div><div style="font-size:12px; font-weight:600;">Dicas de Jogos + Auto-esconder</div><div style="font-size:10.5px; color:var(--muted);">Mostra dica no loading e vai pro canto</div></div>
+            <label class="switch"><input type="checkbox" id="autohide-toggle" checked /><span class="slider"></span></label>
           </div>
         </div>
-
         <div class="card">
-          <div class="label-xs">
-            <span>Tema Luminoso</span>
-            <span class="pro-badge" id="theme-pro-badge">+10 PRO</span>
-          </div>
+          <div class="label-xs"><span>Tema Luminoso</span><span class="pro-badge" id="theme-pro-badge">+10 PRO</span></div>
           <div class="theme-dots">
-            <div class="theme-dot active" data-theme="amber" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente (Grátis)"></div>
-            <div class="theme-dot" data-theme="lunar" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar (Grátis)"></div>
-            <div class="theme-dot" data-theme="cyan" style="background:#67e8f9" onclick="setTheme('cyan', this, true)" title="Ciano Névoa (Pro)"></div>
+            <div class="theme-dot active" data-theme="amber" style="background:#f6b974" onclick="setTheme('amber', this)" title="Âmbar Quente"></div>
+            <div class="theme-dot" data-theme="lunar" style="background:#e5e7eb" onclick="setTheme('lunar', this)" title="Branco Lunar"></div>
+            <div class="theme-dot" data-theme="cyan" style="background:#67e8f9" onclick="setTheme('cyan', this, true)" title="Ciano (Pro)"></div>
             <div class="theme-dot" data-theme="cobalt" style="background:#60a5fa" onclick="setTheme('cobalt', this, true)" title="Azul Elétrico (Pro)"></div>
-            <div class="theme-dot" data-theme="lavender" style="background:#c4b5fd" onclick="setTheme('lavender', this, true)" title="Lavanda Zen (Pro)"></div>
-            <div class="theme-dot" data-theme="violet" style="background:#a78bfa" onclick="setTheme('violet', this, true)" title="Violeta Neon (Pro)"></div>
+            <div class="theme-dot" data-theme="lavender" style="background:#c4b5fd" onclick="setTheme('lavender', this, true)" title="Lavanda (Pro)"></div>
+            <div class="theme-dot" data-theme="violet" style="background:#a78bfa" onclick="setTheme('violet', this, true)" title="Violeta (Pro)"></div>
             <div class="theme-dot" data-theme="sakura" style="background:#f472b6" onclick="setTheme('sakura', this, true)" title="Rosa Sakura (Pro)"></div>
             <div class="theme-dot" data-theme="crimson" style="background:#fb7185" onclick="setTheme('crimson', this, true)" title="Carmesim (Pro)"></div>
             <div class="theme-dot" data-theme="sunset" style="background:#fb923c" onclick="setTheme('sunset', this, true)" title="Pôr do Sol (Pro)"></div>
             <div class="theme-dot" data-theme="gold" style="background:#facc15" onclick="setTheme('gold', this, true)" title="Ouro Solar (Pro)"></div>
             <div class="theme-dot" data-theme="emerald" style="background:#34d399" onclick="setTheme('emerald', this, true)" title="Esmeralda (Pro)"></div>
             <div class="theme-dot" data-theme="lime" style="background:#a3e635" onclick="setTheme('lime', this, true)" title="Lima Acid (Pro)"></div>
-            <div class="theme-dot custom-dot" data-theme="custom" onclick="openCustomColorPicker()" title="Escolher qualquer cor (Pro)"></div>
+            <div class="theme-dot custom-dot" data-theme="custom" onclick="openCustomColorPicker()" title="Cor livre (Pro)"></div>
             <input type="color" id="custom-theme-input" value="#f6b974" style="display:none;" oninput="applyCustomHex(this.value, false)" onchange="applyCustomHex(this.value, true)" />
           </div>
         </div>
-
+        <div class="card">
+          <div class="label-xs">Estilo dos Olhos</div>
+          <div class="eye-style-row">
+            <button type="button" class="eye-style-btn" data-style="classic" onclick="setEyeStyle('classic', this)">Clássico</button>
+            <button type="button" class="eye-style-btn" data-style="kawaii" onclick="setEyeStyle('kawaii', this)">Fofo</button>
+            <button type="button" class="eye-style-btn" data-style="cyber" onclick="setEyeStyle('cyber', this)">Cyber</button>
+          </div>
+        </div>
+                <div class="card">
+          <div class="label-xs">
+            <span>Fundo & Formato da Interface</span>
+            <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:9.8px;" onclick="resetInterfaceStyle()">Padrão</button>
+          </div>
+          <div class="surface-grid">
+            <button type="button" class="surface-btn" data-surface="obsidian" onclick="applySurface('obsidian', true)">
+              <span class="surface-swatch" style="background:#0b0c12;"></span>Obsidian
+            </button>
+            <button type="button" class="surface-btn" data-surface="midnight" onclick="applySurface('midnight', true)">
+              <span class="surface-swatch" style="background:#0c1426;"></span>Noite
+            </button>
+            <button type="button" class="surface-btn" data-surface="oled" onclick="applySurface('oled', true)">
+              <span class="surface-swatch" style="background:#000000;"></span>OLED
+            </button>
+            <button type="button" class="surface-btn" data-surface="graphite" onclick="applySurface('graphite', true)">
+              <span class="surface-swatch" style="background:#1a1c24;"></span>Grafite
+            </button>
+            <button type="button" class="surface-btn" data-surface="light" onclick="applySurface('light', true)">
+              <span class="surface-swatch" style="background:#f5f6fa; border-color:#cbd5e1;"></span>Claro
+            </button>
+          </div>
+          <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; color:var(--muted);">Opacidade</span>
+            <input type="range" id="opacity-slider" min="72" max="100" value="97" oninput="applyOpacity(this.value)" style="flex:1; accent-color:var(--accent);" />
+            <span id="opacity-val" style="font-size:11px; font-weight:600; color:var(--accent); min-width:34px; text-align:right;">97%</span>
+          </div>
+          <div class="eye-style-row" style="margin-top:9px;">
+            <button type="button" class="eye-style-btn radius-btn" data-radius="sharp" onclick="applyRadius('sharp', true)">Reto</button>
+            <button type="button" class="eye-style-btn radius-btn" data-radius="round" onclick="applyRadius('round', true)">Padrão</button>
+            <button type="button" class="eye-style-btn radius-btn" data-radius="soft" onclick="applyRadius('soft', true)">Suave</button>
+          </div>
+          <div style="margin-top:9px; font-size:10.5px; color:var(--muted); font-weight:600;">Posição na tela</div>
+          <div class="pos-grid">
+            <button type="button" class="pos-btn" data-pos="top-center" onclick="applyPosition('top-center', true)">Centro</button>
+            <button type="button" class="pos-btn" data-pos="top-left" onclick="applyPosition('top-left', true)">Esq.</button>
+            <button type="button" class="pos-btn" data-pos="top-right" onclick="applyPosition('top-right', true)">Dir.</button>
+            <button type="button" class="pos-btn" data-pos="bottom-right" onclick="applyPosition('bottom-right', true)">Relógio</button>
+          </div>
+          <div style="margin-top:9px; font-size:10.5px; color:var(--muted); font-weight:600;">Skins do Lumo</div>
+          <div class="skin-grid">
+            <button type="button" class="skin-btn" data-skin="reactive" onclick="applySkin('reactive', true)"><span class="sk-ic">✨</span>Reativo</button>
+            <button type="button" class="skin-btn" data-skin="headphones" onclick="applySkin('headphones', true)"><span class="sk-ic">🎧</span>Fones</button>
+            <button type="button" class="skin-btn" data-skin="glasses" onclick="applySkin('glasses', true)"><span class="sk-ic">🕶️</span>Óculos</button>
+            <button type="button" class="skin-btn" data-skin="cat" onclick="applySkin('cat', true)"><span class="sk-ic">🐱</span>Gato</button>
+            <button type="button" class="skin-btn" data-skin="cyber" onclick="applySkin('cyber', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">⚡</span>Cyber</button>
+            <button type="button" class="skin-btn" data-skin="crown" onclick="applySkin('crown', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">👑</span>Coroa</button>
+            <button type="button" class="skin-btn" data-skin="halo" onclick="applySkin('halo', true)"><span class="skin-pro-tag">PRO</span><span class="sk-ic">😇</span>Auréola</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label-xs">
+            <span>Montar o seu Resumo</span>
+            <span style="color:var(--muted); font-weight:400;">Toque p/ ocultar</span>
+          </div>
+          <div class="widget-grid">
+            <button type="button" class="widget-chip on" data-widget="telemetry" onclick="toggleWidget('telemetry')"><span>CPU & RAM</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="motd" onclick="toggleWidget('motd')"><span>Mensagem do Dia</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="media" onclick="toggleWidget('media')"><span>Mini-Player</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="hub" onclick="toggleWidget('hub')"><span>Atalhos (Hub)</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="tasks" onclick="toggleWidget('tasks')"><span>Tarefas</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="news" onclick="toggleWidget('news')"><span>Notícias</span><span class="w-dot"></span></button>
+            <button type="button" class="widget-chip on" data-widget="dock" onclick="toggleWidget('dock')"><span>Barra Rápida</span><span class="w-dot"></span></button>
+          </div>
+        </div>
         <div class="card">
           <div class="label-xs">Chave API Gemini Própria (Opcional)</div>
           <form class="inline-form" onsubmit="saveGeminiKey(event)">
@@ -1444,2005 +695,49 @@
             <button type="button" class="btn-ghost" onclick="removeGeminiKey()">Limpar</button>
           </form>
         </div>
-
         <div class="card">
+          <div class="card-row" style="margin-bottom:7px;">
+            <div><div style="font-size:12px; font-weight:600;">Atualizar automaticamente</div><div style="font-size:10.5px; color:var(--muted);">Aplica novos patches quando estiver livre</div></div>
+            <label class="switch"><input type="checkbox" id="autoupdate-toggle" checked onchange="toggleAutoUpdate(this.checked)" /><span class="slider"></span></label>
+          </div>
           <div class="card-row">
-            <div>
-              <div style="font-size:12px; font-weight:600;">Atualizações Automáticas</div>
-              <div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v1.5.0</div>
-            </div>
-            <button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button>
+            <div><div style="font-size:12px; font-weight:600;">Status da Versão</div><div style="font-size:10.5px; color:var(--muted);" id="update-cfg-status">Versão atual: v3.9.7</div></div>
+            <div style="display:flex; gap:5px;"><button class="btn-ghost" title="Assistir chegada em cápsula" onclick="replayArrivalCinema()">Rever Intro</button><button class="btn-ghost" onclick="manualCheckUpdate()">Verificar</button></div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-    const invoke = window.__TAURI__?.core?.invoke || null;
-    const listen = window.__TAURI__?.event?.listen || null;
-
-    let userName = localStorage.getItem('lumo_username') || '';
-    let isPro = localStorage.getItem('lumo_pro') === 'true';
-    let personality = localStorage.getItem('lumo_personality') || 'balanced';
-    let voiceMode = localStorage.getItem('lumo_voice') || 'mascot';
-    let autoCloseOnBlur = localStorage.getItem('lumo_autoclose') !== 'false';
-    let isPinned = false;
-    let suppressBlur = false;
-    let justOpenedUntil = 0;
-
-    let stealthManual = false, stealthAuto = false;
-    let isExpanded = false, isClosing = false, isHiddenInGame = false, isShuttingDown = false, isThinking = false;
-    let isTypingLook = false, pcUnderLoad = false;
-    let manualSummonUntil = 0, lastInteraction = Date.now(), startTime = Date.now();
-    let petCombo = 0, lastPetTime = 0, activeAmbient = null;
-    let bubbleCopyPayload = null;
-    let usdRate = 5.80, eurRate = 6.25;
-    let lastWeatherFetch = 0;
-    let celebratedTasks = false;
-
-    let targetEyeX = 0, targetEyeY = 0, currentEyeX = 0, currentEyeY = 0, eyeRafId = null;
-    let lastCursorX = 0, lastDir = 0, shakeCount = 0, lastShakeReset = Date.now();
-
-    let tasks = JSON.parse(localStorage.getItem('lumo_tasks') || '[{"text":"Testar o novo Lumo v1.2","done":false},{"text":"Beber água","done":true}]');
-    let clipHistory = JSON.parse(localStorage.getItem('lumo_clips') || '[]');
-    let colorHistory = JSON.parse(localStorage.getItem('lumo_colors') || '["#F6B974","#34D399","#67E8F9"]');
-    let pocketFiles = [];
-
-    // Lembrete rápido
-    let activeReminder = null; // { label, endTime }
-
-    const viewTitles = {
-      resumo: 'Lumo',
-      kit: 'Kit Rápido',
-      midia: 'Mídia & Ambiente',
-      bolso: 'Bandeja Mágica',
-      ia: 'IA Lumo',
-      util: 'Foco & PC',
-      mobile: 'Lumo Celular',
-      config: 'Configurações'
-    };
-
-    const themes = {
-      amber: { accent: '#f6b974', soft: 'rgba(246, 185, 116, 0.14)', glow: 'rgba(246, 185, 116, 0.34)' },
-      lunar: { accent: '#f3f4f6', soft: 'rgba(243, 244, 246, 0.13)', glow: 'rgba(243, 244, 246, 0.28)' },
-      cyan: { accent: '#67e8f9', soft: 'rgba(103, 232, 249, 0.14)', glow: 'rgba(103, 232, 249, 0.35)' },
-      cobalt: { accent: '#60a5fa', soft: 'rgba(96, 165, 250, 0.15)', glow: 'rgba(96, 165, 250, 0.38)' },
-      lavender: { accent: '#c4b5fd', soft: 'rgba(196, 181, 253, 0.14)', glow: 'rgba(196, 181, 253, 0.35)' },
-      violet: { accent: '#a78bfa', soft: 'rgba(167, 139, 250, 0.15)', glow: 'rgba(167, 139, 250, 0.38)' },
-      sakura: { accent: '#f472b6', soft: 'rgba(244, 114, 182, 0.15)', glow: 'rgba(244, 114, 182, 0.38)' },
-      crimson: { accent: '#fb7185', soft: 'rgba(251, 113, 133, 0.15)', glow: 'rgba(251, 113, 133, 0.38)' },
-      sunset: { accent: '#fb923c', soft: 'rgba(251, 146, 60, 0.15)', glow: 'rgba(251, 146, 60, 0.38)' },
-      gold: { accent: '#facc15', soft: 'rgba(250, 204, 21, 0.14)', glow: 'rgba(250, 204, 21, 0.36)' },
-      emerald: { accent: '#34d399', soft: 'rgba(52, 211, 153, 0.14)', glow: 'rgba(52, 211, 153, 0.35)' },
-      lime: { accent: '#a3e635', soft: 'rgba(163, 230, 53, 0.14)', glow: 'rgba(163, 230, 53, 0.36)' }
-    };
-
-    const gameTipsDB = [
-      { keys: ['minecraft'], name: 'Minecraft', tips: ['F3 + G mostra as bordas dos chunks — ótimo pra farms!', 'Carregue sempre um balde de água na barra quente contra quedas.'] },
-      { keys: ['valorant'], name: 'Valorant', tips: ['Mantenha a mira na altura da cabeça antes de abrir o pixel.', 'Cheque a economia do time antes de forçar compra!'] },
-      { keys: ['counter-strike', 'cs2'], name: 'CS2', tips: ['Contra-strafe (A/D) zera sua imprecisão antes do primeiro tiro.', 'Use utilitários antes de morrer — não guarde smoke pro além!'] },
-      { keys: ['dead by daylight'], name: 'Dead by Daylight', tips: ['Olhe para trás nos loops para ler a luz vermelha do killer.', 'Evite deixar os últimos 3 geradores muito próximos (3-gen).'] },
-      { keys: ['rimworld'], name: 'RimWorld', tips: ['Evite paredes de madeira perto de fiações — incêndio é traiçoeiro!', 'Uma mesa perto da cozinha evita o debuff de comer sem mesa.'] },
-      { keys: ['stardew valley'], name: 'Stardew Valley', tips: ['Assista à TV todo domingo para receitas da Rainha do Molho.', 'Guarde pelo menos 1 item de cada estação pro Centro Comunitário!'] },
-      { keys: ['roblox'], name: 'Roblox', tips: ['Shift Lock facilita muito parkour e câmera em jogos de ação.', 'Boa jogatina! Se precisar de algo, aperte Alt+Espaço.'] },
-      { keys: ['five nights', 'fnaf'], name: 'FNAF', tips: ['Ouça bem os passos nos fones — o som entrega antes das câmeras!', 'Economize energia e decore as rotas mais rápidas.'] },
-      { keys: ['outlast'], name: 'Outlast', tips: ['Desligue a visão noturna onde há luz para poupar bateria.', 'Feche portas atrás de você durante perseguições!'] },
-      { keys: ['r.e.p.o'], name: 'R.E.P.O.', tips: ['Cuidado com itens frágeis nas curvas — bater reduz o valor!', 'Combine rotas silenciosas com o time antes de extrair.'] },
-      { keys: ['elden ring'], name: 'Elden Ring', tips: ['Se um chefe parecer impossível, explore outra área e volte mais forte.', 'Role para dentro dos golpes largos em vez de recuar!'] },
-      { keys: ['fortnite'], name: 'Fortnite', tips: ['Mantenha sempre um item de mobilidade pro final da safe.', 'Recarregue todas as armas assim que vencer uma trocação.'] },
-      { keys: ['grand theft auto', 'gta'], name: 'GTA', tips: ['Use o menu rápido para comer snacks em cobertura.', 'Boa sessão! Tô no canto se precisar.'] },
-      { keys: ['papers, please'], name: 'Papers, Please', tips: ['Confira peso, cidade emissora e validade primeiro!', 'Glória a Arstotzka! Atenção às regras novas do boletim.'] },
-      { keys: ['prison architect'], name: 'Prison Architect', tips: ['Coloque detectores de metal na saída da cantina e da oficina.', 'Separe segurança máxima dos demais logo cedo.'] }
-    ];
-
-    // --- Partículas ---
-    function spawnParticles(x, y, symbols, colors, count = 8) {
-      for (let i = 0; i < count; i++) {
-        const el = document.createElement('span');
-        el.className = 'fx-particle';
-        el.textContent = symbols[i % symbols.length];
-        el.style.color = colors[i % colors.length];
-        el.style.left = `${x}px`; el.style.top = `${y}px`;
-        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
-        const dist = 34 + Math.random() * 44;
-        el.style.setProperty('--tx', `${(Math.cos(angle) * dist).toFixed(1)}px`);
-        el.style.setProperty('--ty', `${(Math.sin(angle) * dist - 14).toFixed(1)}px`);
-        el.style.setProperty('--rot', `${Math.round((Math.random() - 0.5) * 90)}deg`);
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 920);
-      }
-    }
-
-    function burstPillLove(intense = false) {
-      const rect = document.getElementById('lumo-pill').getBoundingClientRect();
-      spawnParticles(
-        rect.left + rect.width / 2, rect.top + rect.height / 2,
-        intense ? ['♥', '✦', '♥', '★'] : ['✦', '♥', '·'],
-        ['#fb7185', '#f6b974', '#fff3d6', '#c4b5fd'],
-        intense ? 12 : 7
-      );
-    }
-
-    function burstTaskConfetti() {
-      const panel = document.getElementById('panel');
-      if (!panel.classList.contains('open')) return;
-      const rect = panel.getBoundingClientRect();
-      spawnParticles(
-        rect.left + rect.width / 2, rect.top + 170,
-        ['●', '■', '✦', '★'],
-        ['#f6b974', '#34d399', '#67e8f9', '#fb7185', '#c4b5fd'], 16
-      );
-    }
-
-    // --- Olhos 60 FPS Sob Demanda ---
-    function setEyeTarget(x, y) {
-      targetEyeX = x; targetEyeY = y;
-      if (!eyeRafId && !isHiddenInGame) eyeRafId = requestAnimationFrame(stepEyes);
-    }
-
-    function stepEyes() {
-      if (isHiddenInGame) { eyeRafId = null; return; }
-      const dx = targetEyeX - currentEyeX, dy = targetEyeY - currentEyeY;
-      currentEyeX += dx * 0.18; currentEyeY += dy * 0.18;
-      document.getElementById('lumo-face').style.transform =
-        `translate(${currentEyeX.toFixed(2)}px, ${currentEyeY.toFixed(2)}px)`;
-      if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) eyeRafId = requestAnimationFrame(stepEyes);
-      else eyeRafId = null;
-    }
-
-    let typingTimer = null;
-    function onUserTyping() {
-      isTypingLook = true;
-      setEyeTarget((Math.random() - 0.5) * 4, 5.2);
-      clearTimeout(typingTimer);
-      typingTimer = setTimeout(stopTypingLook, 1200);
-    }
-    function stopTypingLook() { isTypingLook = false; }
-
-    // --- Relógio e Atualização em Tempo Real do Resumo ---
-    function updateLiveClock() {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('live-clock').innerHTML = `${hh}<span class="colon">:</span>${mm}`;
-      const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-      document.getElementById('daily-date').textContent = dateStr;
-    }
-
-    function refreshSummaryNow() {
-      updateLiveClock();
-      updateGreetingUI();
-      updateDailySummary();
-      updateReminderUI();
-      const upMin = Math.floor((Date.now() - startTime) / 60000);
-      const hrs = Math.floor(upMin / 60), mins = upMin % 60;
-      document.getElementById('uptime-text').textContent =
-        isStealth() ? 'Modo Furtivo' : `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
-      if (Date.now() - lastWeatherFetch > 900000) fetchWeather(false);
-    }
-
-    // --- Fixar Painel & Auto-Encolher ao Clicar Fora ---
-    function togglePin() {
-      isPinned = !isPinned;
-      document.getElementById('pin-btn').classList.toggle('active-btn', isPinned);
-      playChirp(isPinned ? 620 : 460, isPinned ? 820 : 340, 0.14);
-    }
-
-    function toggleAutoClose(val) {
-      autoCloseOnBlur = val;
-      localStorage.setItem('lumo_autoclose', String(val));
-      playChirp(520, 680, 0.12);
-    }
-
-    // --- Navegação ---
-    function openView(viewName) {
-      document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + viewName));
-      document.getElementById('back-btn').classList.toggle('show', viewName !== 'resumo');
-      document.getElementById('topbar-label').textContent = viewTitles[viewName] || 'Lumo';
-      document.getElementById('cfg-btn').classList.toggle('active-btn', viewName === 'config');
-      if (viewName === 'resumo') refreshSummaryNow();
-      if (viewName === 'ia') {
-        const box = document.getElementById('chat-box');
-        box.scrollTop = box.scrollHeight;
-      }
-    }
-
-    // --- Comandos Rápidos ---
-    function fillCmd(prefix) {
-      const inp = document.getElementById('quick-ai-input');
-      inp.value = prefix;
-      inp.focus();
-    }
-
-    function runCmdDirect(cmd) {
-      const inp = document.getElementById('quick-ai-input');
-      inp.value = cmd;
-      quickCommand(new Event('submit'));
-    }
-
-    async function quickCommand(e) {
-      e.preventDefault();
-      stopTypingLook();
-      const input = document.getElementById('quick-ai-input');
-      const raw = input.value.trim();
-      if (!raw) return;
-      input.value = '';
-      const lower = raw.toLowerCase();
-
-      if (raw.startsWith('=')) {
-        const expr = raw.slice(1).trim().replace(/,/g, '.');
-        if (/^[\d\s+\-*/().%]+$/.test(expr)) {
-          try {
-            const res = Function('"use strict"; return (' + expr + ')')();
-            if (typeof res === 'number' && Number.isFinite(res)) {
-              const out = Number.isInteger(res) ? String(res) : res.toFixed(2).replace('.', ',');
-              if (invoke) await invoke('set_clipboard_text', { text: out });
-              hopPill(); playChirp(620, 880, 0.16);
-              say(`Resultado: ${out} (copiado!)`, 3600, true);
-              return;
-            }
-          } catch (_) {}
-        }
-      }
-
-      if (lower.startsWith('/g ') || lower.startsWith('/google ')) {
-        const q = raw.replace(/^\/(g|google)\s+/i, '').trim();
-        if (q && invoke) {
-          await invoke('open_external_url', { url: `https://www.google.com/search?q=${encodeURIComponent(q)}` });
-          hopPill(); playChirp(520, 740, 0.14);
-          return;
-        }
-      }
-      if (lower.startsWith('/yt ')) {
-        const q = raw.slice(4).trim();
-        if (q && invoke) {
-          await invoke('open_external_url', { url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` });
-          hopPill(); playChirp(520, 740, 0.14);
-          return;
-        }
-      }
-
-      if (lower === '/cor') { openView('kit'); pickScreenColor(); return; }
-      if (lower === '/senha') { openView('kit'); generatePassword(); return; }
-      if (lower.startsWith('/qr ')) {
-        openView('kit');
-        document.getElementById('qr-input').value = raw.slice(4).trim();
-        generateQR(new Event('submit'));
-        return;
-      }
-
-      if (lower === '/cafe' || lower === '/café') { toggleKeepAwake(!keepAwakeActive); return; }
-      if (lower === '/respirar') { startBreathing(); return; }
-      if (lower === '/moeda') {
-        const face = Math.random() < 0.5 ? 'Cara' : 'Coroa';
-        hopPill(); playChirp(580, 920, 0.2);
-        say(`Moeda lançada: deu ${face}!`, 3500, true, null, true);
-        return;
-      }
-      if (lower === '/dado' || /^\/d(\d+)$/.test(lower)) {
-        const m = lower.match(/^\/d(\d+)$/);
-        const sides = m ? Math.min(100, Math.max(2, parseInt(m[1], 10))) : 20;
-        const roll = Math.floor(Math.random() * sides) + 1;
-        hopPill(); playChirp(roll === sides ? 700 : 480, roll === sides ? 1100 : 720, 0.22);
-        if (roll === sides) burstPillLove(true);
-        say(`D${sides} rolado: caiu ${roll}${roll === sides ? ' (CRÍTICO!)' : ''}!`, 3800, true, null, true);
-        return;
-      }
-
-      openView('ia');
-      await executePrompt(raw);
-    }
-
-    // --- Lembretes Rápidos ---
-    function startReminder(mins) {
-      const label = document.getElementById('rem-label-input').value.trim() || 'Lembrete do Lumo';
-      activeReminder = { label, endTime: Date.now() + mins * 60000 };
-      document.getElementById('rem-label-input').value = '';
-      hopPill(); playChirp(560, 820, 0.18);
-      updateReminderUI();
-      say(`Combinado! Te lembro de "${label}" em ${mins} min.`, 3200, true);
-    }
-
-    function cancelReminder() {
-      activeReminder = null;
-      updateReminderUI();
-      playChirp(440, 340, 0.12);
-    }
-
-    function updateReminderUI() {
-      const strip = document.getElementById('active-reminder-strip');
-      const statusEl = document.getElementById('rem-status');
-      if (!activeReminder) {
-        strip.classList.remove('show');
-        statusEl.textContent = 'Nenhum ativo';
-        statusEl.style.color = 'var(--muted)';
-        return;
-      }
-      const remSec = Math.max(0, Math.ceil((activeReminder.endTime - Date.now()) / 1000));
-      const m = String(Math.floor(remSec / 60)).padStart(2, '0');
-      const s = String(remSec % 60).padStart(2, '0');
-      const txt = `${activeReminder.label} · ${m}:${s}`;
-      document.getElementById('active-reminder-text').textContent = txt;
-      strip.classList.add('show');
-      statusEl.textContent = `Falta ${m}:${s}`;
-      statusEl.style.color = 'var(--accent)';
-    }
-
-    // Tick de 1 segundo (Relógio + Lembretes)
-    setInterval(async () => {
-      if (isShuttingDown) return;
-      if (isExpanded) updateLiveClock();
-      if (activeReminder) {
-        if (Date.now() >= activeReminder.endTime) {
-          const msg = activeReminder.label;
-          activeReminder = null;
-          updateReminderUI();
-          if (isHiddenInGame) await wakeFromGame();
-          setExpression('surprised'); hopPill(); burstPillLove(true);
-          playChirp(640, 1080, 0.35);
-          say(`Lembrete${userName ? ', ' + userName : ''}: ${msg}!`, 7500, true, null, true);
-          setTimeout(() => restoreIdleExpression(), 3500);
-        } else {
-          updateReminderUI();
-        }
-      }
-    }, 1000);
-
-    // --- Kit Rápido ---
-    function renderColorHistory() {
-      const box = document.getElementById('color-history');
-      box.innerHTML = '';
-      colorHistory.forEach(hex => {
-        const btn = document.createElement('button');
-        btn.className = 'color-chip';
-        btn.innerHTML = `<span class="swatch-dot" style="background:${hex}"></span><span>${hex}</span>`;
-        btn.onclick = async () => {
-          if (invoke) await invoke('set_clipboard_text', { text: hex });
-          else navigator.clipboard?.writeText(hex);
-          playChirp(620, 860, 0.14); hopPill();
-          say(`Cor ${hex} copiada!`, 2200, true);
-        };
-        box.appendChild(btn);
-      });
-    }
-
-    async function pickScreenColor() {
-      if (!('EyeDropper' in window)) {
-        say('Conta-gotas indisponível neste PC.', 2600, true);
-        return;
-      }
-      suppressBlur = true;
-      try {
-        const dropper = new EyeDropper();
-        const result = await dropper.open();
-        if (result?.sRGBHex) {
-          const hex = result.sRGBHex.toUpperCase();
-          colorHistory = [hex, ...colorHistory.filter(c => c !== hex)].slice(0, 6);
-          localStorage.setItem('lumo_colors', JSON.stringify(colorHistory));
-          renderColorHistory();
-          if (invoke) await invoke('set_clipboard_text', { text: hex });
-          hopPill(); playChirp(640, 960, 0.18);
-          say(`Cor ${hex} copiada!`, 2600, true);
-        }
-      } catch (_) {
-      } finally {
-        setTimeout(() => { suppressBlur = false; }, 450);
-      }
-    }
-
-    function generateQR(e) {
-      e.preventDefault();
-      const val = document.getElementById('qr-input').value.trim();
-      if (!val) return;
-      document.getElementById('qr-img').src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=6&data=${encodeURIComponent(val)}`;
-      document.getElementById('qr-preview').classList.add('show');
-      hopPill(); playChirp(540, 820, 0.16);
-    }
-
-    async function qrFromClipboard() {
-      if (!invoke) return;
-      const txt = await invoke('get_clipboard_text');
-      if (txt) {
-        document.getElementById('qr-input').value = txt;
-        generateQR(new Event('submit'));
-      } else {
-        say('Nenhum texto no Ctrl+C.', 2000, true);
-      }
-    }
-
-    async function generatePassword() {
-      const len = parseInt(document.getElementById('pwd-len').value, 10) || 16;
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*_-';
-      const arr = new Uint32Array(len);
-      crypto.getRandomValues(arr);
-      let pwd = '';
-      for (let i = 0; i < len; i++) pwd += chars[arr[i] % chars.length];
-      document.getElementById('pwd-output').textContent = pwd;
-      if (invoke) await invoke('set_clipboard_text', { text: pwd });
-      else navigator.clipboard?.writeText(pwd);
-      hopPill(); playChirp(600, 920, 0.16);
-      say('Senha forte gerada e copiada!', 2400, true);
-    }
-
-    // --- Progresso de Tarefas + Clima ---
-    function updateDailySummary() {
-      const total = tasks.length;
-      const done = tasks.filter(t => t.done).length;
-      const left = total - done;
-      const pct = total ? Math.round((done / total) * 100) : 0;
-
-      document.getElementById('summary-progress').style.width = `${pct}%`;
-      document.getElementById('summary-pct').textContent = `${pct}%`;
-
-      if (total > 0 && left === 0) {
-        document.getElementById('daily-note').textContent = 'Dia zerado!';
-        if (!celebratedTasks) {
-          celebratedTasks = true;
-          burstTaskConfetti();
-          setExpression('happy');
-          setTimeout(() => restoreIdleExpression(), 2200);
-        }
-      } else {
-        celebratedTasks = false;
-        const cap = isPro ? '' : ` · máx 5`;
-        document.getElementById('daily-note').textContent = total ? `${done}/${total} concluídas${cap}` : `0 tarefas${cap}`;
-      }
-    }
-
-    function weatherCodeToPt(code) {
-      if (code === 0) return 'Limpo';
-      if (code >= 1 && code <= 3) return 'Nublado';
-      if (code === 45 || code === 48) return 'Neblina';
-      if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'Chuva';
-      if (code >= 95) return 'Tempestade';
-      return 'Ameno';
-    }
-
-    async function fetchWeather(manual = false) {
-      if (manual) document.getElementById('weather-text').textContent = '...';
-      try {
-        const geo = await fetch('https://get.geojs.io/v1/ip/geo.json').then(r => r.json());
-        if (!geo?.latitude || !geo?.longitude) throw new Error('no geo');
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current=temperature_2m,weather_code&timezone=auto`;
-        const w = await fetch(url).then(r => r.json());
-        const temp = Math.round(w?.current?.temperature_2m);
-        if (!Number.isNaN(temp)) {
-          lastWeatherFetch = Date.now();
-          document.getElementById('weather-text').textContent = `${temp}°C · ${weatherCodeToPt(w.current.weather_code)}`;
-          return;
-        }
-      } catch (_) {}
-      document.getElementById('weather-text').textContent = 'Offline';
-    }
-
-    // --- Nome & Saudação ---
-    function getGreetingBase() {
-      const h = new Date().getHours();
-      return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-    }
-    function updateGreetingUI() {
-      const base = getGreetingBase();
-      document.getElementById('greeting-text').textContent = userName ? `${base}, ${userName}!` : `${base}!`;
-      document.getElementById('onboarding-card').classList.toggle('show', !userName);
-      document.getElementById('cfg-name-input').value = userName;
-    }
-    function saveUserName(e, inputId) {
-      e.preventDefault();
-      userName = document.getElementById(inputId).value.trim();
-      localStorage.setItem('lumo_username', userName);
-      updateGreetingUI(); hopPill(); setExpression('happy'); burstPillLove(false); playChirp(580, 900, 0.22);
-      if (userName) say(`Prazer, ${userName}! Tô sempre por aqui.`, 3400, true, null, true);
-      setTimeout(() => restoreIdleExpression(), 2000);
-    }
-
-    // --- Auto-Update Real (Silencioso + Periodico) ---
-    let autoInstallUpdates = localStorage.getItem('lumo_autoupdate') !== 'false';
-    let isUpdating = false;
-    let pendingAutoUpdate = null;
-
-    function toggleAutoUpdate(val) {
-      autoInstallUpdates = val;
-      localStorage.setItem('lumo_autoupdate', String(val));
-      playChirp(520, 680, 0.12);
-    }
-
-    async function checkForUpdates(silent = true) {
-      if (!invoke || isUpdating || isShuttingDown) return;
-      try {
-        const newVer = await invoke('check_update');
-        if (newVer) {
-          document.getElementById('update-text').textContent = `Lumo v${newVer} pronto para instalar!`;
-          document.getElementById('update-banner').classList.add('show');
-          document.getElementById('update-cfg-status').textContent = `Nova versão v${newVer} disponível`;
-
-          if (autoInstallUpdates) {
-            if (!isHiddenInGame && !isThinking && !isExpanded) {
-              await installRealUpdate(true, newVer);
-            } else {
-              pendingAutoUpdate = newVer;
-            }
-          } else if (personality !== 'zen') {
-            say(`Ei${userName ? ', ' + userName : ''}, saiu o Lumo v${newVer}!`, 4500);
-          }
-        } else if (!silent) {
-          document.getElementById('update-cfg-status').textContent = 'Você já está na versão mais recente!';
-        }
-      } catch (_) {
-        if (!silent) document.getElementById('update-cfg-status').textContent = 'Nenhuma atualização nova encontrada.';
-      }
-    }
-
-    async function manualCheckUpdate() {
-      document.getElementById('update-cfg-status').textContent = 'Verificando...';
-      await checkForUpdates(false);
-    }
-
-    async function installRealUpdate(autoMode = false, verLabel = '') {
-      if (!invoke || isUpdating) return;
-      isUpdating = true;
-      pendingAutoUpdate = null;
-      const btn = document.getElementById('update-btn');
-      if (btn) { btn.disabled = true; btn.textContent = 'Atualizando...'; }
-      document.getElementById('update-cfg-status').textContent = 'Baixando e aplicando patch...';
-      if (autoMode) {
-        say(`Atualizando sozinho${verLabel ? ' para v' + verLabel : ''}... volto já!`, 4000, true);
-      }
-      try {
-        await invoke('install_update');
-      } catch (err) {
-        isUpdating = false;
-        if (btn) { btn.disabled = false; btn.textContent = 'Tentar de novo'; }
-        document.getElementById('update-cfg-status').textContent = 'Falha ao atualizar.';
-        if (!autoMode) say('Erro ao atualizar: ' + err, 3600, true);
-      }
-    }
-
-    // Aplica atualizacao pendente assim que o usuario sair do jogo ou recolher o painel
-    setInterval(() => {
-      if (pendingAutoUpdate && autoInstallUpdates && !isUpdating && !isHiddenInGame && !isThinking && !isExpanded && !isShuttingDown) {
-        installRealUpdate(true, pendingAutoUpdate);
-      }
-    }, 15000);
-
-    // --- Furtivo & Áudio ---
-    function isStealth() { return stealthManual || stealthAuto; }
-    function toggleStealth() {
-      stealthManual = !stealthManual;
-      document.getElementById('stealth-btn').classList.toggle('active-btn', stealthManual);
-      if (stealthManual) {
-        if (window.speechSynthesis) speechSynthesis.cancel();
-        say('Modo Furtivo ativado.', 2000, true);
-      } else {
-        playChirp(540, 740, 0.16);
-        say('Modo Furtivo desativado.', 1800, true);
-      }
-    }
-
-    let audioCtx = null;
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-
-    function playChirp(startFreq = 540, endFreq = 760, dur = 0.2) {
-      if (voiceMode === 'mute' || isStealth()) return;
-      try {
-        const ctx = getAudioCtx();
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + dur * 0.7);
-        gain.gain.setValueAtTime(0.04, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + dur + 0.02);
-      } catch (_) {}
-    }
-
-    function speakMascotGibberish(text) {
-      if (isStealth()) return;
-      try {
-        const ctx = getAudioCtx();
-        const count = Math.min(9, Math.max(3, Math.floor(text.length / 8)));
-        for (let i = 0; i < count; i++) {
-          const t = ctx.currentTime + i * 0.068;
-          const osc = ctx.createOscillator(), g = ctx.createGain();
-          osc.type = 'triangle';
-          const base = 420 + ((text.charCodeAt(i * 2 % text.length) % 10) * 38);
-          osc.frequency.setValueAtTime(base, t);
-          osc.frequency.exponentialRampToValueAtTime(base * 1.18, t + 0.045);
-          g.gain.setValueAtTime(0.032, t);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-          osc.connect(g); g.connect(ctx.destination);
-          osc.start(t); osc.stop(t + 0.065);
-        }
-      } catch (_) {}
-    }
-
-    function speakText(text) {
-      if (isStealth() || voiceMode === 'mute' || voiceMode === 'chimes') return;
-      if (voiceMode === 'mascot') { speakMascotGibberish(text); return; }
-      if (voiceMode === 'spoken' && 'speechSynthesis' in window) {
-        try {
-          speechSynthesis.cancel();
-          const clean = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
-          const u = new SpeechSynthesisUtterance(clean);
-          u.lang = 'pt-BR'; u.rate = 1.08; u.pitch = 1.12;
-          const voices = speechSynthesis.getVoices();
-          const best = voices.find(v => v.lang.includes('pt') && (v.name.includes('Francisca') || v.name.includes('Antonio') || v.name.includes('Natural')))
-            || voices.find(v => v.lang.includes('pt'));
-          if (best) u.voice = best;
-          speechSynthesis.speak(u);
-        } catch (_) {}
-      }
-    }
-
-    function restoreIdleExpression() {
-      if (isThinking) setExpression('thinking');
-      else if (activeAmbient) setExpression('music');
-      else if (timerInterval) setExpression('focused');
-      else if (pcUnderLoad) setExpression('sweat');
-      else setExpression('normal');
-    }
-
-    // --- Som Ambiente ---
-    let ambientNodes = [], ambientGain = null, lofiTimer = null;
-    function stopAmbient() {
-      clearInterval(lofiTimer); lofiTimer = null;
-      ambientNodes.forEach(n => { try { n.stop(); n.disconnect(); } catch (_) {} });
-      ambientNodes = []; activeAmbient = null;
-      document.querySelectorAll('.ambient-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('eq-bars').classList.remove('show');
-      document.getElementById('tile-midia').classList.remove('active-tile');
-      document.getElementById('mm-lofi-btn').classList.remove('active');
-      document.getElementById('sub-midia').textContent = 'Lo-fi · Chuva';
-      document.getElementById('mini-media-title').textContent = 'Controle de Mídia';
-      setEmote(''); restoreIdleExpression();
-    }
-
-    function toggleAmbient(mode) {
-      if (!isPro) { playChirp(320, 240, 0.2); openView('config'); return; }
-      if (activeAmbient === mode) { stopAmbient(); return; }
-      stopAmbient();
-      activeAmbient = mode;
-      document.getElementById('amb-' + mode).classList.add('active');
-      document.getElementById('eq-bars').classList.add('show');
-      document.getElementById('tile-midia').classList.add('active-tile');
-      document.getElementById('mm-lofi-btn').classList.toggle('active', mode === 'lofi');
-      const label = mode === 'lofi' ? 'Tocando Lo-fi' : mode === 'rain' ? 'Som de Chuva' : 'Som de Foco';
-      document.getElementById('sub-midia').textContent = label;
-      document.getElementById('mini-media-title').textContent = label;
-      setExpression('music'); setEmote('♪');
-
-      const ctx = getAudioCtx();
-      ambientGain = ctx.createGain();
-      ambientGain.gain.value = ((document.getElementById('ambient-vol').value || 35) / 100) * 0.28;
-      ambientGain.connect(ctx.destination);
-
-      if (mode === 'rain' || mode === 'brown') {
-        const bufferSize = ctx.sampleRate * 2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        let lastOut = 0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          lastOut = (lastOut + 0.02 * white) / 1.02;
-          data[i] = mode === 'brown' ? lastOut * 3.5 : white * 0.35;
-        }
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer; noise.loop = true;
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass'; filter.frequency.value = mode === 'rain' ? 950 : 280;
-        noise.connect(filter); filter.connect(ambientGain); noise.start();
-        ambientNodes.push(noise);
-      } else if (mode === 'lofi') {
-        const chords = [
-          [261.63, 329.63, 392.00, 493.88], [220.00, 261.63, 329.63, 392.00],
-          [174.61, 220.00, 261.63, 329.63], [196.00, 246.94, 293.66, 349.23]
-        ];
-        let step = 0;
-        const playChord = () => {
-          const notes = chords[step++ % chords.length];
-          notes.forEach((freq, idx) => {
-            const osc = ctx.createOscillator(), g = ctx.createGain();
-            osc.type = 'triangle'; osc.frequency.value = freq;
-            const now = ctx.currentTime + idx * 0.04;
-            g.gain.setValueAtTime(0.0001, now);
-            g.gain.linearRampToValueAtTime(0.09, now + 0.25);
-            g.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
-            osc.connect(g); g.connect(ambientGain); osc.start(now); osc.stop(now + 2.5);
-          });
-        };
-        playChord(); lofiTimer = setInterval(playChord, 2600);
-      }
-    }
-    function updateAmbientVol(v) { if (ambientGain) ambientGain.gain.value = (v / 100) * 0.28; }
-
-    async function sendMedia(action) {
-      playChirp(520, 640, 0.12); hopPill();
-      if (invoke) await invoke('media_control', { action });
-      if (action === 'play_pause' && !activeAmbient) {
-        const face = document.getElementById('lumo-face');
-        const bouncing = face.classList.toggle('music');
-        document.getElementById('eq-bars').classList.toggle('show', bouncing);
-        setEmote(bouncing ? '♪' : '');
-      }
-    }
-
-    // --- Bandeja Mágica ---
-    function openFilePicker() {
-      suppressBlur = true;
-      document.getElementById('file-picker').click();
-      window.addEventListener('focus', () => {
-        setTimeout(() => { suppressBlur = false; }, 500);
-      }, { once: true });
-    }
-
-    function onFilePicked(files) {
-      setTimeout(() => { suppressBlur = false; }, 400);
-      handleFiles(files);
-    }
-
-    function setupDragAndDrop() {
-      [document.getElementById('lumo-pill'), document.getElementById('drop-zone')].forEach(el => {
-        el.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          el.classList.add(el.id === 'lumo-pill' ? 'drag-over' : 'active');
-          setExpression('surprised');
-        });
-        el.addEventListener('dragleave', () => {
-          el.classList.remove('drag-over', 'active');
-          restoreIdleExpression();
-        });
-        el.addEventListener('drop', (e) => {
-          e.preventDefault();
-          el.classList.remove('drag-over', 'active');
-          if (e.dataTransfer?.files?.length) handleFiles(e.dataTransfer.files);
-        });
-      });
-    }
-
-    async function handleFiles(fileList) {
-      const files = Array.from(fileList);
-      if (!files.length) return;
-      for (const file of files) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          pocketFiles.unshift({ name: file.name, size: file.size, type: file.type, dataUrl: reader.result });
-          pocketFiles = pocketFiles.slice(0, 8);
-          renderPocket();
-        };
-        reader.readAsDataURL(file);
-      }
-      hopPill(); setExpression('happy'); playChirp(580, 860, 0.18);
-      if (!isExpanded) await togglePanel(true);
-      openView('bolso');
-      setTimeout(() => restoreIdleExpression(), 1600);
-    }
-
-    function formatSize(bytes) {
-      return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-    }
-
-    function renderPocket() {
-      document.getElementById('sub-bolso').textContent = pocketFiles.length ? `${pocketFiles.length} arquivo(s)` : 'Soltar arquivos';
-      const list = document.getElementById('pocket-list');
-      if (!pocketFiles.length) {
-        list.innerHTML = '<div style="font-size:11.5px; color:var(--muted); text-align:center; margin-top:14px;">Nenhum arquivo ainda. Salvos em <strong>Área de Trabalho\\Lumo_Arquivos</strong>.</div>';
-        return;
-      }
-      list.innerHTML = '';
-      pocketFiles.forEach((f, idx) => {
-        const isImg = f.type.startsWith('image/');
-        const div = document.createElement('div');
-        div.className = 'pocket-item';
-        div.innerHTML = `
-          <div class="pocket-head">
-            <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-              ${isImg ? `<img class="pocket-thumb" src="${f.dataUrl}" />` : `<div class="pocket-thumb"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg></div>`}
-              <div style="overflow:hidden;">
-                <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:255px;">${f.name.replace(/</g, '&lt;')}</div>
-                <div style="font-size:10.5px; color:var(--muted);">${formatSize(f.size)}</div>
-              </div>
-            </div>
-            <button class="del-btn" onclick="removePocket(${idx})"><svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
-          </div>
-          <div class="pocket-actions">
-            ${isImg ? `
-              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/webp', 'webp')">→ WebP</button>
-              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/jpeg', 'jpg')">→ JPG</button>
-              <button class="btn-ghost" onclick="convertImage(${idx}, 'image/png', 'png')">→ PNG</button>
-              <button class="btn-ghost" onclick="convertImageToPdf(${idx})">→ PDF</button>
-            ` : `<button class="btn-ghost" onclick="saveRawPocket(${idx})">Salvar na pasta Lumo</button>`}
-          </div>
-        `;
-        list.appendChild(div);
-      });
-    }
-    function removePocket(idx) { pocketFiles.splice(idx, 1); renderPocket(); }
-
-    async function saveRawPocket(idx) {
-      const f = pocketFiles[idx];
-      if (!f || !invoke) return;
-      const res = await fetch(f.dataUrl);
-      const buf = new Uint8Array(await res.arrayBuffer());
-      try {
-        await invoke('save_file_bytes', { filename: f.name, bytes: Array.from(buf) });
-        playChirp(620, 900, 0.18); hopPill();
-        say('Salvo em Área de Trabalho\\Lumo_Arquivos!', 3000, true);
-      } catch (e) { say('Erro ao salvar: ' + e, 3000, true); }
-    }
-
-    async function convertImage(idx, mime, ext) {
-      if (!isPro && ext === 'webp') { openView('config'); say('Conversão WebP é do Lumo Pro!', 2600, true); return; }
-      const f = pocketFiles[idx];
-      if (!f) return;
-      const quality = (parseInt(document.getElementById('img-quality').value, 10) || 80) / 100;
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        if (mime === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(async (blob) => {
-          if (!blob || !invoke) return;
-          const outName = `${f.name.replace(/\.[^.]+$/, '')}_lumo.${ext}`;
-          const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
-          try {
-            await invoke('save_file_bytes', { filename: outName, bytes });
-            playChirp(640, 960, 0.22); hopPill();
-            say(`Convertido (${formatSize(blob.size)}) em Desktop\\Lumo_Arquivos!`, 3500, true);
-          } catch (e) { say('Erro ao salvar: ' + e, 3000, true); }
-        }, mime, quality);
-      };
-      img.src = f.dataUrl;
-    }
-
-    
-    // --- Modo Café (Manter PC Acordado) ---
-    let keepAwakeActive = false;
-    async function toggleKeepAwake(val) {
-      keepAwakeActive = Boolean(val);
-      const chk = document.getElementById('cafe-toggle');
-      if (chk) chk.checked = keepAwakeActive;
-      document.getElementById('cafe-status').textContent = keepAwakeActive ? 'Ativo · PC não vai dormir' : 'Impede tela de apagar e hibernação';
-      document.getElementById('cafe-status').style.color = keepAwakeActive ? 'var(--accent)' : 'var(--muted)';
-      if (invoke) { try { await invoke('set_keep_awake', { enabled: keepAwakeActive }); } catch (_) {} }
-      playChirp(keepAwakeActive ? 600 : 440, keepAwakeActive ? 880 : 320, 0.16);
-      hopPill();
-      if (keepAwakeActive) {
-        setEmote('☕');
-        say('Modo Café ligado! Vou manter o PC acordado.', 3000, true);
-      } else {
-        setEmote('');
-        say('Modo Café desligado.', 2000, true);
-      }
-    }
-
-    // --- Modo Respiração na Pílula (1 min · 4-4-4) ---
-    let breathingTimer = null;
-    async function startBreathing() {
-      if (breathingTimer) {
-        clearInterval(breathingTimer);
-        breathingTimer = null;
-        const p = document.getElementById('lumo-pill');
-        p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
-        document.getElementById('breath-btn').textContent = 'Iniciar';
-        restoreIdleExpression();
-        return;
-      }
-      if (isExpanded) await togglePanel(false);
-      document.getElementById('breath-btn').textContent = 'Parar';
-      const phases = [
-        { cls: 'breathing-in', msg: 'Inspire devagar... (4s)', f1: 360, f2: 520 },
-        { cls: 'breathing-hold', msg: 'Segure o ar... (4s)', f1: 520, f2: 520 },
-        { cls: 'breathing-out', msg: 'Solte suavemente... (4s)', f1: 520, f2: 340 }
-      ];
-      let step = 0;
-      const runPhase = () => {
-        const p = document.getElementById('lumo-pill');
-        p.classList.remove('breathing-in', 'breathing-hold', 'breathing-out');
-        if (step >= 15) {
-          clearInterval(breathingTimer);
-          breathingTimer = null;
-          document.getElementById('breath-btn').textContent = 'Iniciar';
-          setExpression('happy'); hopPill();
-          say('Pausa concluída! Mente mais leve.', 3500, true);
-          setTimeout(() => restoreIdleExpression(), 2200);
-          return;
-        }
-        const cur = phases[step % 3];
-        p.classList.add(cur.cls);
-        setExpression(step % 3 === 1 ? 'sleepy' : 'normal');
-        playChirp(cur.f1, cur.f2, 0.35);
-        say(cur.msg, 3800, true);
-        step++;
-      };
-      runPhase();
-      breathingTimer = setInterval(runPhase, 4000);
-    }
-
-    // --- Imagem -> PDF 100% Offline (PDF 1.4 Nativo) ---
-    async function convertImageToPdf(idx) {
-      const f = pocketFiles[idx];
-      if (!f || !invoke) return;
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(async (blob) => {
-          if (!blob) return;
-          const jpgBytes = new Uint8Array(await blob.arrayBuffer());
-          const w = canvas.width, h = canvas.height;
-          const pageW = 595.28, pageH = 841.89;
-          const scale = Math.min((pageW - 40) / w, (pageH - 40) / h);
-          const dw = (w * scale).toFixed(2), dh = (h * scale).toFixed(2);
-          const dx = ((pageW - dw) / 2).toFixed(2), dy = ((pageH - dh) / 2).toFixed(2);
-
-          const enc = new TextEncoder();
-          const chunks = [];
-          let offset = 0;
-          const pushStr = (s) => { const b = enc.encode(s); chunks.push(b); offset += b.length; };
-          const pushBytes = (b) => { chunks.push(b); offset += b.length; };
-
-          pushStr('%PDF-1.4\n');
-          const offsets = [0];
-          const addObj = (id, bodyStr, binData = null, tailStr = '') => {
-            offsets[id] = offset;
-            pushStr(id + ' 0 obj\n' + bodyStr);
-            if (binData) pushBytes(binData);
-            pushStr(tailStr + '\nendobj\n');
-          };
-
-          addObj(1, '<< /Type /Catalog /Pages 2 0 R >>');
-          addObj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-          addObj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
-          addObj(4, '<< /Type /XObject /Subtype /Image /Width ' + w + ' /Height ' + h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpgBytes.length + ' >>\nstream\n', jpgBytes, '\nendstream');
-          const content = 'q ' + dw + ' 0 0 ' + dh + ' ' + dx + ' ' + dy + ' cm /Im0 Do Q';
-          addObj(5, '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream');
-
-          const xrefStart = offset;
-          pushStr('xref\n0 6\n0000000000 65535 f \n');
-          for (let i = 1; i <= 5; i++) {
-            pushStr(String(offsets[i]).padStart(10, '0') + ' 00000 n \n');
-          }
-          pushStr('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF');
-
-          const totalLen = chunks.reduce((a, b) => a + b.length, 0);
-          const pdfBytes = new Uint8Array(totalLen);
-          let pos = 0;
-          for (const c of chunks) { pdfBytes.set(c, pos); pos += c.length; }
-
-          const outName = f.name.replace(/\.[^.]+$/, '') + '_lumo.pdf';
-          try {
-            await invoke('save_file_bytes', { filename: outName, bytes: Array.from(pdfBytes) });
-            playChirp(640, 960, 0.22); hopPill();
-            say('PDF salvo em Área de Trabalho\\Lumo_Arquivos!', 3500, true);
-          } catch (e) { say('Erro ao gerar PDF: ' + e, 3000, true); }
-        }, 'image/jpeg', 0.9);
-      };
-      img.src = f.dataUrl;
-    }
-
-    // --- Modo Soneca PC ---
-    async function schedulePcSleep(mins) {
-      if (!invoke) return;
-      try {
-        await invoke('schedule_shutdown', { minutes: mins });
-        document.getElementById('sleep-status').textContent = `Desliga em ${mins}m`;
-        document.getElementById('sleep-status').style.color = 'var(--accent)';
-        document.getElementById('sub-util').textContent = `Soneca ${mins}m`;
-        document.getElementById('tile-util').classList.add('active-tile');
-        setExpression('sleepy'); playChirp(480, 340, 0.24);
-        say(`Modo Soneca ativo${userName ? ', ' + userName : ''}: desligo o PC em ${mins} min.`, 3200, true);
-      } catch (e) { say('Erro: ' + e, 2800, true); }
-    }
-
-    async function cancelPcSleep() {
-      if (!invoke) return;
-      try {
-        await invoke('cancel_shutdown');
-        document.getElementById('sleep-status').textContent = 'Cancelado';
-        document.getElementById('sleep-status').style.color = 'var(--muted)';
-        updateTimerUI(); restoreIdleExpression(); playChirp(520, 680, 0.16);
-      } catch (_) {}
-    }
-
-    // --- Freemium & Config ---
-    function applyPlanUI() {
-      document.getElementById('plan-status-badge').textContent = isPro ? 'PRO ATIVO' : 'GRÁTIS';
-      document.getElementById('license-btn').textContent = isPro ? 'Ativo' : 'Ativar';
-      document.getElementById('ambient-pro-badge').style.display = isPro ? 'none' : 'inline-block';
-      document.getElementById('notes-pro-badge').style.display = isPro ? 'none' : 'inline-block';
-      document.getElementById('clip-pro-badge').style.display = isPro ? 'none' : 'inline-block';
-      const tpb = document.getElementById('theme-pro-badge');
-      if (tpb) tpb.style.display = isPro ? 'none' : 'inline-block';
-
-      const notes = document.getElementById('quick-notes');
-      notes.disabled = !isPro;
-      notes.placeholder = isPro
-        ? 'Anote ideias, links ou rascunhos... (salva automático)'
-        : 'Recurso Lumo Pro — ative nas Configurações.';
-
-      updateDailySummary();
-      renderClipboard();
-    }
-
-    async function activateLicense(e) {
-      e.preventDefault();
-      const input = document.getElementById('license-input');
-      const btn = document.getElementById('license-btn');
-      const code = input.value.trim().toUpperCase();
-      if (!code) return;
-
-      if (code === 'FREE') {
-        isPro = false;
-        localStorage.setItem('lumo_pro', 'false');
-        localStorage.removeItem('lumo_license_key');
-        input.value = '';
-        applyPlanUI();
-        say('Voltando para o modo Grátis.', 2200, true);
-        return;
-      }
-
-      if (!invoke) return;
-      btn.disabled = true;
-      btn.textContent = '...';
-      try {
-        const msg = await invoke('activate_license', { key: code });
-        isPro = true;
-        localStorage.setItem('lumo_pro', 'true');
-        localStorage.setItem('lumo_license_key', code);
-        input.value = '';
-        applyPlanUI();
-        setExpression('love');
-        burstPillLove(true);
-        playChirp(600, 980, 0.3);
-        say(msg, 3800, true);
-        setTimeout(() => restoreIdleExpression(), 2600);
-      } catch (err) {
-        playChirp(260, 180, 0.22);
-        say(String(err), 3800, true);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = isPro ? 'Ativo' : 'Ativar';
-      }
-    }
-
-    function setPersonality(val) { personality = val; localStorage.setItem('lumo_personality', val); playChirp(520, 680, 0.14); }
-    function setVoiceMode(val) {
-      voiceMode = val; localStorage.setItem('lumo_voice', val);
-      speakText(`Oi${userName ? ', ' + userName : ''}! Agora estou falando assim.`);
-    }
-
-    function applyCustomHex(hex, finished = false) {
-      if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
-      const num = parseInt(hex.slice(1), 16);
-      const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-      document.documentElement.style.setProperty('--accent', hex);
-      document.documentElement.style.setProperty('--accent-soft', `rgba(${r}, ${g}, ${b}, 0.15)`);
-      document.documentElement.style.setProperty('--accent-glow', `rgba(${r}, ${g}, ${b}, 0.38)`);
-      document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.theme === 'custom'));
-      const inp = document.getElementById('custom-theme-input');
-      if (inp) inp.value = hex;
-      localStorage.setItem('lumo_theme', 'custom');
-      localStorage.setItem('lumo_custom_hex', hex);
-      if (finished) {
-        setTimeout(() => { suppressBlur = false; }, 350);
-        hopPill();
-        playChirp(600, 900, 0.16);
-      }
-    }
-
-    function openCustomColorPicker() {
-      if (!isPro) {
-        playChirp(300, 220, 0.18);
-        say('Cor personalizada é exclusiva do Lumo Pro!', 2600, true);
-        return;
-      }
-      suppressBlur = true;
-      const inp = document.getElementById('custom-theme-input');
-      if (inp) inp.click();
-      window.addEventListener('focus', () => {
-        setTimeout(() => { suppressBlur = false; }, 450);
-      }, { once: true });
-    }
-
-    function setTheme(name, el, proOnly = false) {
-      if (proOnly && !isPro) {
-        playChirp(300, 220, 0.18);
-        say('Temas extras são exclusivos do Lumo Pro!', 2500, true);
-        return;
-      }
-      if (name === 'custom') {
-        const savedHex = localStorage.getItem('lumo_custom_hex') || '#f6b974';
-        applyCustomHex(savedHex, false);
-        return;
-      }
-      const t = themes[name] || themes.amber;
-      document.documentElement.style.setProperty('--accent', t.accent);
-      document.documentElement.style.setProperty('--accent-soft', t.soft);
-      document.documentElement.style.setProperty('--accent-glow', t.glow);
-      document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.theme === name));
-      if (el) {
-        hopPill();
-        playChirp(560, 820, 0.14);
-      }
-      localStorage.setItem('lumo_theme', name);
-    }
-
-    function setEmote(sym) {
-      const el = document.getElementById('float-emote');
-      el.textContent = sym; el.classList.toggle('show', Boolean(sym));
-    }
-    function hopPill() {
-      const p = document.getElementById('lumo-pill');
-      p.classList.remove('hop'); void p.offsetWidth; p.classList.add('hop');
-    }
-    function setExpression(type) {
-      const face = document.getElementById('lumo-face');
-      face.className = 'face';
-      if (type !== 'normal') face.classList.add(type);
-      if (type === 'sleepy') setEmote('zZz');
-      else if (type === 'love') setEmote('♥');
-      else if (type === 'music') setEmote('♪');
-      else if (type === 'thinking') setEmote('✦');
-      else if (type !== 'dizzy') setEmote('');
-    }
-
-    let bubbleTimeout;
-    function say(text, duration = 4200, force = false, copyValue = null, voice = false) {
-      if (!force && (isHiddenInGame || isExpanded)) return;
-      const bubble = document.getElementById('speech-bubble');
-      bubble.textContent = text;
-      bubbleCopyPayload = copyValue;
-      bubble.classList.toggle('clickable', Boolean(copyValue));
-      bubble.classList.add('show');
-      if (voice) speakText(text);
-      clearTimeout(bubbleTimeout);
-      bubbleTimeout = setTimeout(() => {
-        bubble.classList.remove('show', 'clickable'); bubbleCopyPayload = null;
-      }, duration);
-    }
-
-    async function onBubbleClick() {
-      if (!bubbleCopyPayload) return;
-      if (invoke) await invoke('set_clipboard_text', { text: bubbleCopyPayload });
-      playChirp(680, 920, 0.16); say('Copiado!', 1500, true);
-    }
-
-    function scheduleBlink() {
-      setTimeout(() => {
-        const face = document.getElementById('lumo-face');
-        const locked = ['happy', 'sleepy', 'goodbye', 'dizzy', 'love', 'thinking'].some(c => face.classList.contains(c));
-        if (!locked && !isShuttingDown && !isHiddenInGame) {
-          face.classList.add('blink'); setTimeout(() => face.classList.remove('blink'), 130);
-        }
-        scheduleBlink();
-      }, 2600 + Math.random() * 3400);
-    }
-    scheduleBlink();
-
-    async function gracefulShutdown() {
-      if (isShuttingDown) return;
-      isShuttingDown = true; stopAmbient();
-      if (isExpanded) {
-        isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing');
-        await syncWindowMode('pill');
-      }
-      setExpression('goodbye'); playChirp(520, 260, 0.45);
-      say(`Tô indo descansar${userName ? ', ' + userName : ''}... até mais!`, 1400, true, null, true);
-      setTimeout(() => document.getElementById('app').classList.add('shutting-down'), 650);
-      setTimeout(async () => { if (invoke) await invoke('quit_app'); }, 1450);
-    }
-
-    async function syncWindowMode(mode) { if (invoke) try { await invoke('set_window_mode', { mode }); } catch (_) {} }
-
-    async function togglePanel(forceState) {
-      if (isShuttingDown || isClosing) return;
-      lastInteraction = Date.now();
-      if (isHiddenInGame) await wakeFromGame();
-      const next = typeof forceState === 'boolean' ? forceState : !isExpanded;
-      if (next === isExpanded) return;
-
-      const panel = document.getElementById('panel');
-
-      if (next) {
-        isExpanded = true;
-        justOpenedUntil = Date.now() + 450;
-        document.getElementById('speech-bubble').classList.remove('show');
-        refreshSummaryNow();
-        await syncWindowMode('expanded');
-        panel.classList.remove('closing');
-        panel.classList.add('open');
-        playChirp(480, 680, 0.16);
-      } else {
-        isClosing = true;
-        isExpanded = false;
-        panel.classList.remove('open');
-        panel.classList.add('closing');
-        playChirp(620, 440, 0.13);
-        setTimeout(async () => {
-          panel.classList.remove('closing');
-          await syncWindowMode('pill');
-          isClosing = false;
-        }, 160);
-      }
-    }
-
-    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isExpanded) togglePanel(false); });
-
-    const pill = document.getElementById('lumo-pill');
-    let downX = 0, downY = 0, dragged = false, clickTimer = null;
-    pill.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; dragged = false; });
-    pill.addEventListener('pointermove', async (e) => {
-      if (e.buttons === 1 && !dragged && invoke && Math.hypot(e.clientX - downX, e.clientY - downY) > 10) {
-        dragged = true; setExpression('surprised');
-        if (personality === 'companion') say('Uhuul, tô voando!', 1400);
-        await invoke('start_drag');
-        setTimeout(() => restoreIdleExpression(), 1100);
-      }
-    });
-    pill.addEventListener('click', () => {
-      if (dragged || isShuttingDown) return;
-      if (clickTimer) {
-        clearTimeout(clickTimer); clickTimer = null;
-        lastInteraction = Date.now(); hopPill();
-        petCombo = (Date.now() - lastPetTime < 4500) ? petCombo + 1 : 1;
-        lastPetTime = Date.now();
-        if (petCombo >= 2) {
-          setExpression('love'); burstPillLove(true); playChirp(680, 1040, 0.25);
-          say(`Aí eu fico mal acostumado${userName ? ', ' + userName : ''}!`, 2600, false, null, true);
-        } else {
-          setExpression('happy'); burstPillLove(false); playChirp(620, 860, 0.2);
-          say('Hehe, valeu pelo carinho!', 2400, false, null, true);
-        }
-        setTimeout(() => restoreIdleExpression(), 2600);
-      } else {
-        clickTimer = setTimeout(() => { clickTimer = null; togglePanel(); }, 210);
-      }
-    });
-
-    // --- Monitoramento Adaptativo (CPU/RAM ao vivo + Jogos + Furtivo) ---
-    let activeGamePendingHide = false;
-    function applyMetricColor(valEl, barEl, pct) {
-      const isHot = pct >= 86;
-      const isWarn = pct >= 68 && !isHot;
-      valEl.classList.toggle('hot', isHot);
-      valEl.classList.toggle('warn', isWarn);
-      barEl.classList.toggle('hot', isHot);
-      barEl.classList.toggle('warn', isWarn);
-      barEl.style.width = `${Math.min(100, Math.max(4, pct))}%`;
-    }
-
-    async function pollWindowsLoop() {
-      if (isShuttingDown) return;
-      if (invoke) {
-        try {
-          const state = await invoke('get_desktop_state');
-          const usedGb = (state.used_ram_mb / 1024).toFixed(1);
-          const totalGb = (state.total_ram_mb / 1024).toFixed(0);
-          const ramPct = state.total_ram_mb > 0 ? Math.round((state.used_ram_mb / state.total_ram_mb) * 100) : 0;
-          const cpu = state.cpu_percent || 0;
-
-          const cpuVal = document.getElementById('cpu-val');
-          const cpuBar = document.getElementById('cpu-bar');
-          const ramVal = document.getElementById('ram-val');
-          const ramBar = document.getElementById('ram-bar');
-
-          cpuVal.textContent = `${cpu}%`;
-          ramVal.textContent = `${usedGb}/${totalGb}G`;
-          applyMetricColor(cpuVal, cpuBar, cpu);
-          applyMetricColor(ramVal, ramBar, ramPct);
-
-          const prevLoad = pcUnderLoad;
-          pcUnderLoad = cpu >= 85 || ramPct >= 90;
-          if (pcUnderLoad !== prevLoad && !isExpanded && !isHiddenInGame && !isThinking && !activeAmbient && !timerInterval) {
-            restoreIdleExpression();
-          }
-
-          const title = (state.active_window || '').toLowerCase();
-          if (isExpanded && autoCloseOnBlur && !isPinned && !suppressBlur && Date.now() > justOpenedUntil && title && title !== 'lumo') {
-            togglePanel(false);
-          }
-          stealthAuto = ['obs ', 'google meet', 'zoom meeting', 'microsoft teams'].some(k => title.includes(k));
-          document.getElementById('stealth-btn').classList.toggle('active-btn', isStealth());
-
-          if (isHiddenInGame) {
-            if (state.cursor_x >= state.screen_w - 25 && state.cursor_y <= 25) wakeFromGame();
-          } else {
-            if (!isTypingLook) {
-              const tx = Math.max(-8, Math.min(8, (state.cursor_x - state.win_center_x) / 55));
-              const ty = Math.max(-4.5, Math.min(5.5, (state.cursor_y - (state.win_y + 35)) / 65));
-              setEyeTarget(tx, ty);
-            }
-
-            const dxMouse = state.cursor_x - lastCursorX;
-            const nearLumo = Math.abs(state.cursor_x - state.win_center_x) < 220 && state.cursor_y < 180;
-            if (nearLumo && Math.abs(dxMouse) > 45) {
-              const dir = Math.sign(dxMouse);
-              if (dir !== 0 && dir !== lastDir) { shakeCount++; lastDir = dir; }
-            }
-            lastCursorX = state.cursor_x;
-            if (Date.now() - lastShakeReset > 1300) { shakeCount = 0; lastShakeReset = Date.now(); }
-            if (shakeCount >= 5 && personality !== 'zen') {
-              shakeCount = 0; setExpression('dizzy'); playChirp(420, 290, 0.35);
-              say('Eitaa, calma que eu fico tonto!', 2800, false, null, true);
-              setTimeout(() => restoreIdleExpression(), 2600);
-            }
-
-            const ignoredWin = ['sobreposição', 'ferramenta de captura', 'captura de tela', 'snipping', 'firefox', 'chrome', 'edge', 'opera', 'brave', 'youtube', 'twitch', 'discord', 'whatsapp', 'visual studio', 'codespaces', 'github', 'lumo'].some(w => title.includes(w));
-            const autoHide = document.getElementById('autohide-toggle').checked;
-            if (autoHide && !ignoredWin && !activeGamePendingHide && Date.now() > manualSummonUntil && title) {
-              const norm = (s) => ' ' + s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
-              const normTitle = norm(title);
-              const game = gameTipsDB.find(g => g.keys.some(k => normTitle.includes(norm(k))));
-              if (game) {
-                activeGamePendingHide = true;
-                const tip = game.tips[Math.floor(Math.random() * game.tips.length)];
-                setExpression('focused'); hopPill();
-                if (isExpanded) await togglePanel(false);
-                say(`${game.name}: ${tip}`, 5200, true, null, true);
-                setTimeout(() => { activeGamePendingHide = false; hideForGame('', 150); }, 5200);
-              }
-            }
-          }
-        } catch (_) {}
-      }
-      setTimeout(pollWindowsLoop, isHiddenInGame ? 320 : 120);
-    }
-
-    // --- Clipboard + Micro-ajuda ---
-    let lastClipSeen = '';
-    function analyzeClipboardMicroHelp(text) {
-      if (isExpanded || isHiddenInGame) return;
-      if (/^https?:\/\//i.test(text)) {
-        try {
-          const u = new URL(text);
-          const trackKeys = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','igshid','igsh','si','ref','feature'];
-          let removed = false;
-          trackKeys.forEach(k => { if (u.searchParams.has(k)) { u.searchParams.delete(k); removed = true; } });
-          if (removed) {
-            const cleanUrl = u.toString();
-            say('Link com rastreadores! Clique p/ copiar limpo.', 5200, false, cleanUrl);
-            return;
-          }
-        } catch (_) {}
-      }
-      const curMatch = text.match(/^(?:US\$|\$|USD)\s*(\d+(?:[.,]\d{1,2})?)$/i)
-        || text.match(/^(\d+(?:[.,]\d{1,2})?)\s*(?:USD|dólares|dolares)$/i);
-      if (curMatch) {
-        const val = parseFloat(curMatch[1].replace(',', '.'));
-        if (!isNaN(val)) {
-          const brl = (val * usdRate).toFixed(2).replace('.', ',');
-          say(`US$ ${val} ≈ R$ ${brl} (clique p/ copiar)`, 4800, false, `R$ ${brl}`);
-          return;
-        }
-      }
-      const eurMatch = text.match(/^(?:€|EUR)\s*(\d+(?:[.,]\d{1,2})?)$/i);
-      if (eurMatch) {
-        const val = parseFloat(eurMatch[1].replace(',', '.'));
-        if (!isNaN(val)) {
-          const brl = (val * eurRate).toFixed(2).replace('.', ',');
-          say(`€ ${val} ≈ R$ ${brl} (clique p/ copiar)`, 4800, false, `R$ ${brl}`);
-          return;
-        }
-      }
-      if (text.length <= 32 && /^[\d\s+\-*/().,]+$/.test(text) && /[+\-*/]/.test(text)) {
-        try {
-          const res = Function('"use strict"; return (' + text.replace(/,/g, '.') + ')')();
-          if (typeof res === 'number' && Number.isFinite(res)) {
-            const out = Number.isInteger(res) ? String(res) : res.toFixed(2).replace('.', ',');
-            say(`= ${out} (clique p/ copiar)`, 4500, false, out);
-          }
-        } catch (_) {}
-      }
-    }
-
-    async function pollClipboard() {
-      if (!invoke || isShuttingDown) return;
-      try {
-        const text = await invoke('get_clipboard_text');
-        if (text && text !== lastClipSeen) {
-          const firstRun = lastClipSeen === '';
-          lastClipSeen = text;
-          if (!firstRun) analyzeClipboardMicroHelp(text);
-          if (isPro && clipHistory[0] !== text) {
-            clipHistory = [text, ...clipHistory.filter(c => c !== text)].slice(0, 10);
-            localStorage.setItem('lumo_clips', JSON.stringify(clipHistory));
-            renderClipboard();
-          }
-        }
-      } catch (_) {}
-    }
-    setInterval(pollClipboard, 1800);
-
-    function renderClipboard() {
-      const list = document.getElementById('clipboard-list');
-      list.innerHTML = '';
-      if (!isPro) {
-        list.innerHTML = '<div style="font-size:11px; color:var(--muted);">Ative o Lumo Pro para salvar tudo o que você copia.</div>';
-        return;
-      }
-      if (!clipHistory.length) {
-        list.innerHTML = '<div style="font-size:11px; color:var(--muted);">Copie qualquer texto no PC e ele aparecerá aqui.</div>';
-        return;
-      }
-      clipHistory.forEach((txt, idx) => {
-        const div = document.createElement('div');
-        div.className = 'task-item';
-        div.innerHTML = `
-          <div class="task-left" onclick="copyClip(${idx})" title="Clique para copiar">
-            <span>${txt.replace(/</g, '&lt;')}</span>
-          </div>
-          <button class="del-btn" onclick="deleteClip(${idx})"><svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
-        `;
-        list.appendChild(div);
-      });
-    }
-    async function copyClip(idx) {
-      if (clipHistory[idx] && invoke) {
-        await invoke('set_clipboard_text', { text: clipHistory[idx] });
-        playChirp(640, 820, 0.14); hopPill();
-      }
-    }
-    function deleteClip(idx) { clipHistory.splice(idx, 1); localStorage.setItem('lumo_clips', JSON.stringify(clipHistory)); renderClipboard(); }
-    function saveQuickNotes(val) { localStorage.setItem('lumo_notes', val); }
-
-    async function hideForGame(msg, delayMs = 950) {
-      if (isHiddenInGame) return;
-      if (isExpanded) {
-        isExpanded = false; document.getElementById('panel').classList.remove('open', 'closing');
-        await syncWindowMode('pill');
-      }
-      if (msg) say(msg, 1800, true);
-      setTimeout(async () => {
-        isHiddenInGame = true;
-        document.getElementById('lumo-pill').style.display = 'none';
-        document.getElementById('speech-bubble').classList.remove('show');
-        document.getElementById('corner-sensor').style.display = 'flex';
-        await syncWindowMode('hidden');
-      }, delayMs);
-    }
-
-    async function wakeFromGame() {
-      if (!isHiddenInGame) return;
-      isHiddenInGame = false; manualSummonUntil = Date.now() + 45000;
-      document.getElementById('corner-sensor').style.display = 'none';
-      document.getElementById('lumo-pill').style.display = 'flex';
-      setExpression('surprised'); hopPill(); playChirp(520, 780, 0.18);
-      await syncWindowMode('pill');
-      if (personality !== 'zen') say(`Voltei${userName ? ', ' + userName : ''}! Precisa de algo?`);
-      setTimeout(() => restoreIdleExpression(), 1600);
-    }
-
-    setInterval(() => {
-      if (isShuttingDown) return;
-      const idleSec = (Date.now() - lastInteraction) / 1000;
-      const upMin = Math.floor((Date.now() - startTime) / 60000);
-      const hrs = Math.floor(upMin / 60), mins = upMin % 60;
-      document.getElementById('uptime-text').textContent =
-        isStealth() ? 'Modo Furtivo' : `Ativo há ${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
-
-      const nowHr = new Date().getHours();
-      if (hrs >= 8 || nowHr < 5) document.getElementById('app').classList.add('comfort-warm');
-
-      if (!isExpanded && !isHiddenInGame && !activeAmbient && !timerInterval && !isThinking && !pcUnderLoad) {
-        if (idleSec > 180) setExpression('sleepy');
-        else if (idleSec > 75) {
-          setExpression('bored');
-          if (personality === 'companion' && Math.random() < 0.25) {
-            const who = userName ? `, ${userName}` : '';
-            const lines = [
-              `Já bebeu água hoje${who}?`,
-              'Dica: digite /cor ou /qr na barra rápida!',
-              'Arraste uma imagem em mim pra converter rápido!',
-              'Aperte Alt + Espaço pra me chamar de qualquer tela.'
-            ];
-            say(lines[Math.floor(Math.random() * lines.length)]);
-          }
-        }
-      }
-    }, 9000);
-
-    async function toggleAutostart(val) {
-      if (!invoke) return;
-      try {
-        await invoke('set_autostart', { enabled: val });
-        playChirp(val ? 560 : 420, val ? 760 : 320, 0.16);
-      } catch (_) { document.getElementById('autostart-toggle').checked = !val; }
-    }
-
-    // --- Tarefas ---
-    function renderTasks() {
-      const list = document.getElementById('task-list');
-      list.innerHTML = '';
-      tasks.forEach((t, idx) => {
-        const div = document.createElement('div');
-        div.className = 'task-item' + (t.done ? ' done' : '');
-        div.innerHTML = `
-          <div class="task-left" onclick="toggleTask(${idx})">
-            <div class="check-circle">${t.done ? '✓' : ''}</div>
-            <span>${t.text.replace(/</g, '&lt;')}</span>
-          </div>
-          <button class="del-btn" onclick="deleteTask(${idx})"><svg class="ic ic-sm" viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
-        `;
-        list.appendChild(div);
-      });
-      localStorage.setItem('lumo_tasks', JSON.stringify(tasks));
-      updateDailySummary();
-    }
-
-    function addTask(e) {
-      e.preventDefault();
-      if (!isPro && tasks.length >= 5) { playChirp(300, 220, 0.18); openView('config'); return; }
-      const input = document.getElementById('new-task-input');
-      const val = input.value.trim();
-      if (!val) return;
-      tasks.push({ text: val, done: false });
-      input.value = ''; playChirp(520, 680, 0.12); renderTasks();
-    }
-    function toggleTask(idx) {
-      tasks[idx].done = !tasks[idx].done;
-      if (tasks[idx].done) { playChirp(620, 880, 0.18); hopPill(); }
-      renderTasks();
-    }
-    function deleteTask(idx) { tasks.splice(idx, 1); renderTasks(); }
-
-    // --- Pomodoro ---
-    let timerSeconds = 25 * 60, timerInterval = null;
-    function updateTimerUI() {
-      const formatted = `${String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:${String(timerSeconds % 60).padStart(2, '0')}`;
-      document.getElementById('timer-display').textContent = formatted;
-      document.getElementById('sub-util').textContent = timerInterval ? `Foco ${formatted}` : `${formatted} · Lembrete`;
-      document.getElementById('tile-util').classList.toggle('active-tile', Boolean(timerInterval));
-      const badge = document.getElementById('pill-badge');
-      badge.textContent = formatted; badge.classList.toggle('show', Boolean(timerInterval));
-    }
-
-    function setTimer(mins) {
-      clearInterval(timerInterval); timerInterval = null;
-      document.getElementById('timer-toggle-btn').textContent = 'Iniciar';
-      timerSeconds = mins * 60; restoreIdleExpression(); updateTimerUI();
-    }
-
-    function toggleTimer() {
-      const btn = document.getElementById('timer-toggle-btn');
-      if (timerInterval) {
-        clearInterval(timerInterval); timerInterval = null;
-        btn.textContent = 'Retomar'; restoreIdleExpression(); updateTimerUI();
-      } else {
-        btn.textContent = 'Pausar';
-        if (!activeAmbient) setExpression('focused');
-        timerInterval = setInterval(() => {
-          if (timerSeconds > 0) { timerSeconds--; updateTimerUI(); }
-          else {
-            clearInterval(timerInterval); timerInterval = null;
-            btn.textContent = 'Iniciar'; updateTimerUI();
-            setExpression('happy'); hopPill(); burstPillLove(true); playChirp(680, 1020, 0.3);
-            say(`Sessão de foco concluída${userName ? ', ' + userName : ''}! Mandou bem!`, 5000, true, null, true);
-          }
-        }, 1000);
-        updateTimerUI();
-      }
-    }
-
-    // --- IA Lumo ---
-    async function saveGeminiKey(e) {
-      e.preventDefault();
-      const input = document.getElementById('api-key-input');
-      const key = input.value.trim();
-      if (!key || !invoke) return;
-      try {
-        await invoke('save_api_key', { provider: 'gemini', apiKey: key });
-        input.value = ''; playChirp(620, 880, 0.2);
-        appendMsg('Chave própria salva no cofre do Windows!', 'ai');
-      } catch (err) { appendMsg('Erro: ' + err, 'ai'); }
-    }
-
-    async function removeGeminiKey() {
-      if (!invoke) return;
-      try {
-        await invoke('delete_api_key', { provider: 'gemini' });
-        playChirp(480, 360, 0.16);
-        say('Chave própria removida! Usando IA integrada.', 3000, true);
-      } catch (_) {}
-    }
-
-    function clearChat() {
-      document.getElementById('chat-box').innerHTML =
-        '<div class="msg ai">Conversa limpa! Como posso ajudar agora?</div>';
-      playChirp(480, 380, 0.12);
-    }
-
-    function appendMsg(text, who) {
-      const box = document.getElementById('chat-box');
-      const div = document.createElement('div');
-      div.className = 'msg ' + who; div.textContent = text;
-      if (who === 'ai') {
-        const copy = document.createElement('div');
-        copy.className = 'copy-mini'; copy.textContent = 'Copiar resposta';
-        copy.onclick = () => {
-          if (invoke) invoke('set_clipboard_text', { text });
-          else navigator.clipboard?.writeText(text);
-          copy.textContent = 'Copiado ✓';
-        };
-        div.appendChild(copy);
-      }
-      box.appendChild(div); box.scrollTop = box.scrollHeight;
-    }
-
-    function showTypingBubble() {
-      const box = document.getElementById('chat-box');
-      const div = document.createElement('div');
-      div.id = 'typing-bubble'; div.className = 'msg ai';
-      div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-      box.appendChild(div); box.scrollTop = box.scrollHeight;
-    }
-    function removeTypingBubble() { const el = document.getElementById('typing-bubble'); if (el) el.remove(); }
-
-    async function sendPrompt(e) {
-      e.preventDefault();
-      stopTypingLook();
-      const input = document.getElementById('ai-input');
-      const prompt = input.value.trim();
-      if (!prompt) return;
-      input.value = '';
-      await executePrompt(prompt);
-    }
-
-    async function executePrompt(prompt) {
-      appendMsg(prompt, 'user');
-      const btn = document.getElementById('ai-send-btn');
-      btn.disabled = true; btn.textContent = '...';
-      isThinking = true;
-      document.getElementById('lumo-pill').classList.add('thinking');
-      setExpression('thinking');
-      showTypingBubble();
-
-      if (invoke) {
-        try {
-          const reply = await invoke('ask_gemini', { prompt, userName: userName || null });
-          removeTypingBubble();
-          appendMsg(reply, 'ai');
-          hopPill();
-          speakText(reply);
-        } catch (err) {
-          removeTypingBubble();
-          appendMsg(String(err), 'ai');
-        }
-      }
-
-      isThinking = false;
-      document.getElementById('lumo-pill').classList.remove('thinking');
-      restoreIdleExpression();
-      btn.disabled = false; btn.textContent = 'Enviar';
-    }
-
-    // --- Voz ---
-    function toggleVoice() {
-      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRec) return;
-      const btn = document.getElementById('mic-btn');
-      const rec = new SpeechRec(); rec.lang = 'pt-BR';
-      btn.classList.add('recording'); setExpression('listening');
-
-      rec.onresult = (ev) => {
-        const transcript = ev.results[0][0].transcript;
-        const lower = transcript.toLowerCase();
-        if (lower.includes('música') || lower.includes('tocar') || lower.includes('pausar')) {
-          openView('midia'); sendMedia('play_pause');
-        } else if (lower.includes('desligar') && lower.includes('pc')) {
-          const m = lower.match(/(\d+)/); schedulePcSleep(m ? parseInt(m[1], 10) : 30);
-        } else if (lower.includes('lembre') || lower.includes('lembrete')) {
-          const m = lower.match(/(\d+)/);
-          document.getElementById('rem-label-input').value = transcript;
-          startReminder(m ? parseInt(m[1], 10) : 10);
-        } else if (lower.includes('foco') || lower.includes('timer')) {
-          openView('util'); toggleTimer();
-        } else if (lower.includes('esconder') || lower.includes('jogo')) {
-          hideForGame('Indo pro canto!');
-        } else if (lower.includes('tchau') || lower.includes('dormir')) {
-          gracefulShutdown();
-        } else {
-          openView('ia'); executePrompt(transcript);
-        }
-      };
-      rec.onend = () => { btn.classList.remove('recording'); restoreIdleExpression(); };
-      rec.start();
-    }
-
-    async function fetchRates() {
-      try {
-        const r = await fetch('https://open.er-api.com/v6/latest/USD');
-        const d = await r.json();
-        if (d?.rates?.BRL) {
-          usdRate = d.rates.BRL;
-          if (d.rates.EUR) eurRate = d.rates.BRL / d.rates.EUR;
-        }
-      } catch (_) {}
-    }
-
-    (async function init() {
-      const savedTheme = localStorage.getItem('lumo_theme');
-      if (savedTheme) setTheme(savedTheme);
-      document.getElementById('personality-select').value = personality;
-      document.getElementById('voice-select').value = voiceMode;
-      document.getElementById('autoclose-toggle').checked = autoCloseOnBlur;
-      document.getElementById('autoupdate-toggle').checked = autoInstallUpdates;
-      document.getElementById('quick-notes').value = localStorage.getItem('lumo_notes') || '';
-
-      updateLiveClock();
-      updateGreetingUI();
-
-      if (invoke) {
-        try { document.getElementById('autostart-toggle').checked = await invoke('get_autostart'); } catch (_) {}
-      }
-      if (listen) {
-        listen('toggle-lumo', () => togglePanel());
-        listen('window-blur', () => {
-          if (isExpanded && autoCloseOnBlur && !isPinned && !suppressBlur && Date.now() > justOpenedUntil) {
-            togglePanel(false);
-          }
-        });
-      }
-
-      setupDragAndDrop();
-      renderColorHistory();
-      renderTasks();
-      applyPlanUI();
-      syncWindowMode('pill');
-      fetchRates();
-      fetchWeather(false);
-      pollWindowsLoop();
-      setTimeout(() => checkForUpdates(true), 3500);
-      setInterval(() => checkForUpdates(true), 15 * 60 * 1000);
-
-      setTimeout(() => {
-        setExpression('surprised'); hopPill(); playChirp(420, 740, 0.28);
-        if (personality !== 'zen') {
-          const msg = userName
-            ? `${getGreetingBase()}, ${userName}! Tudo pronto por aqui.`
-            : `${getGreetingBase()}! Clique em mim para nos conhecermos.`;
-          say(msg, 4800, true, null, true);
-        }
-        setTimeout(() => restoreIdleExpression(), 1200);
-      }, 650);
-    })();
-  
-    // === UPGRADE VISUAL & ANIMAÇÕES (v1.5.0) ===
-    function setEyeStyle(style, btnEl) {
-      const face = document.getElementById('lumo-face');
-      if (!face) return;
-      face.classList.remove('style-classic', 'style-kawaii', 'style-cyber');
-      face.classList.add('style-' + style);
-      document.querySelectorAll('.eye-style-btn').forEach(b => {
-        b.classList.toggle('active-btn', b.dataset.style === style);
-      });
-      localStorage.setItem('lumo_eyestyle', style);
-      if (btnEl) {
-        hopPill();
-        playChirp(560, 840, 0.16);
-      }
-    }
-
-    (function initVisualUpgrade() {
-      const savedStyle = localStorage.getItem('lumo_eyestyle') || 'classic';
-      setEyeStyle(savedStyle);
-
-      // Garante que o estilo dos olhos continue ativo quando mudar a expressão
-      const origSetExpr = window.setExpression;
-      if (typeof origSetExpr === 'function') {
-        window.setExpression = function(type) {
-          origSetExpr(type);
-          const cur = localStorage.getItem('lumo_eyestyle') || 'classic';
-          const f = document.getElementById('lumo-face');
-          if (f) f.classList.add('style-' + cur);
-        };
-      }
-
-      // Spotlight reativo ao cursor + Cascata ao abrir o painel
-      const panelEl = document.getElementById('panel');
-      if (panelEl) {
-        panelEl.addEventListener('pointermove', (e) => {
-          const target = e.target.closest('.hub-tile, .hero-bento, .mini-media-strip, .card');
-          if (!target) return;
-          const r = target.getBoundingClientRect();
-          target.style.setProperty('--mx', (e.clientX - r.left).toFixed(1) + 'px');
-          target.style.setProperty('--my', (e.clientY - r.top).toFixed(1) + 'px');
-        });
-
-        const obs = new MutationObserver(() => {
-          if (panelEl.classList.contains('open')) {
-            const items = panelEl.querySelectorAll('#view-resumo .hero-bento, #view-resumo .mini-media-strip, #view-resumo .hub-tile, #view-resumo .card');
-            items.forEach((el, idx) => {
-              el.classList.remove('cascade-in');
-              void el.offsetWidth;
-              el.style.setProperty('--cdelay', (idx * 30) + 'ms');
-              el.classList.add('cascade-in');
-            });
-          }
-        });
-        obs.observe(panelEl, { attributes: true, attributeFilter: ['class'] });
-      }
-
-      // Inclinação curiosa da pílula seguindo o mouse
-      const pillEl = document.getElementById('lumo-pill');
-      if (pillEl) {
-        pillEl.addEventListener('pointermove', (e) => {
-          const r = pillEl.getBoundingClientRect();
-          const normX = ((e.clientX - r.left) / r.width - 0.5) * 2;
-          pillEl.style.setProperty('--tilt', (normX * 4.5).toFixed(2) + 'deg');
-        });
-        pillEl.addEventListener('pointerleave', () => {
-          pillEl.style.setProperty('--tilt', '0deg');
-        });
-      }
-
-      // Piscadinha marota (wink) aleatória quando ocioso
-      setInterval(() => {
-        const f = document.getElementById('lumo-face');
-        if (!f || isShuttingDown || isHiddenInGame) return;
-        const locked = ['blink', 'happy', 'sleepy', 'goodbye', 'dizzy', 'love', 'thinking'].some(c => f.classList.contains(c));
-        if (!locked && Math.random() < 0.35) {
-          f.classList.add('wink');
-          setTimeout(() => f.classList.remove('wink'), 260);
-        }
-      }, 9500);
-    })();
-
-  
-    // === PONTE PC <-> CELULAR PWA (v1.5.0) ===
-    const SYNC_API = 'https://lumo-ai.sivavieiravitor.workers.dev/sync';
-    let syncToken = localStorage.getItem('lumo_sync_token') || '';
-    let isApplyingRemoteSync = false;
-    let lastRemoteTasksTs = 0, lastRemoteNotesTs = 0, lastRemoteCmdId = '';
-    let notesSyncTimer = null;
-
-    function createPairCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let out = 'LUMO-';
-      for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
-      return out;
-    }
-
-    function renderMobileQR() {
-      if (!syncToken) {
-        syncToken = createPairCode();
-        localStorage.setItem('lumo_sync_token', syncToken);
-      }
-      const pairUrl = 'https://vitorsilva010.github.io/Lumo/app/?pair=' + encodeURIComponent(syncToken);
-      const img = document.getElementById('mob-qr-img');
-      if (img) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=6&data=' + encodeURIComponent(pairUrl);
-      const txt = document.getElementById('mob-token-text');
-      if (txt) txt.textContent = syncToken;
-    }
-
-    async function copyMobileUrl() {
-      const pairUrl = 'https://vitorsilva010.github.io/Lumo/app/?pair=' + encodeURIComponent(syncToken);
-      if (invoke) await invoke('set_clipboard_text', { text: pairUrl });
-      playChirp(620, 880, 0.14);
-      say('Link de pareamento copiado!', 2400, true);
-    }
-
-    function resetMobileToken() {
-      syncToken = createPairCode();
-      localStorage.setItem('lumo_sync_token', syncToken);
-      renderMobileQR();
-      pushPcSync({ tasks, notes: localStorage.getItem('lumo_notes') || '' });
-      say('Novo código de pareamento gerado!', 2400, true);
-    }
-
-    async function pushPcSync(payload) {
-      if (!syncToken) return;
-      try {
-        await fetch(SYNC_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-          body: JSON.stringify({ token: syncToken, source: 'pc', ...payload })
-        });
-      } catch (_) {}
-    }
-
-    async function sendPcClipToMobile() {
-      if (!invoke) return;
-      const txt = await invoke('get_clipboard_text');
-      if (!txt) { say('Nenhum texto no Ctrl+C do PC.', 2200, true); return; }
-      await pushPcSync({ clip: txt });
-      playChirp(600, 900, 0.16); hopPill();
-      say('Ctrl+C enviado para o seu celular!', 2600, true);
-    }
-
-    async function pollMobileCommands() {
-      if (!syncToken || isShuttingDown) return;
-      try {
-        const res = await fetch(SYNC_API + '?token=' + encodeURIComponent(syncToken));
-        if (!res.ok) return;
-        const data = await res.json();
-
-        // Sincroniza tarefas vindas do celular
-        if (Array.isArray(data.tasks) && (data.tasksUpdatedAt || 0) > lastRemoteTasksTs) {
-          lastRemoteTasksTs = data.tasksUpdatedAt;
-          isApplyingRemoteSync = true;
-          tasks = data.tasks;
-          renderTasks();
-          isApplyingRemoteSync = false;
-        }
-
-        // Sincroniza notas vindas do celular
-        if (typeof data.notes === 'string' && (data.notesUpdatedAt || 0) > lastRemoteNotesTs) {
-          lastRemoteNotesTs = data.notesUpdatedAt;
-          const el = document.getElementById('quick-notes');
-          if (el && el.value !== data.notes) {
-            el.value = data.notes;
-            localStorage.setItem('lumo_notes', data.notes);
-          }
-        }
-
-        // Executa comando remoto recente (< 35s) uma única vez
-        const cmd = data.lastCmd;
-        if (cmd && cmd.id && cmd.id !== lastRemoteCmdId && (Date.now() - (cmd.ts || 0)) < 35000) {
-          lastRemoteCmdId = cmd.id;
-          if (cmd.action === 'media' && cmd.value) {
-            await sendMedia(cmd.value);
-          } else if (cmd.action === 'sleep_pc' && cmd.value) {
-            await schedulePcSleep(Number(cmd.value) || 30);
-          } else if (cmd.action === 'cancel_sleep') {
-            await cancelPcSleep();
-          } else if (cmd.action === 'keep_awake') {
-            await toggleKeepAwake(!keepAwakeActive);
-          } else if (cmd.action === 'set_clip' && cmd.value && invoke) {
-            await invoke('set_clipboard_text', { text: String(cmd.value) });
-            hopPill(); playChirp(620, 920, 0.16);
-            say('Texto recebido do celular no seu Ctrl+C!', 3400, true);
-          } else if (cmd.action === 'open_url' && cmd.value && invoke) {
-            await invoke('open_external_url', { url: String(cmd.value) });
-            hopPill(); playChirp(580, 860, 0.16);
-          }
-        }
-      } catch (_) {}
-    }
-
-    (function initMobileBridge() {
-      renderMobileQR();
-
-      // Envia tarefas quando alteradas no PC
-      const origRenderTasks = window.renderTasks;
-      if (typeof origRenderTasks === 'function') {
-        window.renderTasks = function() {
-          origRenderTasks();
-          if (!isApplyingRemoteSync) {
-            lastRemoteTasksTs = Date.now();
-            pushPcSync({ tasks });
-          }
-        };
-      }
-
-      // Envia notas quando editadas no PC (debounce 1.2s)
-      const origSaveNotes = window.saveQuickNotes;
-      if (typeof origSaveNotes === 'function') {
-        window.saveQuickNotes = function(val) {
-          origSaveNotes(val);
-          clearTimeout(notesSyncTimer);
-          notesSyncTimer = setTimeout(() => {
-            lastRemoteNotesTs = Date.now();
-            pushPcSync({ notes: val });
-          }, 1200);
-        };
-      }
-
-      setInterval(pollMobileCommands, 4000);
-    })();
-
-  </script>
+  <script src="./app.js"></script>
+  <script src="./cinema.js"></script>
+  <script src="./daily.js"></script>
+  <script src="./custom.js"></script>
+  <script src="./docs.js"></script>
+  <script src="./alive.js"></script>
+  <script src="./player.js"></script>
+  <script src="./skins.js"></script>
+  <script src="./motion.js"></script>
+  <script src="./ping.js"></script>
+  <script src="./rgb.js"></script>
+  <script src="./music-trivia.js"></script>
+  <script src="./pill-hud.js"></script>
+  <script src="./pocket-sync.js"></script>
+  <script src="./game-guard.js"></script>
+  <script src="./ping-friends.js"></script>
+  <script src="./perf-motion.js"></script>
+  <script src="./download-hud.js"></script>
+  <script src="./capsule-skins.js"></script>
+  <script src="./hover-fx.js"></script>
+  <script src="./spotlight-reminders.js"></script>
+  <script src="./hit-region.js"></script>
+  <script src="./chat-ux.js"></script>
+  <script src="./lumo-music.js"></script>
+  <script src="./lumo-jam.js"></script>
+  <script src="./pill-visualizer.js"></script>
+  <script src="./lumo-alive-pro.js"></script>
+  <script src="./lumo-ambient.js"></script>
+  <script src="./v36-upgrade.js"></script>
+  <script src="./v37-tools.js"></script>
+  <script src="./v38-appearance.js"></script>
 </body>
 </html>

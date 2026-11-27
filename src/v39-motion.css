@@ -1,4 +1,4 @@
-/* === LUMO v3.9.2 — ANIMAÇÕES CLEAN, TRANSIÇÕES SUAVES & EQUALIZADOR 3 BARRAS UNIFICADO === */
+/* === LUMO v3.9.7 — ANIMAÇÕES CLEAN, TRANSIÇÕES DIRECIONAIS & EQUALIZADOR 3 BARRAS UNIFICADO === */
 
 :root {
   --ease-clean: cubic-bezier(0.16, 1, 0.3, 1);
@@ -97,9 +97,7 @@
   gap: 4px !important;
   opacity: 0 !important;
   transform: translateY(4px);
-  transition:
-    opacity 0.65s var(--ease-clean),
-    transform 0.65s var(--ease-clean) !important;
+  transition: opacity 0.65s var(--ease-clean), transform 0.65s var(--ease-clean) !important;
 }
 .lm-hero.is-playing .lm-hero-waves {
   opacity: 0.34 !important;
@@ -122,14 +120,40 @@
   100% { transform: scaleY(0.96); opacity: 1; }
 }
 
-/* 4. Movimentação mais clean nas trocas de tela, sub-abas, gavetas, botões e letras */
+/* 4. Transições direcionais suaves sem opacity:0 (zero piscadas no WebView2 transparente) */
 .view.active:not(.v39-enter-fwd):not(.v39-enter-back) {
   animation: none !important;
   opacity: 1 !important;
 }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+.view.active.v39-enter-fwd {
+  animation: lumoSlideFwdClean 0.19s var(--ease-clean) both !important;
+}
+.view.active.v39-enter-back {
+  animation: lumoSlideBackClean 0.19s var(--ease-clean) both !important;
+}
+@keyframes lumoSlideFwdClean {
+  from { opacity: 0.86; transform: translate3d(12px, 0, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+@keyframes lumoSlideBackClean {
+  from { opacity: 0.86; transform: translate3d(-12px, 0, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
 }
 
+#view-aparencia .v38-pane:not(.v37-hidden),
+#lm-music-pane:not(.hidden),
+#lm-ambient-pane:not(.hidden),
+#lm-legacy-pane:not(.hidden),
+#view-kit > .card:not(.v37-hidden),
+#view-util > .card:not(.v37-hidden) {
+  animation: lumoSubPaneIn 0.17s var(--ease-clean) both;
+}
+@keyframes lumoSubPaneIn {
+  from { opacity: 0.88; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+
+/* 5. Botões, gavetas, letras e clique tátil */
 .lm-subtab,
 .v37-subtab,
 .lm-lib-tab,
@@ -149,77 +173,12 @@
     box-shadow 0.24s var(--ease-clean),
     transform 0.18s var(--ease-clean) !important;
 }
-
 .lm-play-btn {
-  transition:
-    transform 0.2s var(--ease-clean),
-    box-shadow 0.35s var(--ease-clean),
-    filter 0.18s ease !important;
+  transition: transform 0.2s var(--ease-clean), box-shadow 0.35s var(--ease-clean), filter 0.18s ease !important;
 }
 .lm-play-btn:hover { transform: scale(1.045); }
 .lm-play-btn:active { transform: scale(0.95); }
 
-#lm-lyrics-box.show,
-#lm-jam-box.show {
-  animation: lumoDrawerClean 0.26s var(--ease-clean) both;
-}
-@keyframes lumoDrawerClean {
-  from { opacity: 0.94; transform: translate3d(0, -3px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
-.lm-lyric-line {
-  transition:
-    color 0.28s var(--ease-clean),
-    opacity 0.28s var(--ease-clean),
-    transform 0.28s var(--ease-clean) !important;
-}
-
-/* Respeita Modo Economia / Reduced Motion */
-body.lumo-eco .lm-tile-waves i,
-body.reduced-motion .lm-tile-waves i,
-body.lumo-eco .lm-eq-badge i,
-body.reduced-motion .lm-eq-badge i,
-body.lumo-eco .lm-hero-waves i,
-body.reduced-motion .lm-hero-waves i,
-body.lumo-eco .view.active,
-body.reduced-motion .view.active {
-  animation: none !important;
-}
-
-/* V394_SMOOTH_NAV_TRANSITIONS */
-.view.active.v39-enter-fwd {
-  animation: lumoSlideFwdClean 0.19s var(--ease-clean) both !important;
-}
-.view.active.v39-enter-back {
-  animation: lumoSlideBackClean 0.19s var(--ease-clean) both !important;
-}
-@keyframes lumoSlideFwdClean {
-  from { opacity: 0.86; transform: translate3d(12px, 0, 0); }
-  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
-}
-@keyframes lumoSlideBackClean {
-  from { opacity: 0.86; transform: translate3d(-12px, 0, 0); }
-  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
-}
-
-/* Transição suave ao alternar sub-abas internas (sem flash de transparência) */
-#view-aparencia .v38-pane:not(.v37-hidden),
-#lm-music-pane:not(.hidden),
-#lm-ambient-pane:not(.hidden),
-#lm-legacy-pane:not(.hidden),
-#view-kit > .card:not(.v37-hidden),
-#view-util > .card:not(.v37-hidden) {
-  animation: lumoSubPaneIn 0.17s var(--ease-clean) both;
-}
-@keyframes lumoSubPaneIn {
-  from { opacity: 0.88; transform: translate3d(0, 6px, 0); }
-  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
-}
-
-/* Micro-resposta tátil ao clicar nas opções (fora do scroll ativo) */
 .v37-subtab:active,
 .lm-subtab:active,
 .lm-lib-tab:active,
@@ -234,6 +193,26 @@ body.reduced-motion .view.active {
   transform: scale(0.965) !important;
 }
 
+#lm-lyrics-box.show,
+#lm-jam-box.show {
+  animation: lumoDrawerClean 0.22s var(--ease-clean) both;
+}
+@keyframes lumoDrawerClean {
+  from { opacity: 0.94; transform: translate3d(0, -3px, 0); }
+  to   { opacity: 1;    transform: translate3d(0, 0, 0); }
+}
+
+.lm-lyric-line {
+  transition: color 0.28s var(--ease-clean), opacity 0.28s var(--ease-clean), transform 0.28s var(--ease-clean) !important;
+}
+
+/* 6. Respeita Modo Economia / Reduced Motion */
+body.lumo-eco .lm-tile-waves i,
+body.reduced-motion .lm-tile-waves i,
+body.lumo-eco .lm-eq-badge i,
+body.reduced-motion .lm-eq-badge i,
+body.lumo-eco .lm-hero-waves i,
+body.reduced-motion .lm-hero-waves i,
 body.lumo-eco .view.active.v39-enter-fwd,
 body.lumo-eco .view.active.v39-enter-back,
 body.reduced-motion .view.active.v39-enter-fwd,
