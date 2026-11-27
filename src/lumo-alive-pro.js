@@ -625,6 +625,19 @@
     homeScroll.addEventListener('wheel', freeze, { passive: true });
   }
 
+  // GLOBAL_VIEW_SCROLL_GUARD: congela hover/spotlight em qualquer .view durante a rolagem
+  document.querySelectorAll('.view').forEach((v) => {
+    if (v.id === 'view-resumo') return;
+    let t = 0;
+    const freezeView = () => {
+      v.classList.add('is-scrolling');
+      clearTimeout(t);
+      t = setTimeout(() => v.classList.remove('is-scrolling'), 120);
+    };
+    v.addEventListener('scroll', freezeView, { passive: true });
+    v.addEventListener('wheel', freezeView, { passive: true });
+  });
+
   window.LumoAlivePro = {
     isPro,
     applySkin,

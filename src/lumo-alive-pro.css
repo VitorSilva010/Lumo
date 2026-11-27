@@ -28,8 +28,6 @@
   from { rotate: -2.4deg; scale: 0.99; }
   to   { rotate: 2.4deg;  scale: 1.03; }
 }
-  to   { transform: translate3d(var(--eye-x, 0px), -2px, 0) rotate(2.5deg) scale(1.04); }
-}
 
 /* Óculos escuros da expressão Cool */
 #lumo-shades {

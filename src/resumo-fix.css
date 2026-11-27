@@ -62,3 +62,27 @@
   opacity: 0 !important;
   transition: none !important;
 }
+
+/* GLOBAL VIEW SCROLL FIX */
+.view {
+  scroll-behavior: auto !important;
+  overscroll-behavior: contain !important;
+  overflow-anchor: none !important;
+  scrollbar-gutter: stable;
+}
+.view.is-scrolling > * {
+  pointer-events: none !important;
+}
+.view.is-scrolling .card::after,
+.view.is-scrolling .hub-tile::after,
+.view.is-scrolling .hero-bento::after,
+.view.is-scrolling .motd-card::after,
+.view.is-scrolling .mini-media-strip::after {
+  opacity: 0 !important;
+  transition: none !important;
+}
+#view-aparencia .card,
+#view-config .card {
+  contain: layout style;
+  will-change: auto !important;
+}
