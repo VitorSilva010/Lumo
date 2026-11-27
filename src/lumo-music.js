@@ -1,4 +1,4 @@
-// === LUMO v3.1.0 — LUMO MUSIC (PLAYER HÍBRIDO BAIXA RAM + LETRAS SINCRONIZADAS) ===
+// === LUMO v3.2.0 — LUMO MUSIC (ÁUDIO PURO SEM ANÚNCIO + AMBIENTE INTEGRADO + REDESIGN) ===
 (function initLumoMusic() {
   const viewMidia = document.getElementById('view-midia');
   if (!viewMidia || document.getElementById('lm-subtabs')) return;
@@ -7,9 +7,23 @@
   const YT_BRIDGE_URL = 'https://vitorsilva010.github.io/Lumo/yt-player.html';
   const WORKER_BASE = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://lumo-ai.sivavieiravitor.workers.dev');
 
+  // Instâncias públicas para tentar áudio puro do YouTube (sem anúncios, ~10 MB RAM)
+  const PIPED_MIRRORS = [
+    'https://pipedapi.kavin.rocks',
+    'https://pipedapi.adminforge.de',
+    'https://api.piped.private.coffee'
+  ];
+  const INVIDIOUS_MIRRORS = [
+    'https://inv.nadeko.net',
+    'https://invidious.nerdvpn.de',
+    'https://yewtu.be'
+  ];
+
   const S = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
   const IC = {
     music:   S('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'),
+    ambient: S('<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M8 19v2"/><path d="M12 19v2"/><path d="M16 19v2"/>'),
+    radio:   S('<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/>'),
     play:    S('<polygon points="6 4 20 12 6 20 6 4" fill="currentColor" stroke="none"/>'),
     pause:   S('<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/>'),
     prev:    S('<polygon points="19 20 9 12 19 4 19 20" fill="currentColor" stroke="none"/><line x1="5" y1="5" x2="5" y2="19"/>'),
@@ -20,7 +34,7 @@
     lyrics:  S('<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>'),
     stop:    S('<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>'),
     vol:     S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'),
-    radio:   S('<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/>')
+    muted:   S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>')
   };
 
   function esc(s) {
@@ -33,32 +47,34 @@
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 
-  // === ESTADO & PERSISTÊNCIA ===
+  // === ESTADO ===
   const audio = new Audio();
   audio.preload = 'none';
 
   let volume = parseInt(localStorage.getItem('lumo_music_vol') || '70', 10);
   if (Number.isNaN(volume) || volume < 0 || volume > 100) volume = 70;
+  let lastNonZeroVol = volume > 0 ? volume : 70;
   audio.volume = volume / 100;
 
-  let mainTab = 'music';     // 'music' | 'legacy'
+  let mainTab = 'music';     // 'music' | 'ambient' | 'legacy'
   let libTab = 'explore';    // 'explore' | 'queue' | 'likes' | 'playlists'
-  let searchSrc = 'audius';  // 'audius' | 'youtube'
+  let searchSrc = 'youtube'; // 'youtube' | 'audius'
   let activeChip = 'trending';
   let searchQuery = '';
   let loadingList = false;
-  let listMsg = '';
+  let listMsg = 'Busque qualquer música ou cole um link do YouTube!';
   let results = [];
 
   let queue = [];
   let queueIdx = -1;
-  let currentTrack = null;
+  let currentTrack = null;   // { ..., _mode: 'direct' | 'embed' }
   let isPlaying = false;
   let isShuffle = false;
-  let repeatMode = 'off'; // 'off' | 'all' | 'one'
+  let repeatMode = 'off';
   let curTime = 0;
   let duration = 0;
   let seeking = false;
+  let playReqSeq = 0;
 
   let likes = [];
   let playlists = [];
@@ -70,22 +86,80 @@
 
   // Letras (LRCLIB)
   let lyricsOpen = false;
-  let lyricsLines = []; // [{ t, text }] ou plain
+  let lyricsLines = [];
   let lyricsSynced = false;
   let lyricsStatus = '';
   let activeLyricIdx = -1;
   const lyricsCache = new Map();
 
-  // Ponte YouTube sob demanda (destruída quando parada = 0 MB RAM)
+  // Ponte YouTube sob demanda (0 MB quando parada ou em áudio puro)
   let ytHost = null;
   let ytFrame = null;
   let ytReady = false;
   let ytPendingId = null;
 
+  function usingYtEmbed() {
+    return Boolean(currentTrack && currentTrack.source === 'youtube' && currentTrack._mode === 'embed');
+  }
   function saveLikes() { localStorage.setItem('lumo_music_likes', JSON.stringify(likes.slice(0, 200))); }
   function savePlaylists() { localStorage.setItem('lumo_music_playlists', JSON.stringify(playlists.slice(0, 30))); }
 
-  // === PONTE YOUTUBE SOB DEMANDA ===
+  // === RESOLUTOR DE ÁUDIO PURO DO YOUTUBE (SEM ANÚNCIO & BAIXA RAM) ===
+  async function resolvePureYtAudio(videoId) {
+    const pickBest = (streams) => {
+      if (!Array.isArray(streams)) return null;
+      const valid = streams.filter((s) => s && s.url && /audio/i.test(s.mimeType || s.type || 'audio'));
+      if (!valid.length) return null;
+      valid.sort((a, b) => {
+        const ba = Number(a.bitrate || 0);
+        const bb = Number(b.bitrate || 0);
+        // Prioriza ~128kbps (rápido para abrir, excelente qualidade)
+        return Math.abs(ba - 130000) - Math.abs(bb - 130000);
+      });
+      return valid[0].url;
+    };
+
+    const tasks = [];
+
+    // 1. Tenta rota opcional /yt-audio no Worker caso exista
+    tasks.push(
+      fetch(`${WORKER_BASE}/yt-audio?v=${encodeURIComponent(videoId)}`, { signal: AbortSignal.timeout(2800) })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => (d && d.url ? d.url : Promise.reject()))
+    );
+
+    // 2. Corrida em paralelo nos mirrors Piped
+    for (const base of PIPED_MIRRORS) {
+      tasks.push(
+        fetch(`${base}/streams/${encodeURIComponent(videoId)}`, { signal: AbortSignal.timeout(3000) })
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((d) => {
+            const url = pickBest(d.audioStreams);
+            return url ? url : Promise.reject();
+          })
+      );
+    }
+
+    // 3. Corrida em paralelo nos mirrors Invidious
+    for (const base of INVIDIOUS_MIRRORS) {
+      tasks.push(
+        fetch(`${base}/api/v1/videos/${encodeURIComponent(videoId)}?fields=adaptiveFormats`, { signal: AbortSignal.timeout(3000) })
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((d) => {
+            const url = pickBest(d.adaptiveFormats);
+            return url ? url : Promise.reject();
+          })
+      );
+    }
+
+    try {
+      return await Promise.any(tasks);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // === PONTE YOUTUBE EMBED (FALLBACK) ===
   function destroyYtPlayer() {
     ytReady = false;
     ytPendingId = null;
@@ -95,14 +169,10 @@
       ytFrame = null;
     }
   }
-
   function sendYt(msg) {
-    if (ytFrame && ytFrame.contentWindow) {
-      ytFrame.contentWindow.postMessage(msg, '*');
-    }
+    if (ytFrame && ytFrame.contentWindow) ytFrame.contentWindow.postMessage(msg, '*');
   }
-
-  function loadYtVideo(videoId) {
+  function loadYtEmbed(videoId) {
     if (!ytHost) {
       ytHost = document.createElement('div');
       ytHost.id = 'lm-yt-host';
@@ -126,7 +196,7 @@
   window.addEventListener('message', (ev) => {
     const d = ev.data || {};
     if (!d || typeof d.type !== 'string' || !d.type.startsWith('lumo-yt-')) return;
-    if (!currentTrack || currentTrack.source !== 'youtube') return;
+    if (!usingYtEmbed()) return;
 
     if (d.type === 'lumo-yt-ready') {
       ytReady = true;
@@ -146,7 +216,7 @@
         syncGlobalVisuals();
         renderHero();
       } else if (d.state === 'ended') {
-        handleTrackEnded();
+        playNext(true);
       }
     } else if (d.type === 'lumo-yt-time') {
       if (!seeking) {
@@ -156,58 +226,73 @@
         syncActiveLyric();
       }
     } else if (d.type === 'lumo-yt-error') {
-      if (typeof say === 'function') say('Esse vídeo bloqueou reprodução incorporada. Pulando...', 2800, true);
+      if (typeof say === 'function') say('Esse vídeo bloqueou reprodução. Pulando...', 2600, true);
       if (queue.length > 1) playNext(true);
       else stopMusic();
     }
   });
 
-  // === AUDIO NATIVO (AUDIUS / LOCAL) ===
+  // === AUDIO NATIVO (<audio>) ===
   audio.addEventListener('playing', () => {
-    if (!currentTrack || currentTrack.source === 'youtube') return;
+    if (!currentTrack || usingYtEmbed()) return;
     isPlaying = true;
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     syncGlobalVisuals();
     renderHero();
   });
   audio.addEventListener('pause', () => {
-    if (!currentTrack || currentTrack.source === 'youtube') return;
+    if (!currentTrack || usingYtEmbed()) return;
     isPlaying = false;
     syncGlobalVisuals();
     renderHero();
   });
   audio.addEventListener('timeupdate', () => {
-    if (!currentTrack || currentTrack.source === 'youtube' || seeking) return;
+    if (!currentTrack || usingYtEmbed() || seeking) return;
     curTime = audio.currentTime || 0;
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     updateProgressDOM();
     syncActiveLyric();
   });
   audio.addEventListener('ended', () => {
-    if (!currentTrack || currentTrack.source === 'youtube') return;
-    handleTrackEnded();
+    if (!currentTrack || usingYtEmbed()) return;
+    playNext(true);
   });
   audio.addEventListener('error', () => {
-    if (!currentTrack || currentTrack.source === 'youtube') return;
-    if (typeof say === 'function') say('Não consegui carregar essa faixa. Tentando a próxima...', 2400, true);
+    if (!currentTrack || usingYtEmbed()) return;
+    // Se o stream puro do YouTube expirou/falhou, cai automaticamente para o Embed sem travar a música!
+    if (currentTrack.source === 'youtube' && currentTrack._mode === 'direct') {
+      currentTrack._mode = 'embed';
+      audio.pause();
+      audio.removeAttribute('src');
+      loadYtEmbed(currentTrack.videoId || currentTrack.id.replace(/^yt_/, ''));
+      renderHero();
+      return;
+    }
+    if (typeof say === 'function') say('Não consegui carregar essa faixa. Tentando a próxima...', 2200, true);
     if (queue.length > 1) playNext(true);
     else stopMusic();
   });
 
-  // === SINCRONIA COM CÁPSULA, HOVER MINI-PLAYER E RESUMO ===
+  // === SINCRONIA COM CÁPSULA, RESUMO & CARD LUMO MUSIC ===
+  function syncResumoMusicTile() {
+    const sub = document.getElementById('music-tile-sub');
+    const tile = sub?.closest('.hub-tile') || document.querySelector('.hub-tile[data-lm-tile="1"]');
+    if (tile) tile.classList.toggle('lm-tile-playing', Boolean(currentTrack && isPlaying));
+    if (sub) {
+      sub.textContent = currentTrack
+        ? `${isPlaying ? '▶ ' : '⏸ '}${currentTrack.title.slice(0, 22)}`
+        : 'Músicas · Lo-fi · Rádio';
+    }
+  }
+
   function syncGlobalVisuals() {
     try { isMediaPlaying = isPlaying; } catch (_) {}
-    const title = currentTrack ? currentTrack.title : 'Pronto para controlar sua mídia';
-    const sub = currentTrack
-      ? `${currentTrack.artist} · ${isPlaying ? 'Tocando agora' : 'Pausado'}`
-      : 'Pronto para controlar';
-
-    const t1 = document.getElementById('mini-media-title');
-    const s1 = document.getElementById('mini-media-sub');
-    const mv = document.getElementById('midia-view-track');
     if (currentTrack) {
-      if (t1) t1.textContent = title;
-      if (s1) s1.textContent = sub;
+      const t1 = document.getElementById('mini-media-title');
+      const s1 = document.getElementById('mini-media-sub');
+      const mv = document.getElementById('midia-view-track');
+      if (t1) t1.textContent = currentTrack.title;
+      if (s1) s1.textContent = `${currentTrack.artist} · ${isPlaying ? 'Lumo Music' : 'Pausado'}`;
       if (mv) mv.textContent = `${currentTrack.title} — ${currentTrack.artist}`;
     }
 
@@ -216,8 +301,8 @@
       face.classList.toggle('music', Boolean(currentTrack && isPlaying));
     }
     if (typeof syncPlayVisuals === 'function') syncPlayVisuals();
+    syncResumoMusicTile();
 
-    // Atualiza miniatura da capa no mini-player de hover
     const mini = document.getElementById('pill-mini-player');
     if (mini) {
       let img = mini.querySelector('.pmp-cover');
@@ -239,8 +324,10 @@
   }
 
   // === CONTROLE DE REPRODUÇÃO ===
-  function playTrack(track, newQueue = null, idxInQueue = -1) {
+  async function playTrack(track, newQueue = null, idxInQueue = -1) {
     if (!track) return;
+    const reqId = ++playReqSeq;
+
     if (Array.isArray(newQueue) && newQueue.length) {
       queue = newQueue.map((x) => ({ ...x }));
       queueIdx = idxInQueue >= 0 ? idxInQueue : queue.findIndex((x) => x.id === track.id);
@@ -251,33 +338,57 @@
       else { queue.push({ ...track }); queueIdx = queue.length - 1; }
     }
 
-    currentTrack = { ...track };
+    currentTrack = { ...track, _mode: 'direct', _resolving: track.source === 'youtube' };
     curTime = 0;
     duration = Number(track.duration || 0);
     activeLyricIdx = -1;
 
     if (typeof stopAmbient === 'function') { try { stopAmbient(); } catch (_) {} }
+    if (typeof hopPill === 'function') hopPill();
 
     if (track.source === 'youtube') {
       audio.pause();
       audio.removeAttribute('src');
-      audio.load();
-      loadYtVideo(track.videoId || track.id);
-      isPlaying = true;
-    } else {
-      // Destrói iframe YouTube imediatamente para manter RAM em ~10 MB!
       destroyYtPlayer();
+      isPlaying = true;
+      syncGlobalVisuals();
+      renderHero();
+      renderLibrary();
+      if (lyricsOpen) fetchLyricsFor(currentTrack);
+
+      const vid = track.videoId || track.id.replace(/^yt_/, '');
+      const pureUrl = await resolvePureYtAudio(vid);
+      if (reqId !== playReqSeq || !currentTrack) return;
+
+      currentTrack._resolving = false;
+      if (pureUrl) {
+        currentTrack._mode = 'direct';
+        audio.src = pureUrl;
+        audio.volume = volume / 100;
+        audio.play().catch(() => {
+          if (reqId !== playReqSeq || !currentTrack) return;
+          currentTrack._mode = 'embed';
+          loadYtEmbed(vid);
+          renderHero();
+        });
+      } else {
+        currentTrack._mode = 'embed';
+        loadYtEmbed(vid);
+      }
+      renderHero();
+    } else {
+      destroyYtPlayer();
+      currentTrack._mode = 'direct';
+      currentTrack._resolving = false;
       audio.src = track.streamUrl || `${AUDIUS_API}/tracks/${encodeURIComponent(track.id)}/stream?app_name=LumoMusic`;
       audio.volume = volume / 100;
       audio.play().catch(() => {});
       isPlaying = true;
+      syncGlobalVisuals();
+      renderHero();
+      renderLibrary();
+      if (lyricsOpen) fetchLyricsFor(currentTrack);
     }
-
-    if (typeof hopPill === 'function') hopPill();
-    syncGlobalVisuals();
-    renderHero();
-    renderLibrary();
-    if (lyricsOpen) fetchLyricsFor(currentTrack);
   }
 
   function togglePlayPause() {
@@ -286,7 +397,7 @@
       else if (results.length) playTrack(results[0], results, 0);
       return;
     }
-    if (currentTrack.source === 'youtube') {
+    if (usingYtEmbed()) {
       if (isPlaying) { sendYt({ type: 'pause' }); isPlaying = false; }
       else { sendYt({ type: 'play' }); isPlaying = true; }
       syncGlobalVisuals();
@@ -298,6 +409,7 @@
   }
 
   function stopMusic() {
+    playReqSeq++;
     audio.pause();
     audio.removeAttribute('src');
     audio.load();
@@ -317,7 +429,7 @@
     if (!queue.length) return;
     if (auto && repeatMode === 'one' && currentTrack) {
       seekTo(0);
-      if (currentTrack.source === 'youtube') sendYt({ type: 'play' });
+      if (usingYtEmbed()) sendYt({ type: 'play' });
       else audio.play().catch(() => {});
       return;
     }
@@ -342,14 +454,10 @@
     playTrack(queue[queueIdx], queue, queueIdx);
   }
 
-  function handleTrackEnded() {
-    playNext(true);
-  }
-
   function seekTo(sec) {
     const target = Math.max(0, Math.min(duration || 99999, Number(sec || 0)));
     curTime = target;
-    if (currentTrack?.source === 'youtube') sendYt({ type: 'seek', sec: target });
+    if (usingYtEmbed()) sendYt({ type: 'seek', sec: target });
     else if (Number.isFinite(audio.duration)) audio.currentTime = target;
     updateProgressDOM();
     syncActiveLyric();
@@ -357,9 +465,12 @@
 
   function setVol(v) {
     volume = Math.max(0, Math.min(100, parseInt(v, 10) || 0));
+    if (volume > 0) lastNonZeroVol = volume;
     localStorage.setItem('lumo_music_vol', String(volume));
     audio.volume = volume / 100;
-    if (currentTrack?.source === 'youtube') sendYt({ type: 'volume', volume });
+    if (usingYtEmbed()) sendYt({ type: 'volume', volume });
+    const vi = document.getElementById('lm-vol');
+    if (vi) { vi.value = String(volume); vi.style.setProperty('--vpct', volume + '%'); }
   }
 
   // === LETRAS SINCRONIZADAS (LRCLIB) ===
@@ -369,7 +480,6 @@
       .replace(/\s+(?:ft\.?|feat\.?)\s+.*$/i, '')
       .trim();
   }
-
   function parseLrc(lrc) {
     const out = [];
     for (const line of String(lrc || '').split('\n')) {
@@ -381,88 +491,48 @@
     }
     return out;
   }
-
   async function fetchLyricsFor(track) {
     if (!track) return;
     const key = `${track.title}::${track.artist}`;
     if (lyricsCache.has(key)) {
-      const cached = lyricsCache.get(key);
-      lyricsLines = cached.lines;
-      lyricsSynced = cached.synced;
-      lyricsStatus = cached.status;
-      renderLyricsBox();
-      syncActiveLyric();
-      return;
+      const c = lyricsCache.get(key);
+      lyricsLines = c.lines; lyricsSynced = c.synced; lyricsStatus = c.status;
+      renderLyricsBox(); syncActiveLyric(); return;
     }
-
-    lyricsLines = [];
-    lyricsSynced = false;
-    lyricsStatus = 'Buscando letra sincronizada...';
+    lyricsLines = []; lyricsSynced = false; lyricsStatus = 'Buscando letra sincronizada...';
     renderLyricsBox();
-
-    const cleanTitle = cleanTitleForLyrics(track.title);
-    const cleanArtist = cleanTitleForLyrics(track.artist);
+    const ct = cleanTitleForLyrics(track.title);
+    const ca = cleanTitleForLyrics(track.artist);
     try {
       let data = null;
-      const r1 = await fetch(
-        `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(cleanArtist)}`,
-        { signal: AbortSignal.timeout(5500) }
-      );
+      const r1 = await fetch(`https://lrclib.net/api/get?track_name=${encodeURIComponent(ct)}&artist_name=${encodeURIComponent(ca)}`, { signal: AbortSignal.timeout(5500) });
       if (r1.ok) data = await r1.json();
       if (!data || (!data.syncedLyrics && !data.plainLyrics)) {
-        const r2 = await fetch(
-          `https://lrclib.net/api/search?q=${encodeURIComponent(`${cleanTitle} ${cleanArtist}`.trim())}`,
-          { signal: AbortSignal.timeout(5500) }
-        );
+        const r2 = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(`${ct} ${ca}`.trim())}`, { signal: AbortSignal.timeout(5500) });
         if (r2.ok) {
           const arr = await r2.json();
-          if (Array.isArray(arr) && arr.length) {
-            data = arr.find((x) => x.syncedLyrics) || arr[0];
-          }
+          if (Array.isArray(arr) && arr.length) data = arr.find((x) => x.syncedLyrics) || arr[0];
         }
       }
-
-      if (data?.syncedLyrics) {
-        lyricsLines = parseLrc(data.syncedLyrics);
-        lyricsSynced = true;
-        lyricsStatus = '';
-      } else if (data?.plainLyrics) {
-        lyricsLines = data.plainLyrics.split('\n').filter((x) => x.trim()).map((text) => ({ t: -1, text }));
-        lyricsSynced = false;
-        lyricsStatus = '';
-      } else {
-        lyricsLines = [];
-        lyricsSynced = false;
-        lyricsStatus = 'Letra não encontrada para esta faixa.';
-      }
+      if (data?.syncedLyrics) { lyricsLines = parseLrc(data.syncedLyrics); lyricsSynced = true; lyricsStatus = ''; }
+      else if (data?.plainLyrics) { lyricsLines = data.plainLyrics.split('\n').filter((x) => x.trim()).map((text) => ({ t: -1, text })); lyricsSynced = false; lyricsStatus = ''; }
+      else { lyricsLines = []; lyricsSynced = false; lyricsStatus = 'Letra não encontrada para esta faixa.'; }
     } catch (_) {
       lyricsStatus = 'Sem conexão para buscar a letra.';
     }
-
     if (lyricsCache.size > 30) lyricsCache.clear();
     lyricsCache.set(key, { lines: lyricsLines, synced: lyricsSynced, status: lyricsStatus });
-    renderLyricsBox();
-    syncActiveLyric();
+    renderLyricsBox(); syncActiveLyric();
   }
-
   function renderLyricsBox() {
     const box = document.getElementById('lm-lyrics-box');
     if (!box) return;
     box.classList.toggle('show', lyricsOpen);
     if (!lyricsOpen) return;
-    if (!currentTrack) {
-      box.innerHTML = '<div class="lm-lyric-line">Toque uma música para acompanhar a letra.</div>';
-      return;
-    }
-    if (lyricsStatus) {
-      box.innerHTML = `<div class="lm-lyric-line">${esc(lyricsStatus)}</div>`;
-      return;
-    }
-    box.innerHTML = lyricsLines
-      .map((l, i) => `<div class="lm-lyric-line" data-lidx="${i}" data-lt="${l.t}">${esc(l.text)}</div>`)
-      .join('');
+    if (!currentTrack) { box.innerHTML = '<div class="lm-lyric-line">Toque uma música para ver a letra sincronizada.</div>'; return; }
+    if (lyricsStatus) { box.innerHTML = `<div class="lm-lyric-line">${esc(lyricsStatus)}</div>`; return; }
+    box.innerHTML = lyricsLines.map((l, i) => `<div class="lm-lyric-line" data-lidx="${i}" data-lt="${l.t}">${esc(l.text)}</div>`).join('');
   }
-
   function syncActiveLyric() {
     if (!lyricsOpen || !lyricsSynced || !lyricsLines.length) return;
     let idx = -1;
@@ -477,14 +547,11 @@
     box.querySelectorAll('.lm-lyric-line.active').forEach((el) => el.classList.remove('active'));
     if (idx >= 0) {
       const el = box.querySelector(`.lm-lyric-line[data-lidx="${idx}"]`);
-      if (el) {
-        el.classList.add('active');
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }
+      if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
     }
   }
 
-  // === BUSCA & CATÁLOGO (AUDIUS + YOUTUBE) ===
+  // === BUSCA (YOUTUBE & AUDIUS) ===
   function mapAudiusTrack(t) {
     return {
       id: String(t.id),
@@ -496,84 +563,47 @@
       streamUrl: `${AUDIUS_API}/tracks/${encodeURIComponent(t.id)}/stream?app_name=LumoMusic`
     };
   }
-
   async function loadAudiusFeed(chip = 'trending', query = '') {
-    loadingList = true;
-    listMsg = 'Carregando faixas leves...';
-    renderLibrary();
+    loadingList = true; listMsg = 'Carregando faixas sem anúncio...'; renderLibrary();
     try {
-      let url;
-      if (query.trim()) {
-        url = `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(query.trim())}&app_name=LumoMusic&limit=18`;
-      } else if (chip === 'trending') {
-        url = `${AUDIUS_API}/tracks/trending?app_name=LumoMusic&limit=18`;
-      } else {
-        url = `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(chip)}&app_name=LumoMusic&limit=18`;
-      }
+      const url = query.trim()
+        ? `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(query.trim())}&app_name=LumoMusic&limit=18`
+        : (chip === 'trending'
+            ? `${AUDIUS_API}/tracks/trending?app_name=LumoMusic&limit=18`
+            : `${AUDIUS_API}/tracks/search?query=${encodeURIComponent(chip)}&app_name=LumoMusic&limit=18`);
       const res = await fetch(url, { signal: AbortSignal.timeout(7000) });
       const json = await res.json();
       results = (Array.isArray(json.data) ? json.data : []).map(mapAudiusTrack);
       listMsg = results.length ? '' : 'Nenhuma faixa encontrada no Audius.';
     } catch (_) {
-      results = [];
-      listMsg = 'Erro ao conectar no Audius. Tente novamente.';
+      results = []; listMsg = 'Erro ao conectar no Audius.';
     }
-    loadingList = false;
-    renderLibrary();
+    loadingList = false; renderLibrary();
   }
-
   function extractYtId(input) {
     const s = String(input || '').trim();
     if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
     const m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/);
     return m ? m[1] : null;
   }
-
   async function searchYouTube(query) {
     const q = String(query || '').trim();
-    if (!q) {
-      results = [];
-      listMsg = 'Digite o nome da música ou cole um link do YouTube.';
-      renderLibrary();
-      return;
-    }
-
-    // 1. Link ou ID direto do YouTube (funciona 100% instantâneo sem precisar de busca)
+    if (!q) { results = []; listMsg = 'Busque qualquer música ou cole um link do YouTube!'; renderLibrary(); return; }
     const directId = extractYtId(q);
     if (directId) {
-      loadingList = true;
-      listMsg = 'Carregando vídeo do YouTube...';
-      renderLibrary();
-      let title = 'Vídeo do YouTube';
-      let artist = 'YouTube';
+      loadingList = true; listMsg = 'Abrindo faixa do YouTube...'; renderLibrary();
+      let title = 'Música do YouTube', artist = 'YouTube';
       try {
-        const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + directId)}&format=json`, { signal: AbortSignal.timeout(5000) });
-        if (r.ok) {
-          const d = await r.json();
-          if (d.title) title = d.title;
-          if (d.author_name) artist = d.author_name;
-        }
+        const r = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + directId)}&format=json`, { signal: AbortSignal.timeout(4500) });
+        if (r.ok) { const d = await r.json(); if (d.title) title = d.title; if (d.author_name) artist = d.author_name; }
       } catch (_) {}
-      const track = {
-        id: 'yt_' + directId,
-        videoId: directId,
-        source: 'youtube',
-        title,
-        artist,
-        artwork: `https://i.ytimg.com/vi/${directId}/hqdefault.jpg`,
-        duration: 0
-      };
-      results = [track];
-      loadingList = false;
-      listMsg = '';
+      const track = { id: 'yt_' + directId, videoId: directId, source: 'youtube', title, artist, artwork: `https://i.ytimg.com/vi/${directId}/hqdefault.jpg`, duration: 0 };
+      results = [track]; loadingList = false; listMsg = '';
       playTrack(track, [track], 0);
       return;
     }
 
-    // 2. Busca por nome via Worker (/yt-search) com fallback público Piped
-    loadingList = true;
-    listMsg = 'Buscando no YouTube...';
-    renderLibrary();
+    loadingList = true; listMsg = 'Buscando músicas...'; renderLibrary();
     try {
       let items = null;
       try {
@@ -583,25 +613,19 @@
           if (Array.isArray(wd.items) && wd.items.length) items = wd.items;
         }
       } catch (_) {}
-
       if (!items) {
-        const mirrors = ['https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de'];
-        for (const base of mirrors) {
+        for (const base of PIPED_MIRRORS) {
           try {
-            const pr = await fetch(`${base}/search?q=${encodeURIComponent(q)}&filter=music_songs`, { signal: AbortSignal.timeout(5000) });
+            const pr = await fetch(`${base}/search?q=${encodeURIComponent(q)}&filter=music_songs`, { signal: AbortSignal.timeout(4500) });
             if (!pr.ok) continue;
             const pd = await pr.json();
             if (Array.isArray(pd.items) && pd.items.length) {
               items = pd.items.slice(0, 15).map((it) => {
                 const vid = extractYtId(it.url || '');
                 return vid ? {
-                  id: 'yt_' + vid,
-                  videoId: vid,
-                  source: 'youtube',
-                  title: it.title || 'Música',
-                  artist: it.uploaderName || 'YouTube',
-                  artwork: it.thumbnail || `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
-                  duration: Number(it.duration || 0)
+                  id: 'yt_' + vid, videoId: vid, source: 'youtube',
+                  title: it.title || 'Música', artist: it.uploaderName || 'YouTube',
+                  artwork: it.thumbnail || `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`, duration: Number(it.duration || 0)
                 } : null;
               }).filter(Boolean);
               if (items.length) break;
@@ -609,26 +633,32 @@
           } catch (_) {}
         }
       }
-
       results = items || [];
-      listMsg = results.length ? '' : 'Cole um link do YouTube acima ou ative /yt-search no Worker para busca direta.';
+      listMsg = results.length ? '' : 'Nenhum resultado agora. Tente outro termo ou cole o link do YouTube!';
     } catch (_) {
-      results = [];
-      listMsg = 'Não consegui buscar agora. Você pode colar qualquer link do YouTube direto na barra!';
+      results = []; listMsg = 'Erro na busca. Tente colar o link do YouTube!';
     }
-    loadingList = false;
-    renderLibrary();
+    loadingList = false; renderLibrary();
   }
 
-  // === ESTRUTURA DOM DENTRO DE #view-midia ===
+  // === ESTRUTURA DOM: 3 ABAS EM #view-midia (MÚSICA | AMBIENTE | RÁDIOS & PC) ===
   const legacyPane = document.createElement('div');
   legacyPane.id = 'lm-legacy-pane';
   legacyPane.className = 'hidden';
   while (viewMidia.firstChild) legacyPane.appendChild(viewMidia.firstChild);
 
+  const ambientPane = document.createElement('div');
+  ambientPane.id = 'lm-ambient-pane';
+  ambientPane.className = 'hidden';
+  const oldAmbientView = document.getElementById('view-ambiente');
+  if (oldAmbientView) {
+    while (oldAmbientView.firstChild) ambientPane.appendChild(oldAmbientView.firstChild);
+  }
+
   viewMidia.innerHTML = `
     <div class="lm-subtabs" id="lm-subtabs">
-      <button type="button" class="lm-subtab active" data-mtab="music">${IC.music}<span>Lumo Music</span></button>
+      <button type="button" class="lm-subtab active" data-mtab="music">${IC.music}<span>Música</span></button>
+      <button type="button" class="lm-subtab" data-mtab="ambient">${IC.ambient}<span>Ambiente</span></button>
       <button type="button" class="lm-subtab" data-mtab="legacy">${IC.radio}<span>Rádios & PC</span></button>
     </div>
     <div id="lm-music-pane">
@@ -636,19 +666,19 @@
       <div class="lm-lyrics-box" id="lm-lyrics-box"></div>
       <div class="card" id="lm-library"></div>
     </div>`;
+  viewMidia.appendChild(ambientPane);
   viewMidia.appendChild(legacyPane);
 
-  // Listeners da sub-aba principal
   document.getElementById('lm-subtabs').addEventListener('click', (e) => {
     const btn = e.target.closest('.lm-subtab');
     if (!btn) return;
-    mainTab = btn.dataset.mtab === 'legacy' ? 'legacy' : 'music';
+    mainTab = btn.dataset.mtab || 'music';
     document.querySelectorAll('.lm-subtab').forEach((b) => b.classList.toggle('active', b.dataset.mtab === mainTab));
     document.getElementById('lm-music-pane').classList.toggle('hidden', mainTab !== 'music');
+    document.getElementById('lm-ambient-pane').classList.toggle('hidden', mainTab !== 'ambient');
     document.getElementById('lm-legacy-pane').classList.toggle('hidden', mainTab !== 'legacy');
   });
 
-  // Clique em linha de letra sincronizada pula para o momento exato
   document.getElementById('lm-lyrics-box').addEventListener('click', (e) => {
     const line = e.target.closest('.lm-lyric-line');
     if (!line) return;
@@ -656,34 +686,31 @@
     if (Number.isFinite(t) && t >= 0) seekTo(t);
   });
 
-  function isLiked(id) {
-    return likes.some((x) => x.id === id);
+  // Garante o ícone musical no card Lumo Music do Resumo (mesmo após scripts de ícones)
+  function ensureResumoTilePolish() {
+    const tile = document.querySelector('.hub-tile[data-lm-tile="1"]') || document.getElementById('music-tile-sub')?.closest('.hub-tile');
+    if (!tile) return;
+    const svg = tile.querySelector('svg');
+    if (svg) svg.outerHTML = IC.music.replace('<svg ', '<svg class="ic" ');
+    syncResumoMusicTile();
   }
+  setTimeout(ensureResumoTilePolish, 120);
+  setTimeout(ensureResumoTilePolish, 900);
+
+  function isLiked(id) { return likes.some((x) => x.id === id); }
   function toggleLike(track) {
     if (!track) return;
     const idx = likes.findIndex((x) => x.id === track.id);
     if (idx >= 0) likes.splice(idx, 1);
     else likes.unshift({ ...track });
-    saveLikes();
-    renderHero();
-    renderLibrary();
+    saveLikes(); renderHero(); renderLibrary();
   }
-
   function addToPlaylistPrompt(track) {
     if (!track) return;
-    if (!playlists.length) {
-      playlists.push({ id: 'pl_' + Date.now().toString(36), name: 'Favoritas', tracks: [track] });
-      savePlaylists();
-      if (typeof say === 'function') say(`Adicionada à playlist "Favoritas" ✓`, 2000, true);
-      renderLibrary();
-      return;
-    }
+    if (!playlists.length) playlists.push({ id: 'pl_' + Date.now().toString(36), name: 'Favoritas', tracks: [] });
     const target = playlists[0];
-    if (!target.tracks.some((x) => x.id === track.id)) {
-      target.tracks.push({ ...track });
-      savePlaylists();
-    }
-    if (typeof say === 'function') say(`Adicionada em "${target.name}" ✓`, 2000, true);
+    if (!target.tracks.some((x) => x.id === track.id)) { target.tracks.push({ ...track }); savePlaylists(); }
+    if (typeof say === 'function') say(`Salva em "${target.name}" ✓`, 1800, true);
     renderLibrary();
   }
 
@@ -694,8 +721,11 @@
     if (tCur) tCur.textContent = fmtSec(curTime);
     if (tDur) tDur.textContent = fmtSec(duration);
     if (seek && !seeking) {
-      seek.max = String(Math.max(1, Math.floor(duration || 1)));
-      seek.value = String(Math.min(Math.floor(curTime), Math.floor(duration || 1)));
+      const maxVal = Math.max(1, Math.floor(duration || 1));
+      const val = Math.min(Math.floor(curTime), maxVal);
+      seek.max = String(maxVal);
+      seek.value = String(val);
+      seek.style.setProperty('--pct', Math.round((val / maxVal) * 100) + '%');
     }
   }
 
@@ -703,11 +733,17 @@
     const hero = document.getElementById('lm-hero');
     if (!hero) return;
     const liked = currentTrack ? isLiked(currentTrack.id) : false;
-    const srcLabel = !currentTrack
-      ? 'Audius + YouTube · Baixa RAM'
-      : currentTrack.source === 'youtube'
-        ? 'YouTube · Sob demanda'
-        : 'Audius · Ultra-leve (~10MB)';
+    let srcLabel = 'Sem anúncio · Baixa RAM';
+    let isAdFree = true;
+    if (currentTrack) {
+      if (currentTrack._resolving) { srcLabel = 'Conectando áudio puro...'; isAdFree = true; }
+      else if (currentTrack.source === 'audius') { srcLabel = 'Audius · Sem anúncio (~10MB)'; isAdFree = true; }
+      else if (currentTrack._mode === 'direct') { srcLabel = 'YouTube · Áudio puro (Sem anúncio)'; isAdFree = true; }
+      else { srcLabel = 'YouTube · Embed (Fallback)'; isAdFree = false; }
+    }
+    const maxVal = Math.max(1, Math.floor(duration || 1));
+    const curVal = Math.min(Math.floor(curTime), maxVal);
+    const pct = Math.round((curVal / maxVal) * 100);
 
     hero.classList.toggle('has-art', Boolean(currentTrack?.artwork));
     hero.innerHTML = `
@@ -716,34 +752,38 @@
         <div class="lm-top-row">
           <div class="lm-cover">
             ${currentTrack?.artwork ? `<img src="${esc(currentTrack.artwork)}" alt="" />` : IC.music}
+            ${currentTrack && isPlaying ? '<span class="lm-eq-badge"><i></i><i></i><i></i></span>' : ''}
           </div>
           <div class="lm-meta">
-            <div class="lm-title">${esc(currentTrack ? currentTrack.title : 'Escolha uma música')}</div>
-            <div class="lm-artist">${esc(currentTrack ? currentTrack.artist : 'Toque direto sem abrir navegador')}</div>
-            <div class="lm-badge-row"><span class="lm-src-badge">${esc(srcLabel)}</span></div>
+            <div class="lm-title">${esc(currentTrack ? currentTrack.title : 'Lumo Music')}</div>
+            <div class="lm-artist">${esc(currentTrack ? currentTrack.artist : 'Escolha uma faixa abaixo para ouvir leve')}</div>
+            <div class="lm-badge-row"><span class="lm-src-badge ${isAdFree ? 'adfree' : ''}">${esc(srcLabel)}</span></div>
+          </div>
+        </div>
+
+        <div class="lm-progress-wrap">
+          <span class="lm-time" id="lm-t-cur">${fmtSec(curTime)}</span>
+          <input type="range" id="lm-seek" class="lm-seek" style="--pct:${pct}%" min="0" max="${maxVal}" value="${curVal}" />
+          <span class="lm-time end" id="lm-t-dur">${fmtSec(duration)}</span>
+        </div>
+
+        <div class="lm-transport">
+          <button type="button" class="lm-icon-btn ghost ${isShuffle ? 'active' : ''}" data-hact="shuffle" title="Aleatório">${IC.shuffle}</button>
+          <button type="button" class="lm-icon-btn ghost" data-hact="prev" title="Anterior">${IC.prev}</button>
+          <button type="button" class="lm-play-btn" data-hact="play" title="Play / Pausar">${isPlaying ? IC.pause : IC.play}</button>
+          <button type="button" class="lm-icon-btn ghost" data-hact="next" title="Próxima">${IC.next}</button>
+          <button type="button" class="lm-icon-btn ghost ${repeatMode !== 'off' ? 'active' : ''}" data-hact="repeat" title="Repetir: ${repeatMode}">${IC.repeat}</button>
+        </div>
+
+        <div class="lm-foot-bar">
+          <div class="lm-vol-wrap">
+            <button type="button" class="lm-icon-btn ghost" style="width:24px; height:24px;" data-hact="mute" title="Mudo">${volume === 0 ? IC.muted : IC.vol}</button>
+            <input type="range" id="lm-vol" class="lm-vol" style="--vpct:${volume}%" min="0" max="100" value="${volume}" />
           </div>
           <div class="lm-hero-actions">
             <button type="button" class="lm-icon-btn ${liked ? 'liked' : ''}" data-hact="like" title="Curtir">${IC.heart}</button>
             <button type="button" class="lm-icon-btn ${lyricsOpen ? 'active' : ''}" data-hact="lyrics" title="Letra sincronizada">${IC.lyrics}</button>
             ${currentTrack ? `<button type="button" class="lm-icon-btn" data-hact="stop" title="Parar e liberar RAM">${IC.stop}</button>` : ''}
-          </div>
-        </div>
-        <div class="lm-progress-wrap">
-          <span class="lm-time" id="lm-t-cur">${fmtSec(curTime)}</span>
-          <input type="range" id="lm-seek" class="lm-seek" min="0" max="${Math.max(1, Math.floor(duration || 1))}" value="${Math.min(Math.floor(curTime), Math.floor(duration || 1))}" />
-          <span class="lm-time end" id="lm-t-dur">${fmtSec(duration)}</span>
-        </div>
-        <div class="lm-controls">
-          <div class="lm-ctrl-group">
-            <button type="button" class="lm-icon-btn ${isShuffle ? 'active' : ''}" data-hact="shuffle" title="Aleatório">${IC.shuffle}</button>
-            <button type="button" class="lm-icon-btn" data-hact="prev" title="Anterior">${IC.prev}</button>
-            <button type="button" class="lm-play-btn" data-hact="play" title="Play / Pausar">${isPlaying ? IC.pause : IC.play}</button>
-            <button type="button" class="lm-icon-btn" data-hact="next" title="Próxima">${IC.next}</button>
-            <button type="button" class="lm-icon-btn ${repeatMode !== 'off' ? 'active' : ''}" data-hact="repeat" title="Repetir: ${repeatMode}">${IC.repeat}</button>
-          </div>
-          <div class="lm-vol-wrap">
-            <span style="width:14px; height:14px; color:var(--muted); display:inline-flex;">${IC.vol}</span>
-            <input type="range" id="lm-vol" class="lm-vol" min="0" max="100" value="${volume}" />
           </div>
         </div>
       </div>`;
@@ -753,13 +793,13 @@
       seek.addEventListener('mousedown', () => { seeking = true; });
       seek.addEventListener('touchstart', () => { seeking = true; }, { passive: true });
       seek.addEventListener('input', () => {
+        const v = parseFloat(seek.value);
+        const m = parseFloat(seek.max) || 1;
+        seek.style.setProperty('--pct', Math.round((v / m) * 100) + '%');
         const tCur = document.getElementById('lm-t-cur');
-        if (tCur) tCur.textContent = fmtSec(parseFloat(seek.value));
+        if (tCur) tCur.textContent = fmtSec(v);
       });
-      seek.addEventListener('change', () => {
-        seeking = false;
-        seekTo(parseFloat(seek.value));
-      });
+      seek.addEventListener('change', () => { seeking = false; seekTo(parseFloat(seek.value)); });
     }
     const volInp = document.getElementById('lm-vol');
     if (volInp) volInp.addEventListener('input', () => setVol(volInp.value));
@@ -773,23 +813,21 @@
     else if (act === 'next') playNext(false);
     else if (act === 'prev') playPrev();
     else if (act === 'stop') stopMusic();
+    else if (act === 'mute') { setVol(volume > 0 ? 0 : lastNonZeroVol); renderHero(); }
     else if (act === 'like' && currentTrack) toggleLike(currentTrack);
     else if (act === 'shuffle') { isShuffle = !isShuffle; renderHero(); }
     else if (act === 'repeat') {
       repeatMode = repeatMode === 'off' ? 'all' : (repeatMode === 'all' ? 'one' : 'off');
       renderHero();
-      if (typeof say === 'function') say(`Repetir: ${repeatMode === 'off' ? 'Desligado' : repeatMode === 'all' ? 'Fila' : 'Faixa atual'}`, 1600, true);
     } else if (act === 'lyrics') {
-      lyricsOpen = !lyricsOpen;
-      renderHero();
-      renderLyricsBox();
+      lyricsOpen = !lyricsOpen; renderHero(); renderLyricsBox();
       if (lyricsOpen && currentTrack) fetchLyricsFor(currentTrack);
     }
   });
 
   function renderTrackRows(list, ctx) {
     if (!list.length) {
-      return `<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:16px 6px;">${esc(listMsg || 'Nenhuma faixa aqui ainda.')}</div>`;
+      return `<div style="font-size:10.8px; color:var(--muted); text-align:center; padding:18px 8px;">${esc(listMsg || 'Nenhuma faixa aqui ainda.')}</div>`;
     }
     return list.map((t, i) => {
       const playingThis = currentTrack && currentTrack.id === t.id;
@@ -801,8 +839,8 @@
           <div class="lm-t-sub">${esc(t.artist)}${t.duration ? ' · ' + fmtSec(t.duration) : ''}</div>
         </div>
         <div class="lm-t-acts">
-          ${ctx !== 'queue' ? `<button type="button" class="lm-t-btn" data-tact="queue" title="Adicionar à fila">+</button>` : `<button type="button" class="lm-t-btn" data-tact="qrem" title="Remover da fila">×</button>`}
-          ${ctx !== 'pl-open' ? `<button type="button" class="lm-t-btn" data-tact="pladd" title="Salvar na playlist">▤</button>` : `<button type="button" class="lm-t-btn" data-tact="plrem" title="Remover da playlist">×</button>`}
+          ${ctx !== 'queue' ? `<button type="button" class="lm-t-btn" data-tact="queue" title="Adicionar à fila">+</button>` : `<button type="button" class="lm-t-btn" data-tact="qrem" title="Remover">×</button>`}
+          ${ctx !== 'pl-open' ? `<button type="button" class="lm-t-btn" data-tact="pladd" title="Salvar na playlist">▤</button>` : `<button type="button" class="lm-t-btn" data-tact="plrem" title="Remover">×</button>`}
           <button type="button" class="lm-t-btn ${liked ? 'liked' : ''}" data-tact="like" title="Curtir">♥</button>
         </div>
       </div>`;
@@ -812,10 +850,9 @@
   function renderLibrary() {
     const lib = document.getElementById('lm-library');
     if (!lib) return;
-
     const tabsHtml = `
       <div class="lm-lib-tabs">
-        <button type="button" class="lm-lib-tab ${libTab === 'explore' ? 'active' : ''}" data-ltab="explore">Explorar</button>
+        <button type="button" class="lm-lib-tab ${libTab === 'explore' ? 'active' : ''}" data-ltab="explore">Buscar</button>
         <button type="button" class="lm-lib-tab ${libTab === 'queue' ? 'active' : ''}" data-ltab="queue">Fila (${queue.length})</button>
         <button type="button" class="lm-lib-tab ${libTab === 'likes' ? 'active' : ''}" data-ltab="likes">Curtidas (${likes.length})</button>
         <button type="button" class="lm-lib-tab ${libTab === 'playlists' ? 'active' : ''}" data-ltab="playlists">Playlists</button>
@@ -823,23 +860,15 @@
 
     let body = '';
     if (libTab === 'explore') {
-      const chips = [
-        ['trending', 'Em Alta'],
-        ['lofi', 'Lo-Fi'],
-        ['electronic', 'Eletrônica'],
-        ['hip hop', 'Hip-Hop'],
-        ['pop', 'Pop'],
-        ['rock', 'Rock'],
-        ['phonk', 'Phonk']
-      ];
+      const chips = [['trending','Em Alta'],['lofi','Lo-Fi'],['electronic','Eletrônica'],['hip hop','Hip-Hop'],['pop','Pop'],['rock','Rock'],['phonk','Phonk']];
       body = `
         <div class="lm-src-switch">
-          <button type="button" class="lm-src-pill ${searchSrc === 'audius' ? 'active' : ''}" data-src="audius">Audius · Ultra-leve</button>
-          <button type="button" class="lm-src-pill ${searchSrc === 'youtube' ? 'active' : ''}" data-src="youtube">YouTube · Link ou Busca</button>
+          <button type="button" class="lm-src-pill ${searchSrc === 'youtube' ? 'active' : ''}" data-src="youtube">YouTube · Áudio Puro</button>
+          <button type="button" class="lm-src-pill ${searchSrc === 'audius' ? 'active' : ''}" data-src="audius">Audius · 100% Sem Anúncio</button>
         </div>
         <form class="lm-search-row" id="lm-search-form">
-          <input type="text" id="lm-search-inp" class="lm-search-inp" value="${esc(searchQuery)}" placeholder="${searchSrc === 'youtube' ? 'Nome da música ou cole link do YouTube...' : 'Buscar música ou artista no Audius...'}" />
-          <button type="submit" class="btn-primary" style="padding:6px 11px; font-size:11px;">Ir</button>
+          <input type="text" id="lm-search-inp" class="lm-search-inp" value="${esc(searchQuery)}" placeholder="${searchSrc === 'youtube' ? 'Buscar música, artista ou colar link...' : 'Buscar no Audius (zero anúncio)...'}" />
+          <button type="submit" class="btn-primary" style="padding:6px 12px; font-size:11px;">Ir</button>
         </form>
         ${searchSrc === 'audius' ? `<div class="lm-chips">${chips.map(([k, l]) => `<button type="button" class="lm-chip ${activeChip === k ? 'active' : ''}" data-chip="${k}">${l}</button>`).join('')}</div>` : ''}
         <div class="lm-list">${loadingList ? `<div style="font-size:11px; color:var(--muted); text-align:center; padding:18px;">${esc(listMsg)}</div>` : renderTrackRows(results, 'explore')}</div>`;
@@ -847,13 +876,13 @@
       body = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span style="font-size:10.5px; color:var(--muted);">A seguir na reprodução</span>
-          ${queue.length ? `<button type="button" class="btn-ghost" data-qact="clear" style="font-size:10px; padding:3px 8px;">Limpar fila</button>` : ''}
+          ${queue.length ? `<button type="button" class="btn-ghost" data-qact="clear" style="font-size:10px; padding:3px 8px;">Limpar</button>` : ''}
         </div>
         <div class="lm-list">${renderTrackRows(queue, 'queue')}</div>`;
     } else if (libTab === 'likes') {
       body = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-size:10.5px; color:var(--muted);">${likes.length} música${likes.length === 1 ? '' : 's'} curtida${likes.length === 1 ? '' : 's'}</span>
+          <span style="font-size:10.5px; color:var(--muted);">${likes.length} curtida${likes.length === 1 ? '' : 's'}</span>
           ${likes.length ? `<button type="button" class="btn-primary" data-lact="playall" style="font-size:10px; padding:4px 9px;">▶ Tocar todas</button>` : ''}
         </div>
         <div class="lm-list">${renderTrackRows(likes, 'likes')}</div>`;
@@ -881,16 +910,14 @@
                   <div class="lm-t-title">${esc(p.name)}</div>
                   <div class="lm-t-sub">${p.tracks.length} faixa${p.tracks.length === 1 ? '' : 's'}</div>
                 </div>
-                <button type="button" class="lm-t-btn" data-pldel="${esc(p.id)}" title="Apagar playlist">×</button>
-              </div>`).join('') : '<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:16px 6px;">Crie sua primeira playlist acima e clique em ▤ em qualquer música para salvar!</div>'}
+                <button type="button" class="lm-t-btn" data-pldel="${esc(p.id)}" title="Apagar">×</button>
+              </div>`).join('') : '<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:16px 6px;">Crie uma playlist acima e salve músicas com o botão ▤!</div>'}
           </div>`;
       }
     }
-
     lib.innerHTML = tabsHtml + body;
   }
 
-  // Delegação de eventos da biblioteca
   const libEl = document.getElementById('lm-library');
   libEl.addEventListener('submit', (e) => {
     if (e.target.id === 'lm-search-form') {
@@ -904,8 +931,7 @@
       const name = (inp?.value || '').trim();
       if (!name) return;
       playlists.unshift({ id: 'pl_' + Date.now().toString(36), name, tracks: [] });
-      savePlaylists();
-      renderLibrary();
+      savePlaylists(); renderLibrary();
     }
   });
 
@@ -916,8 +942,8 @@
     const srcBtn = e.target.closest('[data-src]');
     if (srcBtn) {
       searchSrc = srcBtn.dataset.src;
-      if (searchSrc === 'audius' && (!results.length || results[0]?.source !== 'audius')) loadAudiusFeed(activeChip, searchQuery);
-      else { results = []; listMsg = 'Digite o nome da música ou cole um link do YouTube.'; renderLibrary(); }
+      if (searchSrc === 'audius') loadAudiusFeed(activeChip, searchQuery);
+      else { results = []; listMsg = 'Busque qualquer música ou cole um link do YouTube!'; renderLibrary(); }
       return;
     }
 
@@ -928,13 +954,7 @@
     if (e.target.closest('[data-lact="playall"]') && likes.length) { playTrack(likes[0], likes, 0); return; }
 
     const plDel = e.target.closest('[data-pldel]');
-    if (plDel) {
-      e.stopPropagation();
-      playlists = playlists.filter((p) => p.id !== plDel.dataset.pldel);
-      savePlaylists();
-      renderLibrary();
-      return;
-    }
+    if (plDel) { e.stopPropagation(); playlists = playlists.filter((p) => p.id !== plDel.dataset.pldel); savePlaylists(); renderLibrary(); return; }
     const plOpen = e.target.closest('[data-plopen]');
     if (plOpen) { openedPlaylistId = plOpen.dataset.plopen; renderLibrary(); return; }
 
@@ -962,28 +982,16 @@
       e.stopPropagation();
       const act = actBtn.dataset.tact;
       if (act === 'like') toggleLike(track);
-      else if (act === 'queue') {
-        queue.push({ ...track });
-        if (typeof say === 'function') say(`"${track.title}" adicionada à fila ✓`, 1800, true);
-        renderLibrary();
-      } else if (act === 'qrem') {
-        queue.splice(idx, 1);
-        if (queueIdx >= queue.length) queueIdx = queue.length - 1;
-        renderLibrary();
-      } else if (act === 'pladd') {
-        addToPlaylistPrompt(track);
-      } else if (act === 'plrem' && pl) {
-        pl.tracks.splice(idx, 1);
-        savePlaylists();
-        renderLibrary();
-      }
+      else if (act === 'queue') { queue.push({ ...track }); if (typeof say === 'function') say(`"${track.title}" na fila ✓`, 1600, true); renderLibrary(); }
+      else if (act === 'qrem') { queue.splice(idx, 1); if (queueIdx >= queue.length) queueIdx = queue.length - 1; renderLibrary(); }
+      else if (act === 'pladd') addToPlaylistPrompt(track);
+      else if (act === 'plrem' && pl) { pl.tracks.splice(idx, 1); savePlaylists(); renderLibrary(); }
       return;
     }
 
     playTrack(track, pool, idx);
   });
 
-  // Integra com window.sendMedia (hover mini-player + controles universais)
   const _prevSendMedia = window.sendMedia;
   window.sendMedia = async function (action) {
     if (currentTrack) {
@@ -992,7 +1000,7 @@
       if (action === 'prev') { playPrev(); return; }
       if (action === 'vol_up') { setVol(volume + 10); renderHero(); return; }
       if (action === 'vol_down') { setVol(volume - 10); renderHero(); return; }
-      if (action === 'mute') { setVol(volume > 0 ? 0 : 70); renderHero(); return; }
+      if (action === 'mute') { setVol(volume > 0 ? 0 : lastNonZeroVol); renderHero(); return; }
     }
     if (typeof _prevSendMedia === 'function') return _prevSendMedia(action);
   };
@@ -1001,6 +1009,4 @@
 
   renderHero();
   renderLibrary();
-  // Carrega o Em Alta do Audius discretamente ao iniciar
-  setTimeout(() => loadAudiusFeed('trending', ''), 1200);
 })();
