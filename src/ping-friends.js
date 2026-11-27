@@ -1,6 +1,16 @@
-// === LUMO v2.9.5 — LISTA DE AMIGOS, STATUS ONLINE/OFFLINE/JOGANDO & ANIMAÇÃO DE MENSAGEM ===
+// === LUMO v3.1.1 — LUMO PING 2.5 (SYNC SEM ATRASO VIA WEB WORKER + REDESIGN DO CHAT) ===
 (function initLumoPingFriends() {
   const FRIENDS_API = (typeof API_BASE !== 'undefined' ? API_BASE : 'https://lumo-ai.sivavieiravitor.workers.dev') + '/friends';
+  const MAX_REAL_ID = 1e11; // Qualquer ID >= 1e11 era fallback Date.now() antigo e deve ser sanitizado
+
+  const S = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+  const IC = {
+    back:    S('<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>'),
+    sync:    S('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>'),
+    trash:   S('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>'),
+    send:    S('<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/>'),
+    copy:    S('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>')
+  };
 
   let myUid = localStorage.getItem('lumo_ping_uid');
   if (!myUid) {
@@ -10,21 +20,34 @@
 
   let myTag = localStorage.getItem('lumo_ping_tag') || '';
   let showGameStatus = localStorage.getItem('lumo_ping_show_game') !== 'false';
-  let subTab = 'friends'; // 'friends' | 'rooms'
+  let subTab = 'friends';
   let friends = [];
   let requests = [];
   let activeFriend = null;
   let dmMsgs = [];
   let dmSeen = new Set();
   let dmLastId = 0;
-  let dmTimer = null;
+  let replyTarget = null;
+  let confirmRemoveUid = null;
+  let confirmRemoveTimer = null;
 
   let readMap = {};
-  try { readMap = JSON.parse(localStorage.getItem('lumo_dm_read_map') || '{}'); } catch (_) {}
+  try {
+    const raw = JSON.parse(localStorage.getItem('lumo_dm_read_map') || '{}');
+    for (const [k, v] of Object.entries(raw || {})) {
+      const n = Number(v);
+      readMap[k] = Number.isFinite(n) && n > 0 && n < MAX_REAL_ID ? n : 0;
+    }
+  } catch (_) {}
+
   let alertedIds = new Set();
   let initializedList = false;
   let lastFriendsRenderSig = '';
-  let ecoSkipTick = false;
+  let friendsInFlight = false;
+  let dmInFlight = false;
+  let lastPollFriendsAt = 0;
+  let lastPollDmAt = 0;
+  let newlyArrivedIds = new Set();
 
   const NUDGES = {
     wave:  { text: 'deu um oi! 👋',           expr: 'happy',     freq: [520, 780] },
@@ -36,6 +59,10 @@
   function esc(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  function isRealId(id) {
+    const n = Number(id);
+    return Number.isInteger(n) && n > 0 && n < MAX_REAL_ID;
+  }
   function getMyName() {
     const stored = (localStorage.getItem('lumo_username') || localStorage.getItem('lumo_name') || '').trim();
     if (stored) return stored.slice(0, 24);
@@ -46,20 +73,17 @@
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
     return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#4ade80';
   }
-  let replyTarget = null;
-  let lastActivityAt = Date.now();
-  let friendsPollTimer = null;
-
-  function loadDmCache(roomCode) {
-    try {
-      const arr = JSON.parse(localStorage.getItem('lumo_dm_hist_' + roomCode) || '[]');
-      return Array.isArray(arr) ? arr.slice(-200) : [];
-    } catch (_) { return []; }
+  function fmtTime(ts) {
+    try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
   }
-  function saveDmCache(roomCode, list) {
-    try {
-      localStorage.setItem('lumo_dm_hist_' + roomCode, JSON.stringify((list || []).slice(-200)));
-    } catch (_) {}
+  function fmtLastSeen(ts) {
+    if (!ts) return 'Offline';
+    const diff = Math.max(1, Math.floor((Date.now() - ts) / 60000));
+    if (diff < 2) return 'Offline · agora';
+    if (diff < 60) return `Offline · há ${diff} min`;
+    const h = Math.floor(diff / 60);
+    if (h < 24) return `Offline · há ${h}h`;
+    return `Offline · há ${Math.floor(h / 24)}d`;
   }
   function dayLabel(ts) {
     const d = new Date(ts || Date.now());
@@ -71,6 +95,37 @@
     if (key(d) === key(yest)) return 'Ontem';
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   }
+  function isPingViewOpen() {
+    const v = document.getElementById('view-ping');
+    return Boolean(v && v.classList.contains('active') && typeof isExpanded !== 'undefined' && isExpanded);
+  }
+  function isPingMuted() {
+    return localStorage.getItem('lumo_ping_muted') === 'true';
+  }
+  function saveReadMap() {
+    try { localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap)); } catch (_) {}
+  }
+
+  // Sanitiza cache local removendo qualquer ID corrompido (Date.now) de versões anteriores
+  function loadDmCache(roomCode) {
+    try {
+      const arr = JSON.parse(localStorage.getItem('lumo_dm_hist_' + roomCode) || '[]');
+      if (!Array.isArray(arr)) return [];
+      return arr
+        .filter((m) => m && isRealId(m.id))
+        .map((m) => ({ ...m, id: Number(m.id) }))
+        .slice(-200);
+    } catch (_) {
+      return [];
+    }
+  }
+  function saveDmCache(roomCode, list) {
+    try {
+      const clean = (list || []).filter((m) => m && isRealId(m.id)).slice(-200);
+      localStorage.setItem('lumo_dm_hist_' + roomCode, JSON.stringify(clean));
+    } catch (_) {}
+  }
+
   function formatBodyWithLinks(text) {
     const safe = esc(text);
     return safe.replace(/(https?:\/\/[^\s<]+)/gi, (url) =>
@@ -96,24 +151,29 @@
     const pv = bar.querySelector('.pf-reply-preview');
     if (pv) pv.textContent = `Respondendo ${replyTarget.name}: "${replyTarget.text.slice(0, 48)}"`;
   }
-  function fmtTime(ts) {
-    try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
+
+  // Fetch seguro com anti-cache + timeout curto (nunca trava o loop!)
+  async function apiGet(query) {
+    const sep = query.includes('?') ? '&' : '?';
+    const url = `${FRIENDS_API}${query}${sep}_t=${Date.now()}`;
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+      signal: AbortSignal.timeout(6500)
+    });
+    if (!res.ok) return null;
+    return await res.json();
   }
-  function fmtLastSeen(ts) {
-    if (!ts) return 'Offline';
-    const diff = Math.max(1, Math.floor((Date.now() - ts) / 60000));
-    if (diff < 2) return 'Offline · agora';
-    if (diff < 60) return `Offline · há ${diff} min`;
-    const h = Math.floor(diff / 60);
-    if (h < 24) return `Offline · há ${h}h`;
-    return `Offline · há ${Math.floor(h / 24)}d`;
-  }
-  function isPingViewOpen() {
-    const v = document.getElementById('view-ping');
-    return Boolean(v && v.classList.contains('active') && typeof isExpanded !== 'undefined' && isExpanded);
-  }
-  function isPingMuted() {
-    return localStorage.getItem('lumo_ping_muted') === 'true';
+  async function apiPost(payload) {
+    const res = await fetch(FRIENDS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8000)
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
   }
 
   // === ANIMAÇÃO DE MENSAGEM CHEGANDO NA CÁPSULA ===
@@ -125,7 +185,6 @@
 
     if (typeof window.burstPingParticles === 'function') window.burstPingParticles(isNudge ? body : 'msg', col, isNudge ? 6 : 4);
 
-    // 1. Pulinho luminoso na cor do amigo + som suave
     if (pill && !inGame) {
       pill.style.setProperty('--msg-color', col);
       pill.classList.remove('msg-arrive');
@@ -133,7 +192,6 @@
       pill.classList.add('msg-arrive');
       setTimeout(() => pill.classList.remove('msg-arrive'), 820);
 
-      // Partícula de balão/envelope flutuando acima da cápsula
       const r = pill.getBoundingClientRect();
       if (r.width > 0) {
         const badge = document.createElement('div');
@@ -147,10 +205,9 @@
       }
     }
 
-    // 2. Expressão dos olhos + toque duplo agradável
     if (!inGame && !isPingMuted()) {
       if (typeof setExpression === 'function' && !(typeof isThinking !== 'undefined' && isThinking)) {
-        const expr = isNudge ? (body.includes('❤️') ? 'love' : body.includes('⚡') ? 'surprised' : 'happy') : 'happy';
+        const expr = isNudge ? (String(body).includes('❤️') ? 'love' : String(body).includes('⚡') ? 'surprised' : 'happy') : 'happy';
         setExpression(expr);
         setTimeout(() => { if (typeof restoreIdleExpression === 'function') restoreIdleExpression(); }, 2200);
       }
@@ -160,16 +217,15 @@
       }
     }
 
-    // 3. Balão de fala se não estiver em jogo/furtivo/silenciado e não estiver já no chat
     if (!inGame && !stealth && !isPingMuted() && !(isPingViewOpen() && activeFriend)) {
-      const preview = String(body || '').slice(0, 68);
+      const cleanPrev = String(body || '').replace(/^↪[^\n]+\n/, '').slice(0, 68);
       if (typeof say === 'function') {
-        say(`💬 ${senderName}: ${preview}`, 4600, true);
+        say(`💬 ${senderName}: ${cleanPrev}`, 4600, true);
       }
     }
   }
 
-  // === ESTRUTURA DE SUB-ABAS DENTRO DE #view-ping ===
+  // === MONTA ESTRUTURA DE SUB-ABAS DENTRO DE #view-ping ===
   const viewPing = document.getElementById('view-ping');
   if (!viewPing || document.getElementById('pf-subtabs')) return;
 
@@ -195,7 +251,7 @@
   function countUnreadFriends() {
     let unread = 0;
     for (const f of friends) {
-      if (f.last_msg_id && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < f.last_msg_id) {
+      if (isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id)) {
         unread++;
       }
     }
@@ -210,17 +266,20 @@
       fb.classList.toggle('show', total > 0);
     }
 
-    // Atualiza também o card Lumo Ping na grade 3x2 do Resumo
     const tileBadge = document.getElementById('ping-unread-badge');
     const tileSub = document.getElementById('ping-strip-sub');
     const tile = document.getElementById('tile-ping');
     const onlineCount = friends.filter((f) => f.online).length;
     if (tile) tile.classList.toggle('connected', onlineCount > 0 || tile.classList.contains('connected'));
-    if (tileBadge && total > 0) {
-      tileBadge.textContent = total > 9 ? '9+' : String(total);
-      tileBadge.classList.add('show');
+    if (tileBadge) {
+      if (total > 0) {
+        tileBadge.textContent = total > 9 ? '9+' : String(total);
+        tileBadge.classList.add('show');
+      } else if (!localStorage.getItem('lumo_ping_room')) {
+        tileBadge.classList.remove('show');
+      }
     }
-    if (tileSub && (!localStorage.getItem('lumo_ping_room'))) {
+    if (tileSub && !localStorage.getItem('lumo_ping_room')) {
       if (total > 0) tileSub.textContent = `${total} novidade${total > 1 ? 's' : ''} nos Amigos`;
       else if (onlineCount > 0) tileSub.textContent = `${onlineCount} amigo${onlineCount > 1 ? 's' : ''} online`;
       else if (friends.length > 0) tileSub.textContent = `${friends.length} amigo${friends.length > 1 ? 's' : ''}`;
@@ -232,69 +291,101 @@
     const pane = document.getElementById('pf-friends-pane');
     if (!pane) return;
 
-    // Modo Chat DM aberto
+    // === MODO DM ABERTO ===
     if (activeFriend) {
       const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
+      const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
       const statusText = f.online
-        ? (f.playing ? `🎮 Jogando ${f.playing}` : '● Online agora')
+        ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora')
         : fmtLastSeen(f.last_seen);
       const statusCls = f.online ? (f.playing ? 'playing' : 'online') : '';
+      const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
+      const confirming = confirmRemoveUid === f.uid;
 
       pane.innerHTML = `
-        <div class="pf-dm-head">
-          <div style="display:flex; align-items:center; gap:7px; min-width:0; flex:1;">
-            <button type="button" class="cp-mini" onclick="LumoFriends.closeDm()">←</button>
-            <div style="min-width:0; flex:1;">
-              <div style="font-size:11.6px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(f.display_name)}</div>
-              <div class="pf-sub ${statusCls}">${esc(statusText)}</div>
+        <div class="pf-dm-shell">
+          <div class="pf-dm-head">
+            <div class="pf-dm-head-left">
+              <button type="button" class="pf-icon-btn" title="Voltar" onclick="LumoFriends.closeDm()">${IC.back}</button>
+              <div class="pf-avatar-wrap sm" style="background:${esc(f.color || '#4ade80')};">
+                ${esc(initial)}
+                <span class="pf-status-dot ${dotCls}"></span>
+              </div>
+              <div class="pf-info">
+                <div class="pf-name-row">
+                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(f.display_name)}</span>
+                </div>
+                <div class="pf-sub ${statusCls}" id="pf-dm-head-sub">${esc(statusText)}</div>
+              </div>
+            </div>
+            <div class="pf-dm-head-actions">
+              <button type="button" class="pf-icon-btn" id="pf-sync-btn" title="Sincronizar agora" onclick="LumoFriends.forceSync()">${IC.sync}</button>
+              <button type="button" class="pf-icon-btn danger ${confirming ? 'confirm' : ''}" id="pf-rem-btn" title="Remover amigo" onclick="LumoFriends.removeFriend('${esc(f.uid)}')">${confirming ? 'Confirmar?' : IC.trash}</button>
             </div>
           </div>
-          <button type="button" class="cp-mini" title="Remover amigo" onclick="LumoFriends.removeFriend('${esc(f.uid)}')">Remover</button>
-        </div>
-        <div class="pf-dm-nudges">
-          <button type="button" class="cp-mini" style="padding:5px 4px;" onclick="LumoFriends.sendNudge('wave')">👋 Oi</button>
-          <button type="button" class="cp-mini" style="padding:5px 4px;" onclick="LumoFriends.sendNudge('love')">❤️ Carinho</button>
-          <button type="button" class="cp-mini" style="padding:5px 4px;" onclick="LumoFriends.sendNudge('break')">☕ Pausa</button>
-          <button type="button" class="cp-mini" style="padding:5px 4px;" onclick="LumoFriends.sendNudge('alert')">⚡ Atenção</button>
-        </div>
-        <div class="pf-dm-feed" id="pf-dm-feed"></div>
-        <div class="pf-reply-bar" id="pf-reply-bar">
-          <span class="pf-reply-preview"></span>
-          <button type="button" class="del-btn" onclick="LumoFriends.cancelReply()">×</button>
-        </div>
-        <form class="pf-dm-form" onsubmit="LumoFriends.submitDm(event)">
-          <textarea id="pf-dm-input" rows="1" placeholder="Mensagem... (Shift+Enter quebra linha)" maxlength="400"></textarea>
-          <button type="submit" class="cp-mini" style="padding:0 12px; background:var(--accent); color:#0b0e14; border-color:var(--accent); font-weight:700;">Enviar</button>
-        </form>`;
-      renderDmFeed();
+
+          <div class="pf-dm-nudges">
+            <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('wave')">👋 Oi</button>
+            <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('love')">❤️ Carinho</button>
+            <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('break')">☕ Pausa</button>
+            <button type="button" class="pf-nudge-btn" onclick="LumoFriends.sendNudge('alert')">⚡ Atenção</button>
+          </div>
+
+          <div class="pf-feed-wrap">
+            <div id="pf-dm-feed"></div>
+            <button type="button" class="pf-jump-bottom" id="pf-jump-bottom" onclick="LumoFriends.scrollToBottom()">↓ Novas mensagens</button>
+          </div>
+
+          <div class="pf-reply-bar" id="pf-reply-bar">
+            <span class="pf-reply-preview"></span>
+            <button type="button" class="del-btn" onclick="LumoFriends.cancelReply()">×</button>
+          </div>
+
+          <form class="pf-dm-form" onsubmit="LumoFriends.submitDm(event)">
+            <textarea id="pf-dm-input" rows="1" placeholder="Mensagem para ${esc(f.display_name)}..." maxlength="400"></textarea>
+            <button type="submit" class="pf-send-btn" title="Enviar (Enter)">${IC.send}</button>
+          </form>
+        </div>`;
+
+      const feed = document.getElementById('pf-dm-feed');
+      if (feed) {
+        feed.addEventListener('scroll', () => {
+          const nearBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 60;
+          if (nearBottom) document.getElementById('pf-jump-bottom')?.classList.remove('show');
+        });
+      }
+      renderDmFeed(true);
+      syncReplyBar();
       setTimeout(() => document.getElementById('pf-dm-input')?.focus(), 40);
       return;
     }
 
-    // Modo Lista de Amigos
+    // === MODO LISTA DE AMIGOS ===
     const reqHtml = requests.length
-      ? `<div style="font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px;">Pedidos pendentes (${requests.length})</div>` +
+      ? `<div class="pf-sec-title" style="color:var(--accent);">Pedidos pendentes (${requests.length})</div>` +
         requests.map((r) => `
           <div class="pf-req-item">
-            <div style="min-width:0; flex:1;">
-              <div style="font-size:11.3px; font-weight:700;">${esc(r.display_name)}</div>
+            <div class="pf-info">
+              <div class="pf-name-row">${esc(r.display_name)}</div>
               <div class="pf-sub">${esc(r.tag)} quer te adicionar</div>
             </div>
-            <div style="display:flex; gap:4px;">
-              <button type="button" class="cp-mini" style="background:var(--accent); color:#0b0e14; border-color:var(--accent);" onclick="LumoFriends.respond(${r.id}, true)">Aceitar</button>
-              <button type="button" class="cp-mini" onclick="LumoFriends.respond(${r.id}, false)">×</button>
+            <div style="display:flex; gap:5px;">
+              <button type="button" class="pf-add-btn" style="padding:5px 10px;" onclick="LumoFriends.respond(${r.id}, true)">Aceitar</button>
+              <button type="button" class="pf-icon-btn danger" onclick="LumoFriends.respond(${r.id}, false)">×</button>
             </div>
           </div>`).join('')
       : '';
 
     const friendsHtml = friends.length
-      ? friends.map((f) => {
-          const unread = Boolean(f.last_msg_id && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < f.last_msg_id);
+      ? `<div class="pf-sec-title">Seus amigos (${friends.length})</div>` +
+        friends.map((f) => {
+          const unread = Boolean(isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id));
           const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
-          const statusLine = unread && f.last_body
-            ? `💬 ${f.last_body}`
+          const cleanLast = String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
+          const statusLine = unread && cleanLast
+            ? `💬 ${cleanLast}`
             : (f.online ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
-          const subCls = unread ? 'online' : (f.online ? (f.playing ? 'playing' : 'online') : '');
+          const subCls = unread ? 'unread-preview' : (f.online ? (f.playing ? 'playing' : 'online') : '');
           const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
           return `
             <div class="pf-friend-item ${f.online ? '' : 'offline'} ${unread ? 'has-unread' : ''}" onclick="LumoFriends.openDm('${esc(f.uid)}')">
@@ -305,34 +396,34 @@
               <div class="pf-info">
                 <div class="pf-name-row">
                   <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(f.display_name)}</span>
-                  <span style="font-size:9.5px; color:var(--muted); font-weight:500;">${esc(f.tag)}</span>
+                  <span class="pf-tag-mini">${esc(f.tag)}</span>
                 </div>
                 <div class="pf-sub ${subCls}">${esc(statusLine)}</div>
               </div>
-              ${unread ? '<span class="pf-badge show">!</span>' : '<span style="font-size:11px; color:var(--muted);">›</span>'}
+              ${unread ? '<span class="pf-badge show">!</span>' : '<span style="font-size:13px; color:var(--muted);">›</span>'}
             </div>`;
         }).join('')
-      : `<div style="text-align:center; color:var(--muted); font-size:11px; padding:18px 8px; line-height:1.45;">
-          Nenhum amigo adicionado ainda.<br>Copie sua <strong>Lumo Tag</strong> acima ou cole a Tag de um amigo para conversar direto!
+      : `<div style="text-align:center; color:var(--muted); font-size:11px; padding:22px 10px; line-height:1.5;">
+          Nenhum amigo adicionado ainda.<br>Copie sua <strong>Lumo Tag</strong> acima ou cole a Tag de um amigo para conversar em tempo real!
         </div>`;
 
     pane.innerHTML = `
       <div class="pf-tag-card">
-        <div>
-          <div style="font-size:9.5px; color:var(--muted);">Sua Lumo Tag</div>
+        <div style="min-width:0;">
+          <div class="pf-tag-label">Sua Lumo Tag</div>
           <div class="pf-tag-code" id="pf-my-tag">${esc(myTag || 'Gerando...')}</div>
         </div>
-        <button type="button" class="cp-mini" onclick="LumoFriends.copyTag()">Copiar Tag</button>
+        <button type="button" class="pf-copy-btn" id="pf-copy-tag-btn" onclick="LumoFriends.copyTag()">${IC.copy}<span>Copiar</span></button>
       </div>
       <form class="pf-add-row" onsubmit="LumoFriends.addFriend(event)">
-        <input type="text" id="pf-add-input" placeholder="Adicionar amigo (ex: NOME#4K2P)" maxlength="20" autocomplete="off" />
-        <button type="submit" class="cp-mini" style="padding:0 11px; background:var(--accent-soft); border-color:var(--accent-glow); color:var(--accent);">+ Add</button>
+        <input type="text" id="pf-add-input" placeholder="Adicionar amigo (ex: NOME#4K2P)" maxlength="22" autocomplete="off" />
+        <button type="submit" class="pf-add-btn">+ Add</button>
       </form>
       <div class="pf-privacy-row">
         <span>Mostrar jogo que estou jogando</span>
-        <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+        <label class="pf-switch">
           <input type="checkbox" ${showGameStatus ? 'checked' : ''} onchange="LumoFriends.toggleGamePrivacy(this.checked)" />
-          <span style="color:var(--text);">${showGameStatus ? 'Ativo' : 'Oculto'}</span>
+          <span class="pf-switch-track"></span>
         </label>
       </div>
       <div class="pf-list">
@@ -341,70 +432,99 @@
       </div>`;
   }
 
-  function renderDmFeed() {
+  function renderDmFeed(forceBottom = false) {
     const feed = document.getElementById('pf-dm-feed');
     if (!feed) return;
+    const wasNearBottom = forceBottom || (feed.scrollHeight - feed.scrollTop - feed.clientHeight < 90);
+
     if (!dmMsgs.length) {
-      feed.innerHTML = '<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:18px 8px;">Nenhuma mensagem ainda. Mande um oi ou um cutucão!</div>';
+      feed.innerHTML = '<div style="font-size:11px; color:var(--muted); text-align:center; padding:26px 10px; line-height:1.45;">Nenhuma mensagem ainda.<br>Mande um oi ou um cutucão acima!</div>';
       return;
     }
+
     let lastDay = '';
+    let prevSender = '';
+    let prevKind = '';
     const html = [];
+
     for (const m of dmMsgs) {
       const dLbl = dayLabel(m.created_at);
       if (dLbl !== lastDay) {
         lastDay = dLbl;
+        prevSender = '';
         html.push(`<div class="pf-date-sep"><span>${esc(dLbl)}</span></div>`);
       }
-      const isMe = m.sender_uid === myUid;
+
       if (m.kind === 'nudge') {
-        html.push(`<div class="ping-msg nudge"><span style="color:${esc(m.sender_color || 'var(--accent)')}">${esc(m.sender_name)}</span> ${esc(m.body)} <span style="opacity:0.55; font-size:9px;">${fmtTime(m.created_at)}</span></div>`);
-      } else {
-        const plainBody = String(m.body || '').replace(/^↪[^\n]+\n/, '');
-        html.push(`<div class="pf-dm-row ${isMe ? 'me' : 'them'}">
-          <div class="pf-dm-bubble" title="Clique para responder" onclick="LumoFriends.startReply(${JSON.stringify(m.sender_name || '')}, ${JSON.stringify(plainBody.slice(0, 80))})">
-            ${renderBodyHtml(m.body)}
-            <span class="pf-dm-time">${fmtTime(m.created_at)}</span>
-          </div>
-        </div>`);
+        prevSender = '';
+        prevKind = 'nudge';
+        html.push(`<div class="pf-nudge-pill"><strong style="color:${esc(m.sender_color || 'var(--accent)')}">${esc(m.sender_name)}</strong> ${esc(m.body)} <span style="opacity:0.55; font-size:9px; margin-left:3px;">${fmtTime(m.created_at)}</span></div>`);
+        continue;
       }
+
+      const isMe = m.sender_uid === myUid;
+      const grouped = prevKind === 'text' && prevSender === m.sender_uid;
+      prevSender = m.sender_uid;
+      prevKind = 'text';
+
+      const plainBody = String(m.body || '').replace(/^↪[^\n]+\n/, '');
+      const statusCls = m._pending ? 'pending' : (m._failed ? 'failed' : '');
+      const isNew = newlyArrivedIds.has(m.id);
+      const timeLabel = m._pending ? 'enviando...' : (m._failed ? 'falhou' : fmtTime(m.created_at));
+
+      html.push(`<div class="pf-dm-row ${isMe ? 'me' : 'them'} ${grouped ? 'grouped' : ''} ${statusCls} ${isNew ? 'is-new' : ''}">
+        <div class="pf-dm-bubble">
+          <div>${renderBodyHtml(m.body)}</div>
+          <div class="pf-dm-meta">
+            <button type="button" class="pf-reply-trig" title="Responder" onclick="LumoFriends.startReply(${JSON.stringify(m.sender_name || '')}, ${JSON.stringify(plainBody.slice(0, 80))})">↩</button>
+            <span class="pf-dm-time">${esc(timeLabel)}</span>
+          </div>
+        </div>
+      </div>`);
     }
+
     feed.innerHTML = html.join('');
-    feed.scrollTop = feed.scrollHeight;
+    newlyArrivedIds.clear();
+
+    if (wasNearBottom) {
+      feed.scrollTop = feed.scrollHeight;
+      document.getElementById('pf-jump-bottom')?.classList.remove('show');
+    } else {
+      document.getElementById('pf-jump-bottom')?.classList.add('show');
+    }
   }
 
+  // === HEARTBEAT & POLLING DE ALTA CONFIABILIDADE ===
   async function sendHeartbeat() {
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
-    const playing = (showGameStatus && window.isPlayingGame && window.currentGameName) ? String(window.currentGameName).slice(0, 40) : '';
+    const playing = (showGameStatus && window.isPlayingGame && window.currentGameName)
+      ? String(window.currentGameName).slice(0, 40)
+      : '';
     try {
-      const res = await fetch(FRIENDS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-        body: JSON.stringify({
-          action: 'heartbeat',
-          uid: myUid,
-          name: getMyName(),
-          color: getMyColor(),
-          playing
-        })
+      const { ok, data } = await apiPost({
+        action: 'heartbeat',
+        uid: myUid,
+        name: getMyName(),
+        color: getMyColor(),
+        playing
       });
-      const data = await res.json();
-      if (data.tag && data.tag !== myTag) {
+      if (ok && data?.tag) {
         myTag = data.tag;
         localStorage.setItem('lumo_ping_tag', myTag);
-        const el = document.getElementById('pf-my-tag');
-        if (el) el.textContent = myTag;
+        const tagEl = document.getElementById('pf-my-tag');
+        if (tagEl && tagEl.textContent !== myTag) tagEl.textContent = myTag;
       }
     } catch (_) {}
   }
 
   async function pollFriends() {
     if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
-    // Ping 2.0: nunca pula tick de notificação
+    if (friendsInFlight && (Date.now() - lastPollFriendsAt) < 9000) return;
+    friendsInFlight = true;
+    lastPollFriendsAt = Date.now();
     try {
-      const res = await fetch(`${FRIENDS_API}?uid=${encodeURIComponent(myUid)}`);
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await apiGet(`?uid=${encodeURIComponent(myUid)}`);
+      if (!data) return;
       if (data.me?.tag) {
         myTag = data.me.tag;
         localStorage.setItem('lumo_ping_tag', myTag);
@@ -414,10 +534,11 @@
       requests = Array.isArray(data.requests) ? data.requests : [];
       friends = Array.isArray(data.friends) ? data.friends : [];
 
-      // Dispara animação de mensagem chegando para novos DMs de amigos
+      let shouldPullActiveDm = false;
       for (const f of friends) {
-        if (!f.last_msg_id) continue;
-        const key = `${f.room_code}:${f.last_msg_id}`;
+        if (!isRealId(f.last_msg_id)) continue;
+        const msgId = Number(f.last_msg_id);
+        const key = `${f.room_code}:${msgId}`;
         if (!initializedList) {
           alertedIds.add(key);
           continue;
@@ -426,11 +547,15 @@
           alertedIds.add(key);
           const alreadyReading = isPingViewOpen() && subTab === 'friends' && activeFriend && activeFriend.uid === f.uid;
           if (alreadyReading) {
-            readMap[f.room_code] = f.last_msg_id;
-            localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
-            pollActiveDm();
+            readMap[f.room_code] = msgId;
+            saveReadMap();
+            shouldPullActiveDm = true;
+            if (f.last_kind === 'nudge') {
+              triggerIncomingMessageAnim(f.display_name, f.last_body || 'te cutucou!', f.color, true);
+            }
           } else {
             triggerIncomingMessageAnim(f.display_name, f.last_body || 'Nova mensagem', f.color, f.last_kind === 'nudge');
+            if (activeFriend && activeFriend.uid === f.uid) shouldPullActiveDm = true;
           }
         }
       }
@@ -442,115 +567,167 @@
 
       initializedList = true;
       syncBadges();
+
       if (subTab === 'friends' && !activeFriend) {
         const focusedAdd = document.activeElement && document.activeElement.id === 'pf-add-input';
-        const sig = JSON.stringify([myTag, showGameStatus, requests.map(r => r.id), friends.map(f => [f.uid, f.display_name, f.online, f.playing, f.last_msg_id, f.last_seen, readMap[f.room_code] || 0])]);
+        const sig = JSON.stringify([
+          myTag,
+          showGameStatus,
+          requests.map((r) => r.id),
+          friends.map((f) => [f.uid, f.display_name, f.online, f.playing, f.last_msg_id, f.last_seen, readMap[f.room_code] || 0])
+        ]);
         if (!focusedAdd && sig !== lastFriendsRenderSig) {
           lastFriendsRenderSig = sig;
           renderFriendsPane();
         }
-      }
-      else if (subTab === 'friends' && activeFriend) {
-        // Atualiza status Online/Jogando/Offline no cabeçalho do DM aberto
+      } else if (subTab === 'friends' && activeFriend) {
         const updated = friends.find((x) => x.uid === activeFriend.uid);
         if (updated) {
           activeFriend = updated;
-          const headSub = document.querySelector('#pf-friends-pane .pf-dm-head .pf-sub');
+          const headSub = document.getElementById('pf-dm-head-sub');
           if (headSub) {
             headSub.textContent = updated.online
-              ? (updated.playing ? `🎮 Jogando ${updated.playing}` : '● Online agora')
+              ? (updated.playing ? `🎮 Jogando ${updated.playing}` : 'Online agora')
               : fmtLastSeen(updated.last_seen);
             headSub.className = 'pf-sub ' + (updated.online ? (updated.playing ? 'playing' : 'online') : '');
           }
         }
+        if (shouldPullActiveDm) pollActiveDm();
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      friendsInFlight = false;
+    }
   }
 
   async function pollActiveDm() {
     if (!activeFriend) return;
+    if (dmInFlight && (Date.now() - lastPollDmAt) < 7000) return;
+    dmInFlight = true;
+    lastPollDmAt = Date.now();
+    const roomCode = activeFriend.room_code;
+    const friendSnapshot = activeFriend;
     try {
-      const res = await fetch(`${FRIENDS_API}?room=${encodeURIComponent(activeFriend.room_code)}&since=${dmLastId}`);
-      if (!res.ok) return;
-      const data = await res.json();
+      const safeSince = isRealId(dmLastId) ? dmLastId : 0;
+      const data = await apiGet(`?room=${encodeURIComponent(roomCode)}&since=${safeSince}`);
+      if (!data || !activeFriend || activeFriend.room_code !== roomCode) return;
+
       const incoming = Array.isArray(data.messages) ? data.messages : [];
       let changed = false;
-      for (const m of incoming) {
+
+      for (const raw of incoming) {
+        if (!isRealId(raw.id)) continue;
+        const m = { ...raw, id: Number(raw.id) };
         if (dmSeen.has(m.id)) continue;
+
+        // Reconcilia mensagem otimista enviada por mim caso ainda esteja pendente
+        if (m.sender_uid === myUid) {
+          const pIdx = dmMsgs.findIndex((x) => x._pending && x.body === m.body && x.kind === m.kind);
+          if (pIdx >= 0) dmMsgs.splice(pIdx, 1);
+        }
+
         dmSeen.add(m.id);
         dmMsgs.push(m);
+        newlyArrivedIds.add(m.id);
         if (m.id > dmLastId) dmLastId = m.id;
         changed = true;
-        alertedIds.add(`${activeFriend.room_code}:${m.id}`);
+
+        const alertKey = `${roomCode}:${m.id}`;
+        const alreadyAlerted = alertedIds.has(alertKey);
+        alertedIds.add(alertKey);
+
         if (m.sender_uid !== myUid) {
           const readingNow = isPingViewOpen() && subTab === 'friends';
           if (readingNow) {
-            readMap[activeFriend.room_code] = dmLastId;
-            localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
-            if (m.kind === 'nudge') {
-              triggerIncomingMessageAnim(m.sender_name || activeFriend.display_name, m.body || 'te cutucou!', m.sender_color || activeFriend.color, true);
+            readMap[roomCode] = dmLastId;
+            saveReadMap();
+            if (m.kind === 'nudge' && !alreadyAlerted) {
+              triggerIncomingMessageAnim(m.sender_name || friendSnapshot.display_name, m.body || 'te cutucou!', m.sender_color || friendSnapshot.color, true);
             }
-          } else {
-            triggerIncomingMessageAnim(m.sender_name || activeFriend.display_name, m.body || 'Nova mensagem', m.sender_color || activeFriend.color, m.kind === 'nudge');
+          } else if (!alreadyAlerted) {
+            triggerIncomingMessageAnim(m.sender_name || friendSnapshot.display_name, m.body || 'Nova mensagem', m.sender_color || friendSnapshot.color, m.kind === 'nudge');
           }
         }
       }
+
       if (dmMsgs.length > 200) dmMsgs = dmMsgs.slice(-200);
-      if (changed && activeFriend) { lastActivityAt = Date.now(); saveDmCache(activeFriend.room_code, dmMsgs); }
       if (changed) {
-        renderDmFeed();
+        saveDmCache(roomCode, dmMsgs);
+        renderDmFeed(false);
         syncBadges();
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      dmInFlight = false;
+    }
   }
 
   async function sendDmMessage(kind, body) {
     if (!activeFriend || !body) return;
+    const roomCode = activeFriend.room_code;
     const payload = {
       action: 'send_dm',
       uid: myUid,
-      room_code: activeFriend.room_code,
+      room_code: roomCode,
       name: getMyName(),
       color: getMyColor(),
       kind,
       body
     };
+
+    // Envio otimista imediato na tela
+    const tmpId = 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5);
+    const optimistic = {
+      id: tmpId,
+      room_code: roomCode,
+      sender_uid: myUid,
+      sender_name: payload.name,
+      sender_color: payload.color,
+      kind,
+      body,
+      created_at: Date.now(),
+      _pending: true
+    };
+    dmMsgs.push(optimistic);
+    newlyArrivedIds.add(tmpId);
+    renderDmFeed(true);
+
     try {
-      const res = await fetch(FRIENDS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        const msg = {
-          id: data.id || Date.now(),
-          room_code: activeFriend.room_code,
-          sender_uid: myUid,
-          sender_name: payload.name,
-          sender_color: payload.color,
-          kind,
-          body,
-          created_at: data.created_at || Date.now()
-        };
-        if (!dmSeen.has(msg.id)) {
-          dmSeen.add(msg.id);
-          dmMsgs.push(msg);
-          if (msg.id > dmLastId) dmLastId = msg.id;
-          readMap[activeFriend.room_code] = dmLastId;
-          localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
-          lastActivityAt = Date.now();
-          saveDmCache(activeFriend.room_code, dmMsgs);
-          renderDmFeed();
+      const { ok, data } = await apiPost(payload);
+      if (ok && data.ok) {
+        if (isRealId(data.id)) {
+          const realId = Number(data.id);
+          optimistic.id = realId;
+          optimistic._pending = false;
+          if (data.created_at) optimistic.created_at = data.created_at;
+          dmSeen.add(realId);
+          if (realId > dmLastId) dmLastId = realId;
+          readMap[roomCode] = dmLastId;
+          saveReadMap();
+          saveDmCache(roomCode, dmMsgs);
+          renderDmFeed(true);
+        } else {
+          // Se o servidor não devolveu o ID numérico, busca imediatamente para reconciliar sem corromper dmLastId
+          pollActiveDm();
         }
+      } else {
+        optimistic._pending = false;
+        optimistic._failed = true;
+        renderDmFeed(false);
       }
     } catch (_) {
+      optimistic._pending = false;
+      optimistic._failed = true;
+      renderDmFeed(false);
       if (typeof say === 'function') say('Sem conexão ao enviar mensagem.', 2200, true);
     }
   }
 
+  // === API PÚBLICA ===
   window.LumoFriends = {
-    syncProfile() { sendHeartbeat().then(pollFriends); },
+    syncProfile() {
+      sendHeartbeat().then(pollFriends);
+    },
     setTab(tab) {
       subTab = tab === 'rooms' ? 'rooms' : 'friends';
       document.querySelectorAll('.pf-subtab').forEach((b) => b.classList.toggle('active', b.dataset.tab === subTab));
@@ -566,14 +743,18 @@
       if (!myTag) return;
       if (typeof invoke === 'function') invoke('set_clipboard_text', { text: myTag }).catch(() => {});
       navigator.clipboard?.writeText(myTag).catch(() => {});
+      const btn = document.getElementById('pf-copy-tag-btn');
+      if (btn) {
+        const prev = btn.innerHTML;
+        btn.innerHTML = '✓ Copiado';
+        setTimeout(() => { if (document.getElementById('pf-copy-tag-btn')) btn.innerHTML = prev; }, 1400);
+      }
       if (typeof playChirp === 'function') playChirp(580, 860, 0.13);
       if (typeof say === 'function') say(`Tag ${myTag} copiada! Envie pro seu amigo.`, 2500, true);
     },
     toggleGamePrivacy(val) {
       showGameStatus = Boolean(val);
       localStorage.setItem('lumo_ping_show_game', String(showGameStatus));
-      lastFriendsRenderSig = '';
-      renderFriendsPane();
       sendHeartbeat();
     },
     async addFriend(e) {
@@ -583,13 +764,8 @@
       if (!target) return;
       await sendHeartbeat();
       try {
-        const res = await fetch(FRIENDS_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-          body: JSON.stringify({ action: 'request', uid: myUid, target_tag: target })
-        });
-        const data = await res.json();
-        if (res.ok && data.ok) {
+        const { ok, data } = await apiPost({ action: 'request', uid: myUid, target_tag: target });
+        if (ok && data.ok) {
           if (inp) inp.value = '';
           if (typeof hopPill === 'function') hopPill();
           if (typeof say === 'function') {
@@ -602,19 +778,26 @@
       } catch (_) {}
     },
     async respond(reqId, accept) {
-      await fetch(FRIENDS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-        body: JSON.stringify({ action: 'respond', uid: myUid, request_id: reqId, accept })
-      }).catch(() => {});
+      await apiPost({ action: 'respond', uid: myUid, request_id: reqId, accept }).catch(() => {});
       pollFriends();
     },
     async removeFriend(fUid) {
-      await fetch(FRIENDS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Lumo-Client': 'lumo-desktop-v1' },
-        body: JSON.stringify({ action: 'remove', uid: myUid, friend_uid: fUid })
-      }).catch(() => {});
+      // Confirmação em 2 cliques para evitar remover sem querer
+      if (confirmRemoveUid !== fUid) {
+        confirmRemoveUid = fUid;
+        clearTimeout(confirmRemoveTimer);
+        const btn = document.getElementById('pf-rem-btn');
+        if (btn) { btn.classList.add('confirm'); btn.textContent = 'Confirmar?'; }
+        confirmRemoveTimer = setTimeout(() => {
+          confirmRemoveUid = null;
+          const b = document.getElementById('pf-rem-btn');
+          if (b) { b.classList.remove('confirm'); b.innerHTML = IC.trash; }
+        }, 4000);
+        return;
+      }
+      confirmRemoveUid = null;
+      clearTimeout(confirmRemoveTimer);
+      await apiPost({ action: 'remove', uid: myUid, friend_uid: fUid }).catch(() => {});
       this.closeDm();
       pollFriends();
     },
@@ -623,27 +806,38 @@
       if (!f) return;
       activeFriend = f;
       replyTarget = null;
-      lastActivityAt = Date.now();
+      confirmRemoveUid = null;
       dmMsgs = loadDmCache(f.room_code);
       dmSeen = new Set(dmMsgs.map((m) => m.id));
       dmLastId = dmMsgs.reduce((max, m) => (m.id > max ? m.id : max), 0);
-      if (f.last_msg_id) {
-        readMap[f.room_code] = f.last_msg_id;
-        localStorage.setItem('lumo_dm_read_map', JSON.stringify(readMap));
+      if (isRealId(f.last_msg_id)) {
+        readMap[f.room_code] = Number(f.last_msg_id);
+        saveReadMap();
       }
       syncBadges();
       renderFriendsPane();
       pollActiveDm();
-      clearInterval(dmTimer);
-      dmTimer = setInterval(pollActiveDm, 1800);
     },
     closeDm() {
       activeFriend = null;
-      clearInterval(dmTimer);
-      dmTimer = null;
+      replyTarget = null;
+      confirmRemoveUid = null;
       lastFriendsRenderSig = '';
       renderFriendsPane();
       pollFriends();
+    },
+    async forceSync() {
+      const btn = document.getElementById('pf-sync-btn');
+      btn?.classList.add('spinning');
+      await Promise.all([pollFriends(), activeFriend ? pollActiveDm() : Promise.resolve()]);
+      setTimeout(() => btn?.classList.remove('spinning'), 380);
+    },
+    scrollToBottom() {
+      const feed = document.getElementById('pf-dm-feed');
+      if (feed) {
+        feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+        document.getElementById('pf-jump-bottom')?.classList.remove('show');
+      }
     },
     sendNudge(type) {
       const n = NUDGES[type] || NUDGES.wave;
@@ -652,27 +846,57 @@
       if (typeof playChirp === 'function') playChirp(n.freq[0], n.freq[1], 0.14);
       sendDmMessage('nudge', n.text);
     },
+    startReply(name, text) {
+      if (window.getSelection && window.getSelection().toString().trim().length > 0) return;
+      replyTarget = { name: String(name || 'Amigo').slice(0, 20), text: String(text || '').slice(0, 80) };
+      syncReplyBar();
+      document.getElementById('pf-dm-input')?.focus();
+    },
+    cancelReply() {
+      replyTarget = null;
+      syncReplyBar();
+    },
     submitDm(e) {
       e.preventDefault();
       const inp = document.getElementById('pf-dm-input');
       const v = (inp?.value || '').trim();
       if (!v) return;
       inp.value = '';
-      sendDmMessage('text', v);
+      inp.style.height = 'auto';
+      const finalBody = replyTarget ? `↪ ${replyTarget.name}: "${replyTarget.text.replace(/"/g, "'")}"\n${v}` : v;
+      replyTarget = null;
+      syncReplyBar();
+      sendDmMessage('text', finalBody);
     }
   };
 
-  renderFriendsPane();
-  async function scheduleFriendsPoll() {
-    clearTimeout(friendsPollTimer);
-    await pollFriends();
-    const activeRecently = (Date.now() - lastActivityAt) < 90000;
-    const delay = activeFriend ? 1800 : (activeRecently ? 2000 : (window.lumoEcoMode ? 4000 : 2500));
-    friendsPollTimer = setTimeout(scheduleFriendsPoll, delay);
+  // === RELÓGIO ANTI-THROTTLING VIA WEB WORKER (NÃO DESACELERA EM SEGUNDO PLANO) ===
+  let tickCount = 0;
+  function onClockTick() {
+    tickCount++;
+    pollFriends();
+    if (activeFriend) pollActiveDm();
+    if (tickCount % 10 === 0) sendHeartbeat(); // Heartbeat a cada ~20s
   }
+
+  function startReliableClock() {
+    try {
+      const code = 'setInterval(() => postMessage(1), 2000);';
+      const blob = new Blob([code], { type: 'application/javascript' });
+      const worker = new Worker(URL.createObjectURL(blob));
+      worker.onmessage = onClockTick;
+    } catch (_) {
+      setInterval(onClockTick, 2000);
+    }
+  }
+
   window.addEventListener('focus', () => { pollFriends(); if (activeFriend) pollActiveDm(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { pollFriends(); if (activeFriend) pollActiveDm(); } });
 
-  setTimeout(async () => { await sendHeartbeat(); scheduleFriendsPoll(); }, 900);
-  setInterval(sendHeartbeat, 20000);
+  renderFriendsPane();
+  setTimeout(async () => {
+    await sendHeartbeat();
+    await pollFriends();
+    startReliableClock();
+  }, 600);
 })();
