@@ -173,7 +173,7 @@
       ts: Date.now()
     });
 
-    if (typeof switchView === 'function') switchView('midia');
+    if (typeof openView === 'function') openView('midia');
     if (typeof hopPill === 'function') hopPill();
     if (typeof say === 'function') say(`Conectando à Lumo Jam de ${hostInfo.name}...`, 2600, true);
     notifyUI();

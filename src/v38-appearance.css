@@ -73,3 +73,35 @@
   padding-top: 0 !important;
   border-top: none !important;
 }
+
+/* Atalho de Aparência, Skins & Temas logo abaixo da grade 3x2 no Resumo */
+.v38-resumo-look {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.028);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+body.surface-light .v38-resumo-look {
+  background: rgba(15, 23, 42, 0.032);
+  border-color: rgba(15, 23, 42, 0.09);
+}
+.v38-resumo-look:hover {
+  border-color: var(--accent-glow);
+  background: var(--accent-soft);
+}
+.v38-resumo-look .v38-goto-ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}

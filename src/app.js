@@ -314,6 +314,7 @@ function openView(viewName) {
   document.getElementById('back-btn').classList.toggle('show', viewName !== 'resumo');
   document.getElementById('topbar-label').textContent = viewTitles[viewName] || 'Lumo';
   document.getElementById('cfg-btn').classList.toggle('active-btn', viewName === 'config');
+  document.getElementById('look-btn')?.classList.toggle('active-btn', viewName === 'aparencia');
   document.getElementById('mobile-btn').classList.toggle('active-btn', viewName === 'mobile');
   if (viewName === 'resumo') refreshSummaryNow();
   if (viewName === 'ia') { const box = document.getElementById('chat-box'); box.scrollTop = box.scrollHeight; }
@@ -1079,7 +1080,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.8.0 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.8.1 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

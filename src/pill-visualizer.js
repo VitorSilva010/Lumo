@@ -1,4 +1,4 @@
-// === LUMO v3.7.0 — VISUALIZADOR DE ONDAS NA CÁPSULA (5 ESTILOS · 30 FPS · BAIXA RAM) ===
+// === LUMO v3.8.1 — VISUALIZADOR DE ONDAS NA CÁPSULA (5 ESTILOS · SEM LINHA RETA · 30 FPS) ===
 (function initLumoPillVisualizer() {
   const pill = document.getElementById('lumo-pill');
   if (!pill) return;
@@ -89,7 +89,26 @@
     return Boolean(musicPlaying || faceMusic || globalMedia);
   }
 
-  // 1. Barras simétricas com Peak Hold (pontinhos de pico)
+  // Helper seguro: traça a curva limpa (sem fechar linha reta) e só depois preenche o gradiente
+  function strokeAndFillCurve(col, lineWidth, strokeAlpha, fillAlpha, edgeY, gradPeakY) {
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lineWidth;
+    ctx.globalAlpha = strokeAlpha;
+    ctx.stroke();
+
+    if (fillAlpha > 0) {
+      ctx.lineTo(width, edgeY);
+      ctx.lineTo(0, edgeY);
+      ctx.closePath();
+      const fg = ctx.createLinearGradient(0, gradPeakY, 0, edgeY);
+      fg.addColorStop(0, col);
+      fg.addColorStop(1, 'transparent');
+      ctx.globalAlpha = fillAlpha;
+      ctx.fillStyle = fg;
+      ctx.fill();
+    }
+  }
+
   function drawBars(col, t) {
     const padX = 14;
     const usableW = Math.max(40, width - padX * 2);
@@ -127,7 +146,6 @@
       else ctx.rect(x, y, barW, h);
       ctx.fill();
 
-      // Pontinho de pico flutuando acima da barra
       const py = height - Math.max(3, peakLevels[i] * maxH) - 4.5;
       ctx.fillStyle = col;
       ctx.globalAlpha = 0.78 * energy;
@@ -136,7 +154,6 @@
     ctx.globalAlpha = 1;
   }
 
-  // 2. Onda suave na base (2 camadas)
   function drawWave(col, t) {
     const baseY = height - 9;
     const ampMax = Math.min(10, height * 0.2) * energy;
@@ -151,23 +168,11 @@
         const y = baseY - Math.sin(x * freq + t * speed) * Math.cos(x * 0.02 + t * 1.6) * amp * env;
         if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-      if (k === 0) {
-        ctx.save();
-        ctx.lineTo(width, height); ctx.lineTo(0, height); ctx.closePath();
-        const fg = ctx.createLinearGradient(0, baseY - ampMax - 2, 0, height);
-        fg.addColorStop(0, col); fg.addColorStop(1, 'transparent');
-        ctx.globalAlpha = 0.2; ctx.fillStyle = fg; ctx.fill();
-        ctx.restore();
-      }
-      ctx.strokeStyle = col;
-      ctx.lineWidth = k === 0 ? 1.8 : 1.1;
-      ctx.globalAlpha = k === 0 ? 0.68 : 0.36;
-      ctx.stroke();
+      strokeAndFillCurve(col, k === 0 ? 1.8 : 1.1, k === 0 ? 0.7 : 0.36, k === 0 ? 0.16 : 0, height, baseY - ampMax);
     }
     ctx.globalAlpha = 1;
   }
 
-  // 3. Ondas Duplas Espelhadas (Topo + Base abraçando o mascote)
   function drawDualWaves(col, t) {
     const ampMax = Math.min(8.5, height * 0.17) * energy;
     const drawEdge = (isTop) => {
@@ -185,24 +190,14 @@
           const y = baseY + dir * wave * amp * env;
           if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
-
-        if (k === 0) {
-          ctx.save();
-          ctx.lineTo(width, isTop ? 0 : height);
-          ctx.lineTo(0, isTop ? 0 : height);
-          ctx.closePath();
-          const fg = ctx.createLinearGradient(0, isTop ? 0 : height, 0, baseY + dir * ampMax);
-          fg.addColorStop(0, col);
-          fg.addColorStop(1, 'transparent');
-          ctx.globalAlpha = 0.2;
-          ctx.fillStyle = fg;
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.strokeStyle = col;
-        ctx.lineWidth = k === 0 ? 1.7 : 1.0;
-        ctx.globalAlpha = k === 0 ? 0.66 : 0.34;
-        ctx.stroke();
+        strokeAndFillCurve(
+          col,
+          k === 0 ? 1.7 : 1.0,
+          k === 0 ? 0.68 : 0.34,
+          k === 0 ? 0.15 : 0,
+          isTop ? 0 : height,
+          baseY + dir * ampMax
+        );
       }
     };
     drawEdge(false);
@@ -210,13 +205,12 @@
     ctx.globalAlpha = 1;
   }
 
-  // 4. Aurora Tripla (3 camadas sobrepostas cheias de movimento)
   function drawAurora(col, t) {
     const baseY = height - 11;
     const layers = [
-      { freq: 0.036, speed: 3.1, amp: 12, lw: 2.1, alpha: 0.68, fill: 0.22 },
-      { freq: 0.058, speed: -2.5, amp: 8.5, lw: 1.5, alpha: 0.48, fill: 0.14 },
-      { freq: 0.082, speed: 4.3, amp: 5.5, lw: 1.1, alpha: 0.34, fill: 0.08 }
+      { freq: 0.036, speed: 3.1, amp: 12, lw: 2.0, alpha: 0.68, fill: 0.18 },
+      { freq: 0.058, speed: -2.5, amp: 8.5, lw: 1.4, alpha: 0.46, fill: 0.11 },
+      { freq: 0.082, speed: 4.3, amp: 5.5, lw: 1.0, alpha: 0.32, fill: 0.06 }
     ];
     for (const l of layers) {
       const amp = l.amp * energy;
@@ -226,35 +220,21 @@
         const y = baseY - Math.sin(x * l.freq + t * l.speed) * Math.cos(x * 0.019 - t * 1.2) * amp * env;
         if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-      ctx.save();
-      ctx.lineTo(width, height); ctx.lineTo(0, height); ctx.closePath();
-      const fg = ctx.createLinearGradient(0, baseY - amp - 2, 0, height);
-      fg.addColorStop(0, col); fg.addColorStop(1, 'transparent');
-      ctx.globalAlpha = l.fill; ctx.fillStyle = fg; ctx.fill();
-      ctx.restore();
-
-      ctx.strokeStyle = col;
-      ctx.lineWidth = l.lw;
-      ctx.globalAlpha = l.alpha;
-      ctx.stroke();
+      strokeAndFillCurve(col, l.lw, l.alpha, l.fill, height, baseY - amp);
     }
     ctx.globalAlpha = 1;
   }
 
-  // 5. Pulso Central (anéis suaves expandindo no ritmo)
   function drawPulse(col, t) {
     const cx = width / 2;
     const cy = height / 2;
     const maxRx = width * 0.46;
     const maxRy = height * 0.44;
-
     for (let i = 0; i < 3; i++) {
       const p = (t * 0.55 + i / 3) % 1;
       const ease = 1 - Math.pow(1 - p, 2);
-      const rx = Math.max(8, ease * maxRx);
-      const ry = Math.max(6, ease * maxRy);
       ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx, cy, Math.max(8, ease * maxRx), Math.max(6, ease * maxRy), 0, 0, Math.PI * 2);
       ctx.strokeStyle = col;
       ctx.lineWidth = 1.6 * (1 - p * 0.5);
       ctx.globalAlpha = (1 - p) * 0.52 * energy;
@@ -271,11 +251,7 @@
       energy = 0;
       return;
     }
-
-    if (now - lastFrame < 32) {
-      rafId = requestAnimationFrame(tick);
-      return;
-    }
+    if (now - lastFrame < 32) { rafId = requestAnimationFrame(tick); return; }
     const dt = Math.min(0.08, (now - lastFrame) / 1000 || 0.033);
     lastFrame = now;
 

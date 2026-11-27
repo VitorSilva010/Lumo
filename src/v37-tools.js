@@ -381,7 +381,7 @@
       pomoCard.appendChild(foot);
 
       document.getElementById('v37-open-amb')?.addEventListener('click', () => {
-        if (typeof switchView === 'function') switchView('midia');
+        if (typeof openView === 'function') openView('midia');
         setTimeout(() => document.querySelector('.lm-subtab[data-mtab="ambient"]')?.click(), 60);
       });
     }

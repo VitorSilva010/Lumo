@@ -138,8 +138,28 @@
           </div>
         </div>
         <span style="font-size:15px; color:var(--accent); font-weight:800;">›</span>`;
-      btn.onclick = () => { if (typeof switchView === 'function') switchView('aparencia'); };
+      btn.onclick = () => { if (typeof openView === 'function') openView('aparencia'); };
       viewCfg.appendChild(btn);
+    }
+
+    // 7. Atalho de Aparência, Skins & Temas logo abaixo da grade 3x2 no Resumo (embaixo do Kit Rápido)
+    const hubGrid = document.querySelector('#view-resumo .hub-grid');
+    if (hubGrid && !document.getElementById('v38-resumo-look')) {
+      const rbtn = document.createElement('button');
+      rbtn.type = 'button';
+      rbtn.id = 'v38-resumo-look';
+      rbtn.className = 'v38-resumo-look';
+      rbtn.innerHTML = `
+        <div class="v38-goto-left">
+          <span class="v38-goto-ic">${IC.ui}</span>
+          <div>
+            <div class="v38-goto-title">Aparência, Skins & Temas</div>
+            <div class="v38-goto-sub">Mascote · Cápsula · Expressões · Cores</div>
+          </div>
+        </div>
+        <span style="font-size:15px; color:var(--accent); font-weight:800;">›</span>`;
+      rbtn.onclick = () => { if (typeof openView === 'function') openView('aparencia'); };
+      hubGrid.insertAdjacentElement('afterend', rbtn);
     }
   }
 
@@ -151,7 +171,7 @@
       h.textContent = 'Aparência';
       return;
     }
-    const cfgBtn = document.querySelector('[onclick*="switchView(\'config\')"]');
+    const cfgBtn = document.querySelector('[onclick*="openView(\'config\')"]');
     const header = cfgBtn?.closest('header, div');
     if (header) {
       const titleNode = header.querySelector('#view-name, .top-title, strong, span');
