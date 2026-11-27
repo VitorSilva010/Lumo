@@ -1,5 +1,20 @@
 // === LUMO v3.4.0 — LUMO VIVO, SKINS, KARAOKÊ NA CÁPSULA, COR DINÂMICA, PERFIS IA & CLIPBOARD PRO ===
 (function initLumoAlivePro() {
+  const S = (b) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+  const ALP_IC = {
+    normal: S('<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>'),
+    cool:   S('<rect x="2" y="8" width="8" height="5" rx="2"/><rect x="14" y="8" width="8" height="5" rx="2"/><path d="M10 10h4"/><path d="M8 16s1.5 1.5 4 1.5 4-1.5 4-1.5"/>'),
+    wink:   S('<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><path d="M14 9.5c.8-.8 2-.8 2.8 0"/>'),
+    focus:  S('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+    sleepy: S('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
+    dizzy:  S('<path d="M12 12c0-1.5 1.5-2.5 3-2s2 2 1 3.5-3.5 2-5.5.5-2.5-4.5-1-6.5 4.5-3 7-1.5"/>'),
+    dev:    S('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
+    study:  S('<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'),
+    short:  S('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
+    en:     S('<circle cx="12" cy="12" r="9"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>'),
+    spark:  S('<path d="M12 3l2.2 6.2L20 12l-5.8 2.8L12 21l-2.2-6.2L4 12l5.8-2.8z"/>'),
+    pin:    S('<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6a1 1 0 0 1 1-1h1V3H7v2h1a1 1 0 0 1 1 1z"/>')
+  };
   const pill = document.getElementById('lumo-pill');
   const face = document.getElementById('lumo-face');
   if (!pill || !face || window.LumoAlivePro) return;
@@ -305,11 +320,11 @@
 
   // === 5. PERFIS DE PERSONALIDADE DA IA (PRO) ===
   const PERSONAS = [
-    { id: 'default', label: 'Padrão',    pro: false, instr: '' },
-    { id: 'dev',     label: '💻 Dev',     pro: true,  instr: '[Perfil Dev: responda de forma direta e técnica, priorizando código limpo e objetivo.]\n\n' },
-    { id: 'study',   label: '📚 Estudos', pro: true,  instr: '[Perfil Estudos: explique didaticamente passo a passo com exemplos simples e claros.]\n\n' },
-    { id: 'short',   label: '⚡ Curto',   pro: true,  instr: '[Perfil Resumo Curto: responda no máximo em 3 tópicos ultra diretos, sem enrolação.]\n\n' },
-    { id: 'en',      label: '🌎 Inglês',  pro: true,  instr: '[Perfil Professor de Inglês: corrija erros, mostre a forma natural e traduza brevemente.]\n\n' }
+    { id: 'default', icon: ALP_IC.spark, label: 'Padrão',  pro: false, instr: '' },
+    { id: 'dev',     icon: ALP_IC.dev,   label: 'Dev',     pro: true,  instr: '[Perfil Dev: responda de forma direta e técnica, priorizando código limpo e objetivo.]\n\n' },
+    { id: 'study',   icon: ALP_IC.study, label: 'Estudos', pro: true,  instr: '[Perfil Estudos: explique didaticamente passo a passo com exemplos simples e claros.]\n\n' },
+    { id: 'short',   icon: ALP_IC.short, label: 'Curto',   pro: true,  instr: '[Perfil Resumo Curto: responda no máximo em 3 tópicos ultra diretos, sem enrolação.]\n\n' },
+    { id: 'en',      icon: ALP_IC.en,    label: 'Inglês',  pro: true,  instr: '[Perfil Professor de Inglês: corrija erros, mostre a forma natural e traduza brevemente.]\n\n' }
   ];
   let activePersona = localStorage.getItem('lumo_ai_persona') || 'default';
   if (!isPro()) activePersona = 'default';
@@ -326,7 +341,7 @@
       bar.innerHTML = PERSONAS.map((p) => {
         const locked = p.pro && !isPro();
         return `<button type="button" class="lp-persona-chip ${activePersona === p.id ? 'active' : ''}" data-pid="${p.id}">
-          ${p.label}${locked ? ' <span class="lp-pro-tag">PRO</span>' : ''}
+          ${p.icon || ''}<span>${p.label}</span>${locked ? ' <span class="lp-pro-tag">PRO</span>' : ''}
         </button>`;
       }).join('');
     }
@@ -439,7 +454,7 @@
         ${list.length ? list.map((it) => `
           <div class="lp-clip-item ${it.pinned ? 'pinned' : ''}" data-cid="${esc(it.id)}">
             <span class="lp-clip-text" title="${esc(it.text)}">${esc(it.text)}</span>
-            <button type="button" class="lp-clip-act" data-cact="pin" title="Fixar">${it.pinned ? '📌' : '📍'}</button>
+            <button type="button" class="lp-clip-act" data-cact="pin" title="Fixar"><span style="display:inline-flex;color:${it.pinned ? 'var(--accent)' : 'var(--muted)'};">${ALP_IC.pin}</span></button>
             <button type="button" class="lp-clip-act" data-cact="del" title="Remover">×</button>
           </div>`).join('') : '<div style="font-size:10.5px; color:var(--muted); text-align:center; padding:12px;">Copie qualquer texto (Ctrl+C) ou clique em "+ Ler".</div>'}
       </div>`;
@@ -498,12 +513,12 @@
     if (!box) return;
     const proNow = isPro();
     const exprs = [
-      ['normal', '😊 Normal'],
-      ['cool',   '😎 Óculos'],
-      ['wink',   '😉 Piscar'],
-      ['focus',  '🎯 Foco'],
-      ['sleepy', '😴 Soneca'],
-      ['dizzy',  '😵‍💫 Tonto']
+      ['normal', ALP_IC.normal, 'Normal'],
+      ['cool',   ALP_IC.cool,   'Óculos'],
+      ['wink',   ALP_IC.wink,   'Piscar'],
+      ['focus',  ALP_IC.focus,  'Foco'],
+      ['sleepy', ALP_IC.sleepy, 'Soneca'],
+      ['dizzy',  ALP_IC.dizzy,  'Tonto']
     ];
     box.innerHTML = `
       <div class="label-xs">
@@ -520,8 +535,8 @@
       </div>
       <div class="label-xs" style="margin-top:11px;"><span>Expressões rápidas</span></div>
       <div class="lp-grid">
-        ${exprs.map(([id, lbl]) => `
-          <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${lbl}</button>`).join('')}
+        ${exprs.map(([id, ic, lbl]) => `
+          <button type="button" class="lp-expr-btn ${activeExpr === id ? 'active' : ''}" data-expr="${id}">${ic}<span>${lbl}</span></button>`).join('')}
       </div>
       <div style="margin-top:10px;">
         <div class="lp-toggle-row">
@@ -529,14 +544,14 @@
             <strong>Karaokê na Cápsula</strong> <span class="lp-pro-tag">PRO</span>
             <span class="lp-toggle-sub">Mostra a letra da música flutuando na cápsula</span>
           </div>
-          <input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" />
+          <label class="lp-switch"><input type="checkbox" ${karaokeEnabled && proNow ? 'checked' : ''} data-protog="karaoke" /><span class="lp-switch-track"></span></label>
         </div>
         <div class="lp-toggle-row">
           <div>
             <strong>Cor Dinâmica pela Capa</strong> <span class="lp-pro-tag">PRO</span>
             <span class="lp-toggle-sub">Tema acompanha a cor do álbum tocando</span>
           </div>
-          <input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" />
+          <label class="lp-switch"><input type="checkbox" ${dynamicColorEnabled && proNow ? 'checked' : ''} data-protog="dyncolor" /><span class="lp-switch-track"></span></label>
         </div>
       </div>`;
   }

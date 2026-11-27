@@ -48,6 +48,26 @@
   let lastPollFriendsAt = 0;
   let lastPollDmAt = 0;
   let newlyArrivedIds = new Set();
+  const JAM_PREFIX = '::LJAM::';
+  let jamWatchRooms = new Set();
+  let jamLastIds = {};
+  let jamSeenMsgs = new Set();
+
+  function parseJamBody(body) {
+    const s = String(body || '');
+    if (!s.startsWith(JAM_PREFIX)) return null;
+    try { return JSON.parse(s.slice(JAM_PREFIX.length)); } catch (_) { return null; }
+  }
+  function emitJamPacket(roomCode, senderUid, senderName, senderColor, msgId, pkt) {
+    if (!pkt || senderUid === myUid) return;
+    const k = roomCode + ':' + msgId;
+    if (jamSeenMsgs.has(k)) return;
+    jamSeenMsgs.add(k);
+    if (jamSeenMsgs.size > 400) jamSeenMsgs.clear();
+    window.dispatchEvent(new CustomEvent('lumo-jam-packet', {
+      detail: { roomCode, senderUid, senderName, senderColor, msgId, packet: pkt }
+    }));
+  }
 
   const NUDGES = {
     wave:  { text: 'deu um oi! 👋',           expr: 'happy',     freq: [520, 780] },
@@ -263,7 +283,8 @@
   function countUnreadFriends() {
     let unread = 0;
     for (const f of friends) {
-      if (isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id)) {
+      const _jp = parseJamBody(f.last_body);
+      if (isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id) && (!_jp || _jp.t === 'inv')) {
         unread++;
       }
     }
@@ -391,9 +412,10 @@
     const friendsHtml = friends.length
       ? `<div class="pf-sec-title">Seus amigos (${friends.length})</div>` +
         friends.map((f) => {
-          const unread = Boolean(isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id));
+          const _jp = parseJamBody(f.last_body);
+          const unread = Boolean(isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id) && (!_jp || _jp.t === 'inv'));
           const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
-          const cleanLast = String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
+          const cleanLast = _jp ? (_jp.t === 'inv' ? ('Convite Lumo Jam · ' + (_jp.ti || 'Ouvir juntos')) : '') : String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
           const statusLine = unread && cleanLast
             ? `💬 ${cleanLast}`
             : (f.online ? (f.playing ? `🎮 Jogando ${f.playing}` : 'Online agora') : fmtLastSeen(f.last_seen));
@@ -479,14 +501,21 @@
       prevSender = m.sender_uid;
       prevKind = 'text';
 
-      const plainBody = String(m.body || '').replace(/^↪[^\n]+\n/, '');
+      const _jp = parseJamBody(m.body);
+      if (_jp && _jp.t !== 'inv') continue;
+      const plainBody = _jp ? ('Convite Lumo Jam: ' + (_jp.ti || '')) : String(m.body || '').replace(/^↪[^\n]+\n/, '');
       const statusCls = m._pending ? 'pending' : (m._failed ? 'failed' : '');
       const isNew = newlyArrivedIds.has(m.id);
       const timeLabel = m._pending ? 'enviando...' : (m._failed ? 'falhou' : fmtTime(m.created_at));
 
       html.push(`<div class="pf-dm-row ${isMe ? 'me' : 'them'} ${grouped ? 'grouped' : ''} ${statusCls} ${isNew ? 'is-new' : ''}">
         <div class="pf-dm-bubble">
-          <div>${renderBodyHtml(m.body)}</div>
+          <div>${_jp && _jp.t === 'inv' ? `<div class="pf-jam-card">
+      <div class="pf-jam-card-head">Lumo Jam</div>
+      <div class="pf-jam-card-track">${esc(_jp.ti || 'Sessão ao vivo')}</div>
+      ${_jp.ar ? `<div class="pf-jam-card-art">${esc(_jp.ar)}</div>` : ''}
+      ${!isMe ? `<button type="button" class="pf-jam-join-btn" onclick="window.LumoJam && window.LumoJam.joinFromInvite('${esc(activeFriend?.room_code || '')}','${esc(_jp.h || m.sender_uid)}','${esc(_jp.n || m.sender_name || '')}')">Entrar na Jam</button>` : '<div class="pf-jam-card-art">Convite enviado</div>'}
+    </div>` : renderBodyHtml(m.body)}</div>
           <div class="pf-dm-meta">
             <button type="button" class="pf-reply-trig" title="Responder" onclick="LumoFriends.startReply(${JSON.stringify(m.sender_name || '')}, ${JSON.stringify(plainBody.slice(0, 80))})">↩</button>
             <span class="pf-dm-time">${esc(timeLabel)}</span>
@@ -557,6 +586,17 @@
         }
         if (f.last_sender_uid !== myUid && !alertedIds.has(key)) {
           alertedIds.add(key);
+          const _jp = parseJamBody(f.last_body);
+          if (_jp) {
+            emitJamPacket(f.room_code, f.last_sender_uid, f.display_name, f.color, msgId, _jp);
+            if (_jp.t !== 'inv') {
+              readMap[f.room_code] = msgId;
+              saveReadMap();
+              continue;
+            }
+            triggerIncomingMessageAnim(f.display_name, 'convidou para uma Lumo Jam!', f.color, true);
+            continue;
+          }
           const alreadyReading = isPingViewOpen() && subTab === 'friends' && activeFriend && activeFriend.uid === f.uid;
           if (alreadyReading) {
             readMap[f.room_code] = msgId;
@@ -639,6 +679,14 @@
         }
 
         dmSeen.add(m.id);
+        const _jp = parseJamBody(m.body);
+        if (_jp) {
+          emitJamPacket(roomCode, m.sender_uid, m.sender_name || friendSnapshot.display_name, m.sender_color || friendSnapshot.color, m.id, _jp);
+          if (_jp.t !== 'inv') {
+            if (m.id > dmLastId) dmLastId = m.id;
+            continue;
+          }
+        }
         dmMsgs.push(m);
         newlyArrivedIds.add(m.id);
         if (m.id > dmLastId) dmLastId = m.id;
@@ -735,8 +783,68 @@
     }
   }
 
+  async function pollJamRooms() {
+    if (!jamWatchRooms.size) return;
+    for (const rc of Array.from(jamWatchRooms)) {
+      try {
+        const since = isRealId(jamLastIds[rc]) ? jamLastIds[rc] : 0;
+        const data = await apiGet(`?room=${encodeURIComponent(rc)}&since=${since}`);
+        if (!data || !Array.isArray(data.messages)) continue;
+        const f = friends.find((x) => x.room_code === rc);
+        for (const raw of data.messages) {
+          if (!isRealId(raw.id)) continue;
+          const mid = Number(raw.id);
+          if (mid > (jamLastIds[rc] || 0)) jamLastIds[rc] = mid;
+          const pkt = parseJamBody(raw.body);
+          if (pkt) {
+            emitJamPacket(rc, raw.sender_uid, raw.sender_name || f?.display_name || 'Amigo', raw.sender_color || f?.color || '#4ade80', mid, pkt);
+            if (pkt.t !== 'inv' && mid > (readMap[rc] || 0)) {
+              readMap[rc] = mid;
+              saveReadMap();
+            }
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
   // === API PÚBLICA ===
   window.LumoFriends = {
+    getMe() { return { uid: myUid, name: getMyName(), tag: myTag, color: getMyColor() }; },
+    getFriends() { return friends.map((f) => ({ ...f })); },
+    watchJamRooms(codes) {
+      jamWatchRooms = new Set((codes || []).filter(Boolean));
+      for (const rc of jamWatchRooms) {
+        if (!jamLastIds[rc]) {
+          const f = friends.find((x) => x.room_code === rc);
+          const seed = f && isRealId(f.last_msg_id) ? Math.max(0, Number(f.last_msg_id) - 1) : 0;
+          jamLastIds[rc] = seed;
+        }
+      }
+      if (jamWatchRooms.size) pollJamRooms();
+    },
+    async sendJamPacket(roomCode, pkt) {
+      if (!roomCode || !pkt) return false;
+      try {
+        const { ok, data } = await apiPost({
+          action: 'send_dm',
+          uid: myUid,
+          room_code: roomCode,
+          name: getMyName(),
+          color: getMyColor(),
+          kind: 'text',
+          body: JAM_PREFIX + JSON.stringify(pkt)
+        });
+        if (ok && data?.ok && isRealId(data.id)) {
+          const id = Number(data.id);
+          if (id > (jamLastIds[roomCode] || 0)) jamLastIds[roomCode] = id;
+          readMap[roomCode] = Math.max(readMap[roomCode] || 0, id);
+          saveReadMap();
+          return true;
+        }
+      } catch (_) {}
+      return false;
+    },
     syncProfile() {
       sendHeartbeat().then(pollFriends);
     },
@@ -890,6 +998,7 @@
     tickCount++;
     pollFriends();
     if (activeFriend) pollActiveDm();
+    if (jamWatchRooms.size) pollJamRooms();
     if (tickCount % 10 === 0) sendHeartbeat();
   }
 

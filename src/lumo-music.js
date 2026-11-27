@@ -27,7 +27,9 @@
     stop:    S('<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>'),
     vol:     S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'),
     muted:   S('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'),
-    wave:    S('<path d="M3 12h2"/><path d="M7 8v8"/><path d="M11 5v14"/><path d="M15 9v6"/><path d="M19 7v10"/><path d="M22 12h-1"/>')
+    wave:    S('<path d="M3 12h2"/><path d="M7 8v8"/><path d="M11 5v14"/><path d="M15 9v6"/><path d="M19 7v10"/><path d="M22 12h-1"/>'),
+    jam:     S('<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>'),
+    gear:    S('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')
   };
 
   function esc(s) {
@@ -81,6 +83,35 @@
 
   let likes = [];
   let playlists = [];
+  let recentTracks = [];
+  let pendingJamSeek = null;
+  let jamSuppressEmit = false;
+  try { recentTracks = JSON.parse(localStorage.getItem('lumo_music_recent') || '[]'); } catch (_) {}
+  if (!Array.isArray(recentTracks)) recentTracks = [];
+  function recordRecent(track) {
+    if (!track || !track.id) return;
+    recentTracks = [track, ...recentTracks.filter((x) => x.id !== track.id)].slice(0, 12);
+    try { localStorage.setItem('lumo_music_recent', JSON.stringify(recentTracks)); } catch (_) {}
+  }
+  function emitJamAction(action) {
+    if (jamSuppressEmit) return;
+    window.dispatchEvent(new CustomEvent('lumo-music-action', { detail: { action } }));
+  }
+  function checkPendingJamSeek() {
+    if (!pendingJamSeek || !currentTrack) return;
+    const p = pendingJamSeek;
+    pendingJamSeek = null;
+    if (!p.playing) {
+      if (isPlaying) { jamSuppressEmit = true; togglePlayPause(); jamSuppressEmit = false; }
+      return;
+    }
+    const target = Math.max(0, p.pos + (Date.now() - p.setAt) / 1000);
+    if (Math.abs(curTime - target) > 2.2) {
+      jamSuppressEmit = true;
+      seekTo(target);
+      jamSuppressEmit = false;
+    }
+  }
   let openedPlaylistId = null;
   try { likes = JSON.parse(localStorage.getItem('lumo_music_likes') || '[]'); } catch (_) {}
   try { playlists = JSON.parse(localStorage.getItem('lumo_music_playlists') || '[]'); } catch (_) {}
@@ -405,6 +436,7 @@
     if (d.type === 'lumo-sp-state' && currentTrack?.source === 'spotify') {
       isPlaying = !d.paused;
       if (d.duration > 0) duration = d.duration;
+      if (isPlaying && pendingJamSeek) setTimeout(checkPendingJamSeek, 250);
       if (!seeking && typeof d.current === 'number') curTime = d.current;
       syncGlobalVisuals();
       renderHero();
@@ -442,6 +474,7 @@
     if (d.type === 'lumo-yt-state') {
       if (d.state === 'playing') {
         isPlaying = true;
+        if (pendingJamSeek) setTimeout(checkPendingJamSeek, 200);
         if (d.duration > 0) duration = d.duration;
         syncGlobalVisuals();
         renderHero();
@@ -471,6 +504,7 @@
   audio.addEventListener('playing', () => {
     if (!currentTrack || currentTrack.source !== 'audius') return;
     isPlaying = true;
+    if (pendingJamSeek) checkPendingJamSeek();
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     syncGlobalVisuals();
     renderHero();
@@ -487,6 +521,7 @@
     if (Number.isFinite(audio.duration) && audio.duration > 0) duration = audio.duration;
     updateProgressDOM();
     syncActiveLyric();
+    emitJamAction('seek');
     maybePrefetchNext();
   });
   audio.addEventListener('ended', () => {
@@ -586,6 +621,7 @@
     }
 
     currentTrack = { ...track };
+    recordRecent(currentTrack);
     curTime = 0;
     duration = Number(track.duration || 0);
     activeLyricIdx = -1;
@@ -597,6 +633,7 @@
 
     // Dispara busca de letra EM PARALELO no milissegundo do clique!
     if (lyricsOpen) fetchLyricsFor(currentTrack);
+    emitJamAction('track');
 
     if (track.source === 'spotify') {
       audio.pause();
@@ -661,17 +698,18 @@
     }
     if (currentTrack.source === 'spotify') {
       sendSp({ type: 'sp-toggle' });
+      setTimeout(() => emitJamAction(isPlaying ? 'play' : 'pause'), 80);
       isPlaying = !isPlaying;
       syncGlobalVisuals();
       renderHero();
     } else if (currentTrack.source === 'youtube') {
-      if (isPlaying) { sendYt({ type: 'pause' }); isPlaying = false; }
-      else { sendYt({ type: 'play' }); isPlaying = true; }
+      if (isPlaying) { sendYt({ type: 'pause' }); isPlaying = false; emitJamAction('pause'); }
+      else { sendYt({ type: 'play' }); isPlaying = true; emitJamAction('play'); }
       syncGlobalVisuals();
       renderHero();
     } else {
-      if (audio.paused) audio.play().catch(() => {});
-      else audio.pause();
+      if (audio.paused) { audio.play().catch(() => {}); emitJamAction('play'); }
+      else { audio.pause(); emitJamAction('pause'); }
     }
   }
 
@@ -1049,6 +1087,7 @@
     </div>
     <div id="lm-music-pane">
       <div class="card lm-hero" id="lm-hero"></div>
+      <div id="lm-jam-box"></div>
       <div class="lm-lyrics-box" id="lm-lyrics-box"></div>
       <div class="card" id="lm-library"></div>
     </div>`;
@@ -1157,7 +1196,10 @@
           <div class="lm-meta">
             <div class="lm-title">${esc(currentTrack ? currentTrack.title : 'Lumo Music')}</div>
             <div class="lm-artist">${esc(currentTrack ? currentTrack.artist : 'Escolha uma faixa abaixo para ouvir leve')}</div>
-            <div class="lm-badge-row"><span class="lm-src-badge ${isAdFree ? 'adfree' : ''}">${esc(srcLabel)}</span></div>
+            <div class="lm-badge-row">
+              <span class="lm-src-badge ${isAdFree ? 'adfree' : ''}">${esc(srcLabel)}</span>
+              ${window.LumoJam && window.LumoJam.getStatus().active ? `<span class="lm-jam-pill"><i></i>${window.LumoJam.getStatus().role === 'host' ? 'JAM HOST' : 'JAM AO VIVO'}</span>` : ''}
+            </div>
           </div>
         </div>
 
@@ -1181,6 +1223,7 @@
             <input type="range" id="lm-vol" class="lm-vol" style="--vpct:${volume}%" min="0" max="100" value="${volume}" />
           </div>
           <div class="lm-hero-actions">
+            <button type="button" class="lm-icon-btn ${window.LumoJam && (window.LumoJam.getStatus().active || window.LumoJam.getStatus().drawerOpen) ? 'jam-live' : ''}" data-hact="jam" title="Lumo Jam (ouvir com amigos)">${IC.jam}</button>
             <button type="button" class="lm-icon-btn ${liked ? 'liked' : ''}" data-hact="like" title="Curtir">${IC.heart}</button>
             <button type="button" class="lm-icon-btn ${window.LumoWave && window.LumoWave.getMode() !== 'off' ? 'active' : ''}" data-hact="wave" title="Ondas na cápsula: ${window.LumoWave ? window.LumoWave.getLabel() : 'Barras'}">${IC.wave}</button>
             <button type="button" class="lm-icon-btn ${lyricsOpen ? 'active' : ''}" data-hact="lyrics" title="Letra sincronizada">${IC.lyrics}</button>
@@ -1220,7 +1263,7 @@
     else if (act === 'repeat') {
       repeatMode = repeatMode === 'off' ? 'all' : (repeatMode === 'all' ? 'one' : 'off');
       renderHero();
-    } else if (act === 'wave' && window.LumoWave) {
+    } else if (act === 'jam' && window.LumoJam) { window.LumoJam.toggleDrawer(); renderHero(); } else if (act === 'wave' && window.LumoWave) {
       window.LumoWave.cycleMode();
       renderHero();
     } else if (act === 'lyrics') {
@@ -1267,15 +1310,15 @@
       let acctBanner = '';
       if (searchSrc === 'spotify') {
         if (spTokens?.access_token) {
-          acctBanner = `<div class="lm-acct-banner sp-ok">
-            <div class="lm-acct-info"><strong>Spotify · ${esc(spTokens.user_name || 'Conectado')}</strong><span>${spDeviceId ? 'Player SDK pronto (zero anúncio)' : 'Aquecendo player oficial...'}</span></div>
-            <button type="button" class="lm-acct-btn ghost" data-acct="sp-logout">Sair</button>
+          acctBanner = `<div class="lm-acct-strip sp-ok">
+            <span class="lm-acct-label"><i class="lm-acct-dot"></i>Spotify · ${esc(spTokens.user_name || 'Conectado')}</span>
+            <button type="button" class="lm-acct-link" data-acct="sp-logout">Sair</button>
           </div>`;
         } else {
           acctBanner = `<div class="lm-acct-banner">
             <div class="lm-acct-info"><strong>Spotify Premium (Opcional)</strong><span>Login único · toca sem abrir o app do Spotify</span></div>
             <div style="display:flex; gap:4px;">
-              <button type="button" class="lm-acct-btn ghost" data-acct="sp-cfg" title="Trocar Client ID">⚙</button>
+              <button type="button" class="lm-acct-btn ghost" data-acct="sp-cfg" title="Client ID" style="display:inline-flex;align-items:center;">${IC.gear}</button>
               <button type="button" class="lm-acct-btn sp" data-acct="sp-login">Conectar</button>
             </div>
           </div>`;
@@ -1293,10 +1336,15 @@
           }
         }
       } else if (searchSrc === 'youtube') {
-        acctBanner = `<div class="lm-acct-banner ${ytSignedIn ? 'yt-ok' : ''}">
-          <div class="lm-acct-info"><strong>${ytSignedIn ? 'YouTube Premium vinculado' : 'Tem YouTube Premium?'}</strong><span>${ytSignedIn ? 'Sessão ativa no Lumo · reprodução oficial sem anúncios' : 'Conecte sua conta Google uma vez para ouvir sem anúncios'}</span></div>
-          <button type="button" class="lm-acct-btn ${ytSignedIn ? 'ghost' : ''}" data-acct="yt-login">${ytSignedIn ? 'Reconectar' : 'Conectar'}</button>
-        </div>`;
+        acctBanner = ytSignedIn
+          ? `<div class="lm-acct-strip yt-ok">
+              <span class="lm-acct-label"><i class="lm-acct-dot"></i>YouTube Premium ativo</span>
+              <button type="button" class="lm-acct-link" data-acct="yt-login">Reconectar</button>
+            </div>`
+          : `<div class="lm-acct-strip">
+              <span class="lm-acct-label"><i class="lm-acct-dot" style="background:var(--muted);box-shadow:none;"></i>Conectar YouTube Premium (sem anúncios)</span>
+              <button type="button" class="lm-acct-btn" data-acct="yt-login">Conectar</button>
+            </div>`;
       }
 
       const spChips = [['likes','Curtidas'],['playlists','Minhas Playlists'],['lofi','Lo-Fi'],['pop','Pop'],['rock','Rock'],['phonk','Phonk']];
@@ -1317,7 +1365,11 @@
             </div>`).join('')
           : `<div style="font-size:10.8px; color:var(--muted); text-align:center; padding:18px 8px;">${esc(listMsg || 'Nenhuma playlist.')}</div>`;
       } else {
-        listHtml = renderTrackRows(results, 'explore');
+        if (!results.length && !searchQuery.trim() && recentTracks.length && (searchSrc === 'youtube' || (searchSrc === 'spotify' && spTokens?.access_token))) {
+          listHtml = '<div class="lm-sec-label">Tocadas recentemente</div>' + renderTrackRows(recentTracks, 'recent');
+        } else {
+          listHtml = renderTrackRows(results, 'explore');
+        }
       }
 
       body = `
@@ -1332,6 +1384,7 @@
           <button type="submit" class="btn-primary" style="padding:6px 12px; font-size:11px;">Ir</button>
         </form>
         ${searchSrc === 'spotify' && spTokens?.access_token ? `<div class="lm-chips">${spChips.map(([k, l]) => `<button type="button" class="lm-chip ${spChip === k ? 'active' : ''}" data-spchip="${k}">${l}</button>`).join('')}</div>` : ''}
+        ${searchSrc === 'youtube' ? `<div class="lm-chips">${[['lofi beats','Lo-Fi'],['pop hits','Pop'],['phonk','Phonk'],['rock classics','Rock'],['eletronica','Eletrônica'],['chill study','Foco']].map(([k, l]) => `<button type="button" class="lm-chip" data-ytchip="${k}">${l}</button>`).join('')}</div>` : ''}
         ${searchSrc === 'audius' ? `<div class="lm-chips">${audChips.map(([k, l]) => `<button type="button" class="lm-chip ${activeChip === k ? 'active' : ''}" data-chip="${k}">${l}</button>`).join('')}</div>` : ''}
         <div class="lm-list">${listHtml}</div>`;
     } else if (libTab === 'queue') {
@@ -1442,6 +1495,8 @@
     const spPl = e.target.closest('[data-sppl]');
     if (spPl) { openSpotifyPlaylist(spPl.dataset.sppl, spPl.dataset.spplname); return; }
 
+    const ytChip = e.target.closest('[data-ytchip]');
+    if (ytChip) { searchQuery = ytChip.dataset.ytchip; searchYouTube(searchQuery); return; }
     const chip = e.target.closest('[data-chip]');
     if (chip) { activeChip = chip.dataset.chip; searchQuery = ''; loadAudiusFeed(activeChip, ''); return; }
 
@@ -1468,7 +1523,7 @@
     const ctx = row.dataset.ctx;
     const idx = parseInt(row.dataset.idx, 10);
     const pl = ctx === 'pl-open' ? playlists.find((p) => p.id === openedPlaylistId) : null;
-    const pool = ctx === 'explore' ? results : ctx === 'queue' ? queue : ctx === 'likes' ? likes : (pl?.tracks || []);
+    const pool = ctx === 'explore' ? results : ctx === 'recent' ? recentTracks : ctx === 'queue' ? queue : ctx === 'likes' ? likes : (pl?.tracks || []);
     const track = pool[idx];
     if (!track) return;
 
@@ -1500,7 +1555,98 @@
     if (typeof _prevSendMedia === 'function') return _prevSendMedia(action);
   };
 
-  window.LumoMusic = { playTrack, togglePlayPause, stopMusic, playNext, playPrev };
+  async function applyJamState(pkt) {
+    if (!pkt || !pkt.tr) return;
+    const tr = pkt.tr;
+    const drift = pkt.ts ? Math.max(0, Math.min(12, (Date.now() - Number(pkt.ts)) / 1000)) : 0;
+    const targetPos = pkt.p ? Number(pkt.pos || 0) + drift : Number(pkt.pos || 0);
+
+    let track = null;
+    if (tr.s === 'sp' && spTokens?.access_token) {
+      track = {
+        id: 'sp_' + tr.id,
+        uri: 'spotify:track:' + tr.id,
+        source: 'spotify',
+        title: tr.ti,
+        artist: tr.ar,
+        artwork: '',
+        duration: Number(tr.d || 0)
+      };
+    } else if (tr.s === 'yt') {
+      track = {
+        id: 'yt_' + tr.id,
+        videoId: tr.id,
+        source: 'youtube',
+        title: tr.ti,
+        artist: tr.ar,
+        artwork: `https://i.ytimg.com/vi/${tr.id}/hqdefault.jpg`,
+        duration: Number(tr.d || 0)
+      };
+    } else if (tr.s === 'au') {
+      track = {
+        id: tr.id,
+        source: 'audius',
+        title: tr.ti,
+        artist: tr.ar,
+        artwork: '',
+        duration: Number(tr.d || 0),
+        streamUrl: `${AUDIUS_API}/tracks/${encodeURIComponent(tr.id)}/stream?app_name=LumoMusic`
+      };
+    } else if (tr.s === 'sp') {
+      // Cross-platform: Host está no Spotify e Guest sem Spotify -> resolve automaticamente no YouTube!
+      try {
+        const wr = await fetch(`${WORKER_BASE}/yt-search?q=${encodeURIComponent((tr.ti + ' ' + tr.ar).trim())}`, { signal: AbortSignal.timeout(5500) });
+        const wd = wr.ok ? await wr.json() : { items: [] };
+        if (Array.isArray(wd.items) && wd.items.length) {
+          track = { ...wd.items[0], title: tr.ti, artist: tr.ar };
+        }
+      } catch (_) {}
+    }
+
+    if (!track) return;
+
+    const sameTrack = currentTrack && (currentTrack.id === track.id || (currentTrack.title === track.title && currentTrack.artist === track.artist));
+    jamSuppressEmit = true;
+    try {
+      if (sameTrack) {
+        if (Boolean(pkt.p) !== isPlaying) togglePlayPause();
+        if (Math.abs(curTime - targetPos) > 2.5) seekTo(targetPos);
+      } else {
+        pendingJamSeek = { pos: targetPos, setAt: Date.now(), playing: Boolean(pkt.p) };
+        await playTrack(track, [track], 0);
+      }
+    } finally {
+      jamSuppressEmit = false;
+    }
+  }
+
+  window.addEventListener('lumo-jam-changed', () => renderHero());
+
+  // Garante que o título do cabeçalho na aba de música sempre mostre "Lumo Music"
+  function fixHeaderTitle() {
+    if (!viewMidia.classList.contains('active')) return;
+    const h = document.getElementById('panel-title') || document.querySelector('#panel-header .panel-title, .header-title, #view-title');
+    if (h && h.textContent.trim() === 'Mídia') h.textContent = 'Lumo Music';
+  }
+  new MutationObserver(fixHeaderTitle).observe(viewMidia, { attributes: true, attributeFilter: ['class'] });
+  setTimeout(fixHeaderTitle, 300);
+
+  window.LumoMusic = {
+    playTrack,
+    togglePlayPause,
+    stopMusic,
+    playNext,
+    playPrev,
+    seekTo,
+    applyJamState,
+    getState: () => ({
+      track: currentTrack,
+      playing: isPlaying,
+      currentTime: curTime,
+      duration,
+      hasSpotify: Boolean(spTokens?.access_token)
+    })
+  };
 
   renderHero();
   renderLibrary();
