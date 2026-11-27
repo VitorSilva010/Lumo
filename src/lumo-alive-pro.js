@@ -589,9 +589,11 @@
   if (homeScroll) {
     let scTimer = 0;
     const freeze = () => {
+      /* V391_RESUMO_FREEZE */
       homeScroll.classList.add('is-scrolling');
+      document.getElementById('view-resumo')?.classList.add('is-scrolling');
       clearTimeout(scTimer);
-      scTimer = setTimeout(() => homeScroll.classList.remove('is-scrolling'), 130);
+      scTimer = setTimeout(() => { homeScroll.classList.remove('is-scrolling'); document.getElementById('view-resumo')?.classList.remove('is-scrolling'); }, 130);
     };
     homeScroll.addEventListener('scroll', freeze, { passive: true });
     homeScroll.addEventListener('wheel', freeze, { passive: true });

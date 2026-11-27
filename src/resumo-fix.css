@@ -102,3 +102,40 @@ html, body {
 .motd-card::after {
   transition: opacity 0.08s linear !important;
 }
+
+/* V391_LOCK_RESUMO_LOOK */
+#view-resumo #v38-resumo-look,
+#view-resumo .v38-resumo-look {
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  contain: layout style !important;
+  will-change: auto !important;
+  animation: none !important;
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
+  transition: background-color 0.14s ease, border-color 0.14s ease !important;
+}
+#view-resumo #v38-resumo-look:hover,
+#view-resumo #v38-resumo-look:focus,
+#view-resumo #v38-resumo-look:active,
+#view-resumo #v38-resumo-look * {
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+#view-resumo .home-scroll.is-scrolling #v38-resumo-look,
+#view-resumo.is-scrolling #v38-resumo-look {
+  pointer-events: none !important;
+  transition: none !important;
+}
+#view-resumo #v38-resumo-look::before,
+#view-resumo #v38-resumo-look::after {
+  display: none !important;
+  opacity: 0 !important;
+}
