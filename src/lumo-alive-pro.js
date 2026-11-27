@@ -248,6 +248,14 @@
   let savedThemeVars = null;
   let lastArtUrl = '';
 
+  // V383_THEME_SYNC: se o usuário trocar a cor manualmente, atualiza a base e não reverte para a antiga
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.theme-dot, [data-theme]')) {
+      savedThemeVars = null;
+      lastArtUrl = '';
+    }
+  }, { passive: true });
+
   function restoreThemeColor() {
     if (!savedThemeVars) return;
     const root = document.documentElement;
@@ -312,8 +320,8 @@
     if (activeExpr === 'normal') pill.classList.toggle('expr-jamming', musicJamming);
     if (!musicJamming) {
       karaokeEl.classList.remove('show');
-      restoreThemeColor();
-    } else if (d.artwork) {
+      if (dynamicColorEnabled) restoreThemeColor();
+    } else if (dynamicColorEnabled && d.artwork) {
       applyDynamicColorFromArt(d.artwork);
     }
   });

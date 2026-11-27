@@ -86,3 +86,19 @@
   contain: layout style;
   will-change: auto !important;
 }
+
+/* V383_CLEAN_WINDOW_AND_SPOTLIGHT */
+html, body {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#panel {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.36) !important;
+}
+.hub-tile::after,
+.hero-bento::after,
+.mini-media-strip::after,
+.card::after,
+.motd-card::after {
+  transition: opacity 0.08s linear !important;
+}

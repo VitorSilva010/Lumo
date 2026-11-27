@@ -125,6 +125,7 @@
   let lyricsSynced = false;
   let lyricsStatus = '';
   let activeLyricIdx = -1;
+  let lyricsUserScrollUntil = 0;
   let prefetchedNextKey = '';
   let lyricsStore = {};
   try { lyricsStore = JSON.parse(localStorage.getItem('lumo_lyrics_cache_v1') || '{}') || {}; } catch (_) {}
@@ -909,7 +910,13 @@
     box.querySelectorAll('.lm-lyric-line.active').forEach((el) => el.classList.remove('active'));
     if (idx >= 0) {
       const el = box.querySelector(`.lm-lyric-line[data-lidx="${idx}"]`);
-      if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      if (el) {
+        el.classList.add('active');
+        if (Date.now() > lyricsUserScrollUntil) {
+          const targetTop = Math.max(0, el.offsetTop - (box.clientHeight / 2) + (el.clientHeight / 2));
+          box.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+      }
     }
   }
 
@@ -1104,6 +1111,13 @@
     document.getElementById('lm-legacy-pane').classList.toggle('hidden', mainTab !== 'legacy');
   });
 
+  const _lBox = document.getElementById('lm-lyrics-box');
+  if (_lBox) {
+    const pauseAutoScroll = () => { lyricsUserScrollUntil = Date.now() + 6000; };
+    _lBox.addEventListener('wheel', pauseAutoScroll, { passive: true });
+    _lBox.addEventListener('touchmove', pauseAutoScroll, { passive: true });
+    _lBox.addEventListener('pointerdown', pauseAutoScroll, { passive: true });
+  }
   document.getElementById('lm-lyrics-box').addEventListener('click', (e) => {
     if (e.target.closest('[data-autolyrics]')) {
       autoLyrics = !autoLyrics;
