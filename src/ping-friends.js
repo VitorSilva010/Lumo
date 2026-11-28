@@ -123,7 +123,7 @@
   function fmtPlayingStatus(raw) {
     const s = String(raw || '').trim();
     if (!s) return '';
-    return s.startsWith('music:') ? ('Ouvindo ' + s.slice(6).trim()) : (fmtPlayingStatus(s));
+    return s.startsWith('music:') ? ('Ouvindo ' + s.slice(6).trim()) : ('Jogando ' + s);
   }
   function getMyColor() {
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
