@@ -415,6 +415,14 @@
           </div>
 
           <form class="pf-dm-form" onsubmit="LumoFriends.submitDm(event)">
+            <div class="pf-media-tools">
+              <button type="button" class="pf-media-btn" title="Figurinhas do Lumo" onclick="window.LumoMedia?.toggleStickerPicker(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </button>
+              <button type="button" class="pf-media-btn" title="Enviar imagem (ou Ctrl+V)" onclick="window.LumoMedia?.pickChatImage()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              </button>
+            </div>
             <textarea id="pf-dm-input" rows="1" placeholder="Mensagem para ${esc(f.display_name)}..." maxlength="400"></textarea>
             <button type="submit" class="pf-send-btn" title="Enviar (Enter)">${IC.send}</button>
           </form>
@@ -455,7 +463,7 @@
           const _jp = parseJamBody(f.last_body);
           const unread = Boolean(isRealId(f.last_msg_id) && f.last_sender_uid !== myUid && (readMap[f.room_code] || 0) < Number(f.last_msg_id) && (!_jp || _jp.t === 'inv'));
           const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
-          const cleanLast = _jp ? (_jp.t === 'inv' ? ('Convite Lumo Jam · ' + (_jp.ti || 'Ouvir juntos')) : '') : String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
+          const _lb = String(f.last_body || ''); const cleanLast = _jp ? (_jp.t === 'inv' ? ('Convite Lumo Jam · ' + (_jp.ti || 'Ouvir juntos')) : '') : (f.last_kind === 'sticker' || _lb.startsWith('::stk:') ? 'Figurinha' : (f.last_kind === 'image' || _lb.startsWith('::img:') ? 'Imagem' : _lb.replace(/^↪[^\n]+\n/, '')));
           const statusLine = unread && cleanLast
             ? `${cleanLast}`
             : (f.online ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : fmtPlayingStatus(f.playing)) : 'Online agora') : fmtLastSeen(f.last_seen));
@@ -533,6 +541,25 @@
         prevSender = '';
         prevKind = 'nudge';
         html.push(`<div class="pf-nudge-pill"><strong style="color:${esc(m.sender_color || 'var(--accent)')}">${esc(m.sender_name)}</strong> ${esc(m.body)} <span style="opacity:0.55; font-size:9px; margin-left:3px;">${fmtTime(m.created_at)}</span></div>`);
+        continue;
+      }
+
+      const rawBodyStr = String(m.body || '');
+      const isStickerMsg = m.kind === 'sticker' || rawBodyStr.startsWith('::stk:');
+      const isImageMsg = m.kind === 'image' || rawBodyStr.startsWith('::img:');
+      if (isStickerMsg || isImageMsg) {
+        const isMeM = m.sender_uid === myUid;
+        prevSender = '';
+        prevKind = 'media';
+        const pendCls = m._pending ? 'pending' : '';
+        if (isStickerMsg) {
+          const stkId = rawBodyStr.replace(/^::stk:/, '').trim();
+          const svg = window.LumoMedia?.renderStickerSvg ? window.LumoMedia.renderStickerSvg(stkId, m.sender_color) : '';
+          html.push(`<div class="pf-media-wrap ${isMeM ? 'me' : 'them'} ${pendCls}"><div class="pf-sticker-card">${svg}</div><div class="pf-media-time">${fmtTime(m.created_at)}</div></div>`);
+        } else {
+          const imgUrl = rawBodyStr.replace(/^::img:/, '').trim();
+          html.push(`<div class="pf-media-wrap ${isMeM ? 'me' : 'them'} ${pendCls}"><div class="pf-img-bubble" onclick="window.LumoMedia?.openLightbox('${esc(imgUrl)}')"><img src="${esc(imgUrl)}" alt="Imagem" loading="lazy" /></div><div class="pf-media-time">${fmtTime(m.created_at)}</div></div>`);
+        }
         continue;
       }
 
@@ -1104,5 +1131,10 @@
 
   window.addEventListener('lumo-profile-changed', () => {
     if (typeof sendHeartbeat === 'function') sendHeartbeat();
+  });
+
+  window.addEventListener('lumo-pf-send', (ev) => {
+    const d = ev?.detail;
+    if (d && d.kind && d.body) sendDmMessage(d.kind, d.body);
   });
 })();

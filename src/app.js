@@ -371,7 +371,7 @@ async function gracefulShutdown() {
 // === RELÓGIO, CLIMA E RESUMO ===
 function updateLiveClock() {
   const now = new Date();
-  document.getElementById('live-clock').innerHTML = `${String(now.getHours()).padStart(2, '0')}<span class="colon">:</span>${String(now.getMinutes()).padStart(2, '0')}`;
+  document.getElementById('live-clock').innerHTML = `<span class="clk-h">${String(now.getHours()).padStart(2, '0')}</span><span class="colon">:</span><span class="clk-m">${String(now.getMinutes()).padStart(2, '0')}</span>`;
   document.getElementById('daily-date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 function updateGreetingUI() {
@@ -986,7 +986,7 @@ async function executePrompt(prompt) {
         };
         if (_pMap[_pKey]) promptToSend = _pMap[_pKey] + prompt;
       }
-      const reply = await invoke('ask_gemini', { prompt: promptToSend, userName: userName || null }); tb.remove(); appendMsg(reply, 'ai'); hopPill(); speakText(reply); }
+      const _botNick = (localStorage.getItem('lumo_bot_nickname') || '').trim(); const _finalPrompt = (_botNick && _botNick.toLowerCase() !== 'lumo') ? `[Contexto: o usuário te apelidou de "${_botNick}". Responda naturalmente usando esse apelido se ele te chamar assim.]\n${promptToSend}` : promptToSend; const reply = await invoke('ask_gemini', { prompt: _finalPrompt, userName: userName || null }); tb.remove(); appendMsg(reply, 'ai'); hopPill(); speakText(reply); }
     catch (err) { tb.remove(); appendMsg(String(err), 'ai'); }
   }
   isThinking = false; document.getElementById('lumo-pill').classList.remove('thinking'); restoreIdleExpression(); btn.disabled = false; btn.textContent = 'Enviar';
@@ -1109,7 +1109,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.10.4 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.10.5 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

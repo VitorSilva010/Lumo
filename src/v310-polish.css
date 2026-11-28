@@ -1,0 +1,301 @@
+/* === LUMO PENTE-FINO (v3.10.5) — RELÓGIO MULTICOLOR, APELIDO, FIGURINHAS & IMAGENS NO CHAT === */
+
+/* 1. Relógio melhorado (#live-clock) com 4 estilos selecionáveis */
+#live-clock .clk-h,
+#live-clock .clk-m {
+  display: inline-block;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+/* Estilo 1 (Padrão): Bicolor — hora nítida + minutos na cor do tema com brilho */
+body.clock-bicolor #live-clock .clk-h {
+  color: var(--text);
+}
+body.clock-bicolor #live-clock .colon {
+  color: var(--accent);
+  opacity: 0.78;
+}
+body.clock-bicolor #live-clock .clk-m {
+  color: var(--accent);
+  text-shadow: 0 0 18px var(--accent-glow);
+}
+
+/* Estilo 2: Degradê suave */
+body.clock-gradient #live-clock {
+  background: linear-gradient(115deg, var(--text) 18%, var(--accent) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  filter: drop-shadow(0 2px 12px var(--accent-soft));
+}
+body.clock-gradient #live-clock .clk-h,
+body.clock-gradient #live-clock .clk-m,
+body.clock-gradient #live-clock .colon {
+  color: transparent !important;
+}
+
+/* Estilo 3: Contraste Neon */
+body.clock-neon #live-clock .clk-h {
+  color: var(--accent);
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+body.clock-neon #live-clock .colon {
+  color: var(--text);
+  opacity: 0.45;
+}
+body.clock-neon #live-clock .clk-m {
+  color: var(--text);
+  font-weight: 400;
+  opacity: 0.86;
+}
+
+/* Estilo 4: Clássico minimalista */
+body.clock-classic #live-clock .clk-h,
+body.clock-classic #live-clock .clk-m {
+  color: var(--text);
+  text-shadow: none;
+}
+
+/* Seletor de estilo do relógio em Aparência -> Interface */
+.clk-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 7px;
+}
+.clk-style-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
+}
+body.surface-light .clk-style-btn {
+  background: rgba(15, 23, 42, 0.04);
+}
+.clk-style-btn:hover {
+  border-color: var(--accent-glow);
+}
+.clk-style-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.clk-prev {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.clk-prev-grad {
+  background: linear-gradient(115deg, var(--text) 18%, var(--accent) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.clk-lbl {
+  font-size: 9.6px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.clk-style-btn.active .clk-lbl {
+  color: var(--text);
+}
+
+/* 2. Botões de Figurinha & Imagem na barra de DM do Lumo Ping */
+.pf-dm-form {
+  position: relative;
+}
+.pf-media-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.pf-media-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  padding: 0;
+}
+.pf-media-btn:hover,
+.pf-media-btn.active {
+  color: var(--accent);
+  border-color: var(--accent-glow);
+  background: var(--accent-soft);
+}
+.pf-media-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Picker de figurinhas flutuante acima do input */
+.lm-stk-picker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 7px);
+  z-index: 40;
+  padding: 8px;
+  border-radius: 14px;
+  background: var(--bg-panel, #0f1119);
+  border: 1px solid var(--accent-glow);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+body.surface-light .lm-stk-picker {
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+.lm-stk-picker.open {
+  display: flex;
+}
+.lm-stk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0 2px;
+}
+.lm-stk-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.lm-stk-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+body.surface-light .lm-stk-btn {
+  background: rgba(15, 23, 42, 0.04);
+}
+.lm-stk-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  border-color: var(--accent-glow);
+  background: var(--accent-soft);
+}
+.lm-stk-btn svg {
+  width: 38px;
+  height: 38px;
+}
+.lm-stk-btn span {
+  font-size: 8.6px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* 3. Bolhas de Figurinha e Imagem no Feed */
+.pf-media-wrap {
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0;
+  max-width: 82%;
+}
+.pf-media-wrap.me {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.pf-media-wrap.them {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+.pf-media-wrap.pending {
+  opacity: 0.6;
+}
+.pf-sticker-card {
+  padding: 4px;
+  border-radius: 14px;
+  transition: transform 0.18s ease;
+}
+.pf-sticker-card:hover {
+  transform: scale(1.06);
+}
+.pf-sticker-card svg {
+  width: 82px;
+  height: 82px;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.32));
+}
+.pf-img-bubble {
+  padding: 4px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: zoom-in;
+  max-width: 215px;
+}
+.pf-media-wrap.me .pf-img-bubble {
+  border-color: var(--accent-glow);
+  background: var(--accent-soft);
+}
+.pf-img-bubble img {
+  display: block;
+  width: 100%;
+  max-height: 195px;
+  object-fit: cover;
+  border-radius: 9px;
+}
+.pf-media-time {
+  font-size: 9px;
+  color: var(--muted);
+  opacity: 0.72;
+  margin-top: 2px;
+  padding: 0 4px;
+}
+
+/* 4. Lightbox de imagem em tela cheia dentro do Lumo */
+.lm-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(6, 7, 12, 0.86);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+.lm-lightbox.open {
+  display: flex;
+}
+.lm-lightbox img {
+  max-width: 94%;
+  max-height: 78vh;
+  border-radius: 14px;
+  border: 1px solid var(--accent-glow);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.65);
+}
+.lm-lightbox-bar {
+  display: flex;
+  gap: 8px;
+}
