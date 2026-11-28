@@ -120,6 +120,11 @@
     if (typeof userName !== 'undefined' && userName) return String(userName).trim().slice(0, 24);
     return 'Lumo';
   }
+  function fmtPlayingStatus(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return '';
+    return s.startsWith('music:') ? ('Ouvindo ' + s.slice(6).trim()) : (fmtPlayingStatus(s));
+  }
   function getMyColor() {
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
     return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#f6b974';
@@ -360,7 +365,7 @@
       const f = friends.find((x) => x.uid === activeFriend.uid) || activeFriend;
       const dotCls = f.online ? (f.playing ? 'playing' : 'online') : '';
       const statusText = f.online
-        ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora')
+        ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : fmtPlayingStatus(f.playing)) : 'Online agora')
         : fmtLastSeen(f.last_seen);
       const statusCls = f.online ? (f.playing ? 'playing' : 'online') : '';
       const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
@@ -453,7 +458,7 @@
           const cleanLast = _jp ? (_jp.t === 'inv' ? ('Convite Lumo Jam · ' + (_jp.ti || 'Ouvir juntos')) : '') : String(f.last_body || '').replace(/^↪[^\n]+\n/, '');
           const statusLine = unread && cleanLast
             ? `${cleanLast}`
-            : (f.online ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : `Jogando ${f.playing}`) : 'Online agora') : fmtLastSeen(f.last_seen));
+            : (f.online ? (f.playing ? (String(f.playing).startsWith('music:') ? `Ouvindo ${String(f.playing).slice(6)}` : fmtPlayingStatus(f.playing)) : 'Online agora') : fmtLastSeen(f.last_seen));
           const subCls = unread ? 'unread-preview' : (f.online ? (f.playing ? 'playing' : 'online') : '');
           const initial = (f.display_name || '?').trim().charAt(0).toUpperCase();
           return `
@@ -677,7 +682,7 @@
           const headSub = document.getElementById('pf-dm-head-sub');
           if (headSub) {
             headSub.textContent = updated.online
-              ? (updated.playing ? `🎮 Jogando ${updated.playing}` : 'Online agora')
+              ? (updated.playing ? fmtPlayingStatus(updated.playing) : 'Online agora')
               : fmtLastSeen(updated.last_seen);
             headSub.className = 'pf-sub ' + (updated.online ? (updated.playing ? 'playing' : 'online') : '');
           }
