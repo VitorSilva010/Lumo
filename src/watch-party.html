@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumo Video — Watch Party</title>
+  <link rel="stylesheet" href="./watch-party.css" />
+</head>
+<body>
+  <div class="wp-app">
+    <header class="wp-header">
+      <div class="wp-brand">
+        <span class="wp-dot"></span>
+        <div class="wp-title-wrap">
+          <strong id="wp-room-title">Lumo Video</strong>
+          <span class="wp-sub" id="wp-conn-status">Conectando à sala...</span>
+        </div>
+        <button type="button" class="wp-code-chip" id="wp-copy-code-btn" title="Clique para copiar o código">
+          <span id="wp-room-code">------</span>
+          <small>Copiar</small>
+        </button>
+      </div>
+
+      <div class="wp-mode-switch">
+        <button type="button" class="wp-mode-btn active" data-wp-mode="screen">Espelhar Tela</button>
+        <button type="button" class="wp-mode-btn" data-wp-mode="youtube">YouTube Sync</button>
+      </div>
+
+      <div class="wp-header-actions">
+        <button type="button" class="wp-btn" id="wp-invite-btn">Copiar convite</button>
+        <button type="button" class="wp-btn" id="wp-fullscreen-btn">Tela cheia</button>
+        <button type="button" class="wp-btn danger" id="wp-leave-btn">Sair</button>
+      </div>
+    </header>
+
+    <main class="wp-main">
+      <!-- ESQUERDA (70%): PALCO DO FILME / TELA ESPELHADA -->
+      <section class="wp-stage" id="wp-stage">
+        <!-- MODO 1: ESPELHAR TELA (WEBRTC) -->
+        <div class="wp-stage-pane" id="wp-pane-screen">
+          <div class="wp-video-wrap" id="wp-video-wrap">
+            <video id="wp-screen-video" autoplay playsinline></video>
+            <div class="wp-empty-stage" id="wp-empty-stage">
+              <div class="wp-empty-ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="3"/>
+                  <polygon points="10 7.5 15.5 10 10 12.5" fill="currentColor" stroke="none"/>
+                  <path d="M8 21h8"/>
+                </svg>
+              </div>
+              <h2>Ninguém espelhando ainda</h2>
+              <p>Clique abaixo para transmitir uma aba ou janela (Max, Disney+, Netflix, anime ou jogo) com áudio para todos da sala.</p>
+              <button type="button" class="wp-btn primary big" id="wp-start-share-big">Espelhar Tela / Aba com Áudio</button>
+              <div class="wp-drm-hint">Dica anti-tela preta (Max / Disney+ / Netflix): desative a Aceleração Gráfica nas configurações do navegador.</div>
+            </div>
+            <div class="wp-presenter-pill" id="wp-presenter-pill" style="display:none;"></div>
+          </div>
+
+          <div class="wp-stage-bar">
+            <div class="wp-bar-left">
+              <button type="button" class="wp-btn primary" id="wp-share-toggle-btn">Espelhar Tela</button>
+              <span class="wp-hint-inline" id="wp-share-status">Pronto para transmitir em P2P</span>
+            </div>
+            <div class="wp-bar-right">
+              <label class="wp-vol-wrap">
+                <span>Volume Vídeo</span>
+                <input type="range" id="wp-video-vol" min="0" max="100" value="90" />
+              </label>
+              <button type="button" class="wp-btn" id="wp-video-mute-btn">Som ON</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO 2: YOUTUBE SINCRONIZADO -->
+        <div class="wp-stage-pane hidden" id="wp-pane-youtube">
+          <div class="wp-yt-bar">
+            <input type="text" id="wp-yt-input" placeholder="Cole um link do YouTube (ex: https://youtu.be/...)" />
+            <button type="button" class="wp-btn primary" id="wp-yt-load-btn">Carregar para sala</button>
+          </div>
+          <div class="wp-yt-frame-wrap">
+            <div id="wp-yt-player"></div>
+            <div class="wp-empty-stage" id="wp-yt-empty">
+              <h2>YouTube Sincronizado</h2>
+              <p>Cole qualquer link do YouTube acima. Play, Pause e tempo sincronizam automaticamente para toda a sala sem pesar no upload.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIREITA (30%): VOICE CHAT + CHAT DA SALA -->
+      <aside class="wp-sidebar">
+        <div class="wp-voice-box">
+          <div class="wp-voice-head">
+            <span class="wp-sec-title">Voice Chat · <b id="wp-peer-count">1</b> na sala</span>
+            <div class="wp-voice-ctrls">
+              <button type="button" class="wp-vbtn" id="wp-mic-btn" title="Ligar/Mutar Microfone">Mic OFF</button>
+              <button type="button" class="wp-vbtn" id="wp-deafen-btn" title="Silenciar voz dos amigos">Ouvir ON</button>
+            </div>
+          </div>
+          <div class="wp-peers-row" id="wp-peers-row"></div>
+          <div class="wp-voice-vol-row">
+            <span>Volume da Call</span>
+            <input type="range" id="wp-voice-vol" min="0" max="100" value="100" />
+          </div>
+        </div>
+
+        <div class="wp-chat-box">
+          <div class="wp-chat-head">Chat da Sala</div>
+          <div class="wp-chat-feed" id="wp-chat-feed"></div>
+          <form class="wp-chat-form" id="wp-chat-form">
+            <div class="wp-stk-picker" id="wp-stk-picker"></div>
+            <div class="wp-media-btns">
+              <button type="button" class="wp-icon-btn" id="wp-stk-btn" title="Figurinhas do Lumo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </button>
+              <button type="button" class="wp-icon-btn" id="wp-img-btn" title="Enviar imagem (ou Ctrl+V)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              </button>
+            </div>
+            <input type="text" id="wp-chat-input" placeholder="Fale no chat ou cole uma imagem..." maxlength="400" autocomplete="off" />
+            <button type="submit" class="wp-btn primary">Enviar</button>
+          </form>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Áudios remotos de voz -->
+  <div id="wp-remote-audios" style="display:none;"></div>
+  <input type="file" id="wp-img-file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" />
+
+  <!-- Toast + Lightbox -->
+  <div class="wp-toast" id="wp-toast"></div>
+  <div class="wp-lightbox" id="wp-lightbox">
+    <img id="wp-lightbox-img" alt="Imagem do chat" />
+    <button type="button" class="wp-btn primary" id="wp-lightbox-close">Fechar</button>
+  </div>
+
+  <script src="./watch-party.js"></script>
+</body>
+</html>

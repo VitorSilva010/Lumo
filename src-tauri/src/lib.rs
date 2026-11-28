@@ -890,6 +890,36 @@ fn delete_api_key(provider: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn open_watch_party_window(app: tauri::AppHandle, room_code: String, room_title: String) -> Result<(), String> {
+    let title = if room_title.trim().is_empty() {
+        format!("Lumo Video — Sala {}", room_code)
+    } else {
+        format!("{} ({}) — Lumo Video", room_title.trim(), room_code)
+    };
+    if let Some(win) = app.get_webview_window("watch_party") {
+        let _ = win.set_title(&title);
+        let _ = win.show();
+        let _ = win.unminimize();
+        let _ = win.set_focus();
+        let _ = win.emit("wp-switch-room", room_code);
+        return Ok(());
+    }
+    let _win = tauri::WebviewWindowBuilder::new(
+        &app,
+        "watch_party",
+        tauri::WebviewUrl::App(std::path::PathBuf::from("watch-party.html"))
+    )
+    .title(&title)
+    .inner_size(1140.0, 680.0)
+    .min_inner_size(820.0, 520.0)
+    .center()
+    .resizable(true)
+    .build()
+    .map_err(|e| format!("Não foi possível abrir a janela do Lumo Video: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
 fn set_obs_invisible(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
     if let Some(win) = app.get_webview_window("main") {
         win.set_content_protected(enabled)
@@ -1444,6 +1474,7 @@ pub fn run() {
             activate_license,
             set_obs_invisible,
             open_youtube_login,
+            open_watch_party_window,
             ask_gemini
         ])
         .run(tauri::generate_context!())

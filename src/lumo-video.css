@@ -1,0 +1,107 @@
+/* === LUMO v4.0 — LUMO VIDEO (LOBBY WATCH PARTY + GRADE 8 CARDS SIMÉTRICA) === */
+
+#view-resumo .hub-grid.lv-grid-8 {
+  grid-template-columns: repeat(6, 1fr) !important;
+}
+#view-resumo .hub-grid.lv-grid-8 > .hub-tile {
+  grid-column: span 2;
+}
+#view-resumo .hub-grid.lv-grid-8 > .hub-tile:nth-child(7),
+#view-resumo .hub-grid.lv-grid-8 > .hub-tile:nth-child(8) {
+  grid-column: span 3;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 9px 11px;
+  min-height: 0;
+}
+#view-resumo .hub-grid.lv-grid-8 > .hub-tile:nth-child(7) .tile-icon,
+#view-resumo .hub-grid.lv-grid-8 > .hub-tile:nth-child(8) .tile-icon {
+  margin-bottom: 0;
+}
+
+.lv-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.lv-hero {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--accent-glow);
+}
+.lv-hero-ic {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lv-hero-ic svg {
+  width: 20px;
+  height: 20px;
+}
+.lv-hero-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+.lv-hero-sub {
+  font-size: 10.2px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.lv-tip {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid var(--border);
+}
+body.surface-light .lv-tip {
+  background: rgba(15, 23, 42, 0.04);
+}
+.lv-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 5px;
+}
+.lv-recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+body.surface-light .lv-recent-item {
+  background: rgba(15, 23, 42, 0.04);
+}
+.lv-recent-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.6px;
+}
+.lv-recent-title {
+  font-size: 10.5px;
+  color: var(--text);
+  font-weight: 600;
+}
