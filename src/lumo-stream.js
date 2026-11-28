@@ -1,4 +1,4 @@
-// === LUMO STREAM (v3.10.0) — ETAPA 1: MODO STREAMER, OBS INVISÍVEL, CHAT TWITCH AO VIVO & MONITOR DE REGRAS ===
+// === LUMO STREAM — MODO STREAMER, OBS INVISÍVEL, CHAT TWITCH NA CÁPSULA & MONITOR DE REGRAS ===
 (function initLumoStream() {
   const MAX_MSGS = 70;
   const STORAGE_KEY = 'lumo_stream_cfg_v1';
@@ -11,6 +11,8 @@
     blockCaps: false,
     ignoreVips: true,
     capsuleAlerts: true,
+    capsuleChat: true,
+    testOwnMessages: false,
     bannedWords: 'gore, golpe, hack gratis, clique aqui',
     aiRules: 'Sem preconceito, sem spoilers do jogo, sem divulgação de outros canais e sem brigas no chat.'
   };
@@ -32,6 +34,8 @@
   let pixFeed = [];
   let alertCount = 0;
   let autoScroll = true;
+  let lastChatToastAt = 0;
+  let pillFlashTimer = 0;
 
   function saveCfg() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch (_) {}
@@ -59,6 +63,22 @@
     catch (_) { return ''; }
   }
 
+  function flashPill(withHop = false) {
+    const pill = document.getElementById('lumo-pill');
+    if (pill) {
+      pill.classList.add('ls-ping-flash');
+      clearTimeout(pillFlashTimer);
+      pillFlashTimer = setTimeout(() => pill.classList.remove('ls-ping-flash'), 900);
+    }
+    if (withHop && typeof hopPill === 'function') hopPill();
+  }
+
+  function notifyCapsule(text, duration = 3600, priority = false) {
+    if (typeof say !== 'function') return;
+    say(text, duration, true);
+    flashPill(priority);
+  }
+
   // === 1. OBS INVISÍVEL & TRAVA DO MODO JOGO ===
   async function applyObsInvisible(enabled, silent = false) {
     cfg.obsInvisible = Boolean(enabled);
@@ -66,13 +86,11 @@
     if (typeof invoke === 'function') {
       try {
         await invoke('set_obs_invisible', { enabled: cfg.obsInvisible });
-        if (!silent && typeof say === 'function') {
-          say(cfg.obsInvisible ? 'Lumo invisível no OBS e capturas de tela!' : 'Lumo visível novamente no OBS.', 2600, true);
+        if (!silent) {
+          notifyCapsule(cfg.obsInvisible ? 'Lumo invisível no OBS e capturas de tela!' : 'Lumo visível novamente no OBS.', 2600);
         }
       } catch (err) {
-        if (!silent && typeof say === 'function') {
-          say('Não foi possível alterar visibilidade no OBS: ' + String(err), 3200, true);
-        }
+        if (!silent) notifyCapsule('Não foi possível alterar visibilidade no OBS: ' + String(err), 3200);
       }
     }
     syncToggleCards();
@@ -89,13 +107,12 @@
     if (cfg.noGameMode && typeof isHiddenInGame !== 'undefined' && isHiddenInGame && typeof wakeFromGame === 'function') {
       wakeFromGame();
     }
-    if (!silent && typeof say === 'function') {
-      say(
+    if (!silent) {
+      notifyCapsule(
         cfg.noGameMode
           ? 'Modo Jogo desativado! Deixe o jogo em Janela Sem Bordas para ver o Lumo por cima.'
           : 'Modo Jogo reativado.',
-        3200,
-        true
+        3200
       );
     }
     syncToggleCards();
@@ -132,10 +149,6 @@
       grid.appendChild(tile);
     }
 
-    // Ordenação simétrica:
-    // L1: [IA Lumo]   [Lumo Ping]   [Lumo Music]
-    // L2: [Bolso]     [Lumo Stream] [Foco & PC]
-    // L3: [Kit Rápido (faixa horizontal cheia)]
     const byId = (id) => grid.querySelector('#' + id);
     const allTiles = Array.from(grid.querySelectorAll(':scope > .hub-tile'));
     const tileIa = byId('tile-ia') || allTiles.find((t) => /ia lumo/i.test(t.textContent || ''));
@@ -146,11 +159,8 @@
     const tileKit = byId('tile-kit') || allTiles.find((t) => /kit rápido/i.test(t.textContent || ''));
 
     const ordered = [tileIa, tilePing, tileMusic, tileBolso, tile, tileUtil, tileKit].filter(Boolean);
-    for (const el of ordered) {
-      grid.appendChild(el);
-    }
+    for (const el of ordered) grid.appendChild(el);
 
-    // Se houver 7 cards na grade de 3 colunas, deixa o 7º (Kit Rápido) em faixa horizontal limpa
     const finalTiles = Array.from(grid.querySelectorAll(':scope > .hub-tile'));
     finalTiles.forEach((t) => {
       t.classList.remove('ls-wide-tile');
@@ -193,13 +203,17 @@
   }
 
   function evaluateMessageRules(msg) {
-    // Nunca sinaliza dono do canal nem moderadores
-    if (msg.badges.includes('live') || msg.badges.includes('mod')) return null;
-    if (cfg.ignoreVips && (msg.badges.includes('vip') || msg.badges.includes('sub'))) {
-      // Ainda checa palavras proibidas graves para VIP/Sub, mas ignora links/caps
+    const isBroadcaster = msg.badges.includes('live');
+    const isMod = msg.badges.includes('mod');
+
+    // Poupa dono do canal e mods, exceto quando o modo de teste para a própria conta está ativado
+    if (isMod) return null;
+    if (isBroadcaster && !cfg.testOwnMessages) return null;
+
+    if (!isBroadcaster && cfg.ignoreVips && (msg.badges.includes('vip') || msg.badges.includes('sub'))) {
       const nText = normText(msg.text);
       for (const word of getBannedList()) {
-        if (nText.includes(word)) return `Regra: "${word}"`;
+        if (nText.includes(word)) return `Palavra proibida`;
       }
       return null;
     }
@@ -283,14 +297,22 @@
     };
 
     msgObj.flagReason = evaluateMessageRules(msgObj);
+
+    const viewEl = document.getElementById('view-stream');
+    const lookingAtStream = Boolean(viewEl && viewEl.classList.contains('active') && typeof isExpanded !== 'undefined' && isExpanded);
+
     if (msgObj.flagReason) {
       alertCount++;
-      if (cfg.capsuleAlerts && typeof say === 'function') {
-        const viewEl = document.getElementById('view-stream');
-        const lookingAtStream = viewEl && viewEl.classList.contains('active') && typeof isExpanded !== 'undefined' && isExpanded;
-        if (!lookingAtStream) {
-          say(`Alerta no chat (${msgObj.flagReason}): ${msgObj.user}`, 3200, true);
-        }
+      if (cfg.capsuleAlerts) {
+        if (typeof playChirp === 'function') playChirp(340, 240, 0.16);
+        notifyCapsule(`Alerta (${msgObj.flagReason}) — ${msgObj.user}: ${msgObj.text.slice(0, 68)}`, 4200, true);
+      }
+    } else if (cfg.capsuleChat && !lookingAtStream) {
+      const now = Date.now();
+      if (now - lastChatToastAt >= 1600) {
+        lastChatToastAt = now;
+        const preview = msgObj.text.length > 78 ? msgObj.text.slice(0, 77) + '…' : msgObj.text;
+        notifyCapsule(`${msgObj.user}: ${preview}`, 3600, false);
       }
     }
 
@@ -311,7 +333,7 @@
       .toLowerCase();
 
     if (!clean || !/^[a-z0-9_]{2,25}$/.test(clean)) {
-      if (typeof say === 'function') say('Digite um nome de canal válido da Twitch (ex: alanzoka).', 2600, true);
+      notifyCapsule('Digite um nome de canal válido da Twitch (ex: alanzoka).', 2600);
       return;
     }
 
@@ -324,10 +346,10 @@
 
     try {
       ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-    } catch (err) {
+    } catch (_) {
       wsState = 'disconnected';
       syncConnectUI();
-      if (typeof say === 'function') say('Não consegui abrir conexão com a Twitch.', 2600, true);
+      notifyCapsule('Não consegui abrir conexão com a Twitch.', 2600);
       return;
     }
 
@@ -341,6 +363,7 @@
       wsState = 'connected';
       syncConnectUI();
       syncStreamTileBadge();
+      notifyCapsule(`Chat da Twitch conectado em #${cfg.channel}!`, 2600);
     };
 
     ws.onmessage = (ev) => {
@@ -386,9 +409,9 @@
     }
   }
 
-  // === 5. AÇÕES DE MODERAÇÃO & PRÉVIA LIVEPIX ===
+  // === 5. AÇÕES DE MODERAÇÃO, TESTE DE REGRA & PRÉVIA LIVEPIX ===
   function copyText(txt, toastMsg) {
-    const done = () => { if (typeof say === 'function') say(toastMsg, 2600, true); };
+    const done = () => notifyCapsule(toastMsg, 2800);
     if (typeof invoke === 'function') {
       invoke('set_clipboard_text', { text: txt }).then(done).catch(() => {
         navigator.clipboard?.writeText(txt).then(done).catch(() => {});
@@ -407,16 +430,38 @@
       return;
     }
     if (action === 'timeout') {
-      copyText(`/timeout ${m.login} 600 Quebrou regra do canal`, `Copiado: /timeout ${m.login} 600 (cole no chat — ban direto chega na Etapa 2!)`);
+      copyText(`/timeout ${m.login} 600 Quebrou regra do canal`, `Copiado: /timeout ${m.login} 600 (ban 1-clique chega na Etapa 2!)`);
       m.hidden = true;
       renderChatFeed();
       return;
     }
     if (action === 'ban') {
-      copyText(`/ban ${m.login} Quebrou regra do canal`, `Copiado: /ban ${m.login} (cole no chat — ban 1-clique via Twitch API chega na Etapa 2!)`);
+      copyText(`/ban ${m.login} Quebrou regra do canal`, `Copiado: /ban ${m.login} (ban 1-clique chega na Etapa 2!)`);
       m.hidden = true;
       renderChatFeed();
     }
+  }
+
+  function triggerTestRuleAlert() {
+    const fake = {
+      id: 'test_' + Date.now().toString(36),
+      login: 'troll_teste',
+      user: 'troll_teste',
+      color: '#f87171',
+      badges: [],
+      text: 'ei entra nesse site gratis agora www.golpe-teste.com',
+      time: fmtNow(),
+      flagReason: 'Link não permitido',
+      hidden: false
+    };
+    alertCount++;
+    messages.push(fake);
+    if (messages.length > MAX_MSGS) messages.shift();
+    renderChatFeed();
+    syncStreamTileBadge();
+    syncTabsCounts();
+    if (typeof playChirp === 'function') playChirp(340, 240, 0.16);
+    notifyCapsule(`Alerta (${fake.flagReason}) — ${fake.user}: ${fake.text}`, 4400, true);
   }
 
   function triggerTestPix() {
@@ -434,11 +479,8 @@
       setExpression('happy');
       setTimeout(() => { if (typeof restoreIdleExpression === 'function') restoreIdleExpression(); }, 2800);
     }
-    if (typeof hopPill === 'function') hopPill();
     if (typeof playChirp === 'function') playChirp(520, 760, 0.22);
-    if (typeof say === 'function') {
-      say(`LivePix ${pick.amount} de ${pick.author}: "${pick.msg}"`, 4400, true);
-    }
+    notifyCapsule(`LivePix ${pick.amount} de ${pick.author}: "${pick.msg}"`, 4800, true);
   }
 
   // === 6. RENDERIZAÇÃO DA VIEW #view-stream ===
@@ -510,7 +552,7 @@
             <button type="button" class="btn-primary" id="ls-test-pix-btn" style="padding:6px 10px; font-size:10.5px;">Testar alerta</button>
           </div>
           <div style="padding:8px 10px; border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid var(--border); font-size:10.3px; color:var(--muted); line-height:1.4;">
-            A integração automática com o Webhook oficial do LivePix chega na próxima etapa. Use <strong>Testar alerta</strong> para ver como o aviso aparece na cápsula durante a live.
+            A integração automática com o Webhook oficial do LivePix chega na próxima etapa. Use <strong>Testar alerta</strong> para ver o aviso aparecer direto na cápsula.
           </div>
           <div class="ls-pix-list" id="ls-pix-list"></div>
         </div>
@@ -524,10 +566,12 @@
           </div>
 
           <div class="ls-rule-checks">
+            <label class="ls-check-pill"><input type="checkbox" id="ls-chk-chat" ${cfg.capsuleChat ? 'checked' : ''} /> Chat na cápsula</label>
+            <label class="ls-check-pill"><input type="checkbox" id="ls-chk-toast" ${cfg.capsuleAlerts ? 'checked' : ''} /> Alertas na cápsula</label>
             <label class="ls-check-pill"><input type="checkbox" id="ls-chk-links" ${cfg.blockLinks ? 'checked' : ''} /> Sinalizar links</label>
             <label class="ls-check-pill"><input type="checkbox" id="ls-chk-caps" ${cfg.blockCaps ? 'checked' : ''} /> Excesso de CAPS</label>
             <label class="ls-check-pill"><input type="checkbox" id="ls-chk-vips" ${cfg.ignoreVips ? 'checked' : ''} /> Poupar VIP/Sub</label>
-            <label class="ls-check-pill"><input type="checkbox" id="ls-chk-toast" ${cfg.capsuleAlerts ? 'checked' : ''} /> Avisar na cápsula</label>
+            <label class="ls-check-pill"><input type="checkbox" id="ls-chk-own" ${cfg.testOwnMessages ? 'checked' : ''} /> Testar minha conta</label>
           </div>
 
           <div class="ls-rule-group">
@@ -535,16 +579,17 @@
             <textarea id="ls-ai-rules" rows="2" placeholder="Descreva o que não é permitido na sua live...">${esc(cfg.aiRules)}</textarea>
           </div>
 
-          <button type="button" class="btn-primary" id="ls-save-rules-btn" style="padding:8px 12px; font-size:11.2px;">Salvar regras</button>
+          <div class="ls-mini-actions">
+            <button type="button" class="btn-primary" id="ls-save-rules-btn" style="flex:1; padding:8px 12px; font-size:11.2px;">Salvar regras</button>
+            <button type="button" class="btn-ghost" id="ls-test-rule-btn" style="padding:8px 10px; font-size:11px;">Testar alerta</button>
+          </div>
         </div>
       </div>
     `;
 
-    // Eventos dos controles rápidos
     view.querySelector('#ls-btn-nogame').addEventListener('click', () => applyNoGameMode(!cfg.noGameMode));
     view.querySelector('#ls-btn-obs').addEventListener('click', () => applyObsInvisible(!cfg.obsInvisible));
 
-    // Troca de sub-abas
     view.querySelectorAll('[data-ls-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.dataset.lsTab;
@@ -555,7 +600,6 @@
       });
     });
 
-    // Filtro Todas / Alertas
     view.querySelectorAll('[data-ls-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         chatFilter = btn.dataset.lsFilter;
@@ -564,43 +608,37 @@
       });
     });
 
-    // Conectar / Desconectar canal Twitch
     view.querySelector('#ls-connect-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      if (wsState === 'connected' || wsState === 'connecting') {
-        disconnectTwitch();
-      } else {
-        const val = view.querySelector('#ls-channel-input').value;
-        connectTwitch(val);
-      }
+      if (wsState === 'connected' || wsState === 'connecting') disconnectTwitch();
+      else connectTwitch(view.querySelector('#ls-channel-input').value);
     });
 
-    // Auto-scroll inteligente do chat
     const feed = view.querySelector('#ls-chat-feed');
     feed.addEventListener('scroll', () => {
       autoScroll = (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 36;
     });
 
-    // Delegação dos botões de moderação no chat
     feed.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-ls-mod]');
       if (!btn) return;
       modAction(btn.dataset.msgId, btn.dataset.lsMod);
     });
 
-    // LivePix teste
     view.querySelector('#ls-test-pix-btn').addEventListener('click', triggerTestPix);
+    view.querySelector('#ls-test-rule-btn').addEventListener('click', triggerTestRuleAlert);
 
-    // Salvar regras
     view.querySelector('#ls-save-rules-btn').addEventListener('click', () => {
       cfg.bannedWords = view.querySelector('#ls-banned-words').value.trim();
       cfg.aiRules = view.querySelector('#ls-ai-rules').value.trim();
+      cfg.capsuleChat = view.querySelector('#ls-chk-chat').checked;
+      cfg.capsuleAlerts = view.querySelector('#ls-chk-toast').checked;
       cfg.blockLinks = view.querySelector('#ls-chk-links').checked;
       cfg.blockCaps = view.querySelector('#ls-chk-caps').checked;
       cfg.ignoreVips = view.querySelector('#ls-chk-vips').checked;
-      cfg.capsuleAlerts = view.querySelector('#ls-chk-toast').checked;
+      cfg.testOwnMessages = view.querySelector('#ls-chk-own').checked;
       saveCfg();
-      if (typeof say === 'function') say('Regras do Lumo Stream salvas!', 2200, true);
+      notifyCapsule('Regras do Lumo Stream salvas!', 2200);
     });
 
     syncToggleCards();
@@ -703,7 +741,6 @@
     `).join('');
   }
 
-  // Inicialização limpa após ping.js e v36-upgrade.js montarem a grade
   saveCfg();
   mountStreamView();
   ensureStreamTile();
@@ -719,6 +756,7 @@
     disconnect: disconnectTwitch,
     setNoGameMode: applyNoGameMode,
     setObsInvisible: applyObsInvisible,
-    testPix: triggerTestPix
+    testPix: triggerTestPix,
+    testRule: triggerTestRuleAlert
   };
 })();

@@ -449,3 +449,20 @@ body.surface-light .ls-msg {
 .ls-pane-hidden {
   display: none !important;
 }
+
+/* LS_BUBBLE_ZFIX */
+#speech-bubble {
+  z-index: 99999 !important;
+  max-width: 310px !important;
+  white-space: normal !important;
+  text-align: center;
+  line-height: 1.32;
+}
+#lumo-pill.ls-ping-flash {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 24px var(--accent-glow) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+.ls-mini-actions {
+  display: flex;
+  gap: 6px;
+}
