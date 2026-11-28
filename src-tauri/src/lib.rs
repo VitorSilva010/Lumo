@@ -890,6 +890,15 @@ fn delete_api_key(provider: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_obs_invisible(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    if let Some(win) = app.get_webview_window("main") {
+        win.set_content_protected(enabled)
+            .map_err(|e| format!("Falha ao configurar proteção de captura: {}", e))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 async fn open_youtube_login(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(win) = app.get_webview_window("youtube_login") {
         let _ = win.show();
@@ -1433,6 +1442,7 @@ pub fn run() {
             save_api_key,
             delete_api_key,
             activate_license,
+            set_obs_invisible,
             open_youtube_login,
             ask_gemini
         ])

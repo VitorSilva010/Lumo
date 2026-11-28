@@ -1,0 +1,451 @@
+/* === LUMO STREAM (v3.10.0) — CHAT TWITCH AO VIVO, MODERAÇÃO LOCAL, OBS INVISÍVEL & LIVEPIX === */
+
+/* Grade do Resumo: deixa o 7º card (Kit Rápido) em faixa horizontal limpa sem buraco */
+#view-resumo .hub-grid > .hub-tile.ls-wide-tile {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  min-height: 0;
+}
+#view-resumo .hub-grid > .hub-tile.ls-wide-tile .tile-icon {
+  margin-bottom: 0;
+}
+#view-resumo .hub-grid > .hub-tile.ls-wide-tile .ls-wide-arrow {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* Badge AO VIVO no card Lumo Stream do Resumo */
+.hub-tile#tile-stream {
+  position: relative;
+}
+.ls-live-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.48);
+  color: #f87171;
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.hub-tile#tile-stream.is-live .ls-live-pill {
+  opacity: 1;
+  transform: scale(1);
+}
+.ls-live-pill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  display: inline-block;
+}
+.hub-tile#tile-stream.is-live {
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Shell da tela Lumo Stream */
+.ls-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Barra de controles rápidos (Modo Jogo + Invisível no OBS) */
+.ls-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.ls-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+body.surface-light .ls-toggle-card {
+  background: rgba(15, 23, 42, 0.04);
+}
+.ls-toggle-card:hover {
+  border-color: var(--accent-glow);
+}
+.ls-toggle-card.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.ls-tc-text {
+  min-width: 0;
+}
+.ls-tc-title {
+  font-size: 10.6px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.ls-tc-sub {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+.ls-switch {
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.18s ease;
+}
+body.surface-light .ls-switch {
+  background: rgba(15, 23, 42, 0.18);
+}
+.ls-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s ease;
+}
+.ls-toggle-card.on .ls-switch {
+  background: var(--accent);
+}
+.ls-toggle-card.on .ls-switch::after {
+  transform: translateX(12px);
+  background: #0b0e14;
+}
+
+/* Sub-abas do Lumo Stream */
+.ls-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+body.surface-light .ls-tabs {
+  background: rgba(15, 23, 42, 0.04);
+}
+.ls-tab {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10.6px;
+  font-weight: 700;
+  padding: 6px 6px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.ls-tab.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-glow);
+  color: var(--text);
+}
+.ls-badge-cnt {
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.22);
+  color: #f87171;
+}
+
+/* Barra de conexão do canal Twitch */
+.ls-connect-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ls-connect-row input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 11.4px;
+}
+.ls-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 0 2px;
+}
+.ls-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+.ls-status-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+}
+.ls-status-dot.live {
+  color: #4ade80;
+}
+.ls-status-dot.live::before {
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
+}
+.ls-status-dot.warn {
+  color: #fbbf24;
+}
+.ls-status-dot.warn::before {
+  background: #fbbf24;
+}
+
+.ls-filter-row {
+  display: inline-flex;
+  gap: 4px;
+}
+.ls-mini-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 9.6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ls-mini-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* Feed de chat da Twitch */
+.ls-chat-feed {
+  height: 230px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+}
+body.surface-light .ls-chat-feed {
+  background: rgba(15, 23, 42, 0.045);
+}
+.ls-empty {
+  margin: auto;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 16px 10px;
+  line-height: 1.45;
+}
+.ls-msg {
+  padding: 6px 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid transparent;
+  font-size: 11.2px;
+  line-height: 1.38;
+  word-break: break-word;
+}
+body.surface-light .ls-msg {
+  background: rgba(255, 255, 255, 0.65);
+}
+.ls-msg.flagged {
+  background: rgba(239, 68, 68, 0.11);
+  border-color: rgba(239, 68, 68, 0.44);
+}
+.ls-msg-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+.ls-badge {
+  font-size: 8.2px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.ls-badge.live { background: rgba(239, 68, 68, 0.24); color: #f87171; }
+.ls-badge.mod  { background: rgba(34, 197, 94, 0.22); color: #4ade80; }
+.ls-badge.vip  { background: rgba(236, 72, 153, 0.22); color: #f472b6; }
+.ls-badge.sub  { background: rgba(168, 85, 247, 0.22); color: #c084fc; }
+.ls-user {
+  font-weight: 700;
+  font-size: 11px;
+}
+.ls-time {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--muted);
+  opacity: 0.72;
+}
+.ls-msg-body {
+  color: var(--text);
+  font-size: 11.2px;
+}
+.ls-flag-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(239, 68, 68, 0.24);
+  flex-wrap: wrap;
+}
+.ls-flag-reason {
+  font-size: 9.4px;
+  font-weight: 700;
+  color: #fca5a5;
+}
+.ls-mod-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+.ls-mod-btn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 9.4px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.ls-mod-btn:hover {
+  border-color: var(--accent);
+}
+.ls-mod-btn.danger {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.52);
+  color: #fca5a5;
+}
+.ls-mod-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.34);
+}
+
+/* Feed LivePix */
+.ls-pix-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 215px;
+  overflow-y: auto;
+}
+.ls-pix-item {
+  padding: 9px 10px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--accent-glow);
+}
+.ls-pix-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.ls-pix-author {
+  font-size: 11.4px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ls-pix-amount {
+  font-size: 11.4px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.ls-pix-msg {
+  font-size: 10.8px;
+  color: var(--text);
+  opacity: 0.9;
+  line-height: 1.35;
+}
+
+/* Formulário de Regras */
+.ls-rule-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ls-rule-label {
+  font-size: 10.4px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ls-rule-hint {
+  font-size: 9.4px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.ls-rule-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ls-check-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  font-size: 10.3px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.ls-check-pill input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+.ls-pane-hidden {
+  display: none !important;
+}
