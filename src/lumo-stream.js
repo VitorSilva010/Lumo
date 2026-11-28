@@ -1,9 +1,16 @@
-// === LUMO STREAM — ETAPA 2: OAUTH TWITCH, MODERAÇÃO REAL 1-CLIQUE (HELIX), ENVIO DE CHAT & MODERAÇÃO IA ===
+// === LUMO STREAM — ETAPAS 1, 2 & 3: TWITCH OAUTH/HELIX, MODERAÇÃO IA, OBS INVISÍVEL & LIVEPIX WEBHOOK REAL ===
 (function initLumoStream() {
   const MAX_MSGS = 70;
   const STORAGE_KEY = 'lumo_stream_cfg_v1';
   const AUTH_KEY = 'lumo_stream_twitch_auth_v1';
   const API = typeof API_BASE !== 'undefined' ? API_BASE : 'https://lumo-ai.sivavieiravitor.workers.dev';
+
+  function genPixKey() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let s = 'lp_';
+    for (let i = 0; i < 20; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  }
 
   const defaultCfg = {
     channel: '',
@@ -17,7 +24,11 @@
     testOwnMessages: false,
     aiModEnabled: false,
     bannedWords: 'gore, golpe, hack gratis, clique aqui',
-    aiRules: 'Sem preconceito, sem spoilers do jogo, sem divulgação de outros canais e sem brigas no chat.'
+    aiRules: 'Sem preconceito, sem spoilers do jogo, sem divulgação de outros canais e sem brigas no chat.',
+    pixKey: '',
+    pixEnabled: false,
+    pixTts: false,
+    pixConfigured: false
   };
 
   let cfg = { ...defaultCfg };
@@ -25,6 +36,7 @@
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (saved && typeof saved === 'object') cfg = { ...defaultCfg, ...saved };
   } catch (_) {}
+  if (!cfg.pixKey || cfg.pixKey.length < 12) cfg.pixKey = genPixKey();
 
   let twAuth = null;
   try {
@@ -56,6 +68,14 @@
   let aiBatchTimer = 0;
   let aiInFlight = false;
 
+  // Polling LivePix em tempo real
+  let pixPollTimer = 0;
+  let pixInFlight = false;
+  let pixLastId = 0;
+  let pixInitialized = false;
+  let pixAlertQueue = [];
+  let pixShowingAlert = false;
+
   function saveCfg() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch (_) {}
     localStorage.setItem('lumo_stream_no_gamemode', cfg.noGameMode ? '1' : '0');
@@ -82,9 +102,22 @@
       .toLowerCase();
   }
 
-  function fmtNow() {
-    try { return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+  function fmtNow(ts) {
+    try { return new Date(ts || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
     catch (_) { return ''; }
+  }
+
+  function fmtMoney(cents, currency = 'BRL') {
+    const val = (Number(cents) || 0) / 100;
+    try {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: currency || 'BRL' });
+    } catch (_) {
+      return 'R$ ' + val.toFixed(2).replace('.', ',');
+    }
+  }
+
+  function getWebhookUrl() {
+    return `${API}/livepix/webhook/${cfg.pixKey}`;
   }
 
   function flashPill(withHop = false) {
@@ -97,10 +130,21 @@
     if (withHop && typeof hopPill === 'function') hopPill();
   }
 
-  function notifyCapsule(text, duration = 3600, priority = false) {
+  function notifyCapsule(text, duration = 3600, priority = false, speak = false) {
     if (typeof say !== 'function') return;
-    say(text, duration, true);
+    say(text, duration, true, null, Boolean(speak));
     flashPill(priority);
+  }
+
+  function copyText(txt, toastMsg) {
+    const done = () => notifyCapsule(toastMsg, 2800);
+    if (typeof invoke === 'function') {
+      invoke('set_clipboard_text', { text: txt }).then(done).catch(() => {
+        navigator.clipboard?.writeText(txt).then(done).catch(() => {});
+      });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(done).catch(() => {});
+    }
   }
 
   // === 1. OBS INVISÍVEL & TRAVA DO MODO JOGO ===
@@ -286,7 +330,170 @@
     }
   }
 
-  // === 3. CARD LUMO STREAM DEBAIXO DO LUMO PING NA GRADE DO RESUMO ===
+  // === 3. LIVEPIX REAL (WEBHOOK + API V2 + POLLING + FILA DE ALERTAS) ===
+  function playNextPixAlert() {
+    if (pixShowingAlert || !pixAlertQueue.length) return;
+    const ev = pixAlertQueue.shift();
+    pixShowingAlert = true;
+
+    const amountStr = ev.amount_cents > 0 ? fmtMoney(ev.amount_cents, ev.currency) : '';
+    const textMsg = ev.message ? `: "${ev.message}"` : '!';
+    const headline = amountStr
+      ? `LivePix ${amountStr} de ${ev.author}${textMsg}`
+      : `LivePix de ${ev.author}${textMsg}`;
+
+    if (typeof setExpression === 'function') {
+      setExpression('happy');
+      setTimeout(() => { if (typeof restoreIdleExpression === 'function') restoreIdleExpression(); }, 3400);
+    }
+    if (typeof playChirp === 'function') playChirp(520, 780, 0.24);
+    notifyCapsule(headline, 5400, true, Boolean(cfg.pixTts));
+
+    setTimeout(() => {
+      pixShowingAlert = false;
+      playNextPixAlert();
+    }, 5600);
+  }
+
+  async function pollLivePix(force = false) {
+    if ((!cfg.pixEnabled && !force) || pixInFlight) return;
+    if (typeof isShuttingDown !== 'undefined' && isShuttingDown) return;
+    pixInFlight = true;
+    try {
+      const res = await fetch(`${API}/livepix/events?key=${encodeURIComponent(cfg.pixKey)}&since=${pixLastId}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        if (typeof data.configured === 'boolean' && data.configured !== cfg.pixConfigured) {
+          cfg.pixConfigured = data.configured;
+          saveCfg();
+          syncPixUI();
+        }
+        const evs = Array.isArray(data.events) ? data.events : [];
+        if (evs.length) {
+          for (const e of evs) {
+            const eid = Number(e.id) || 0;
+            if (eid > pixLastId) pixLastId = eid;
+            const formatted = {
+              id: eid,
+              author: e.author || 'Apoiador',
+              amount_cents: Number(e.amount_cents) || 0,
+              currency: e.currency || 'BRL',
+              amount: Number(e.amount_cents) > 0 ? fmtMoney(e.amount_cents, e.currency) : 'LivePix',
+              msg: e.message || '',
+              time: fmtNow(e.created_at)
+            };
+            if (!pixFeed.some((x) => x.id && x.id === eid)) {
+              pixFeed.unshift(formatted);
+              if (pixFeed.length > 25) pixFeed.pop();
+            }
+            if (pixInitialized) {
+              pixAlertQueue.push(e);
+            }
+          }
+          renderPixFeed();
+          if (pixInitialized) playNextPixAlert();
+        }
+        pixInitialized = true;
+      }
+    } catch (_) {}
+    pixInFlight = false;
+  }
+
+  function startPixPolling() {
+    clearInterval(pixPollTimer);
+    if (!cfg.pixEnabled) return;
+    pollLivePix(true);
+    pixPollTimer = setInterval(() => pollLivePix(false), 4500);
+  }
+
+  function setPixEnabled(enabled, silent = false) {
+    cfg.pixEnabled = Boolean(enabled);
+    saveCfg();
+    if (cfg.pixEnabled) {
+      startPixPolling();
+      if (!silent) notifyCapsule('Alertas do LivePix ligados em tempo real!', 2600);
+    } else {
+      clearInterval(pixPollTimer);
+      if (!silent) notifyCapsule('Recebimento do LivePix pausado.', 2200);
+    }
+    syncPixUI();
+    syncStreamTileBadge();
+  }
+
+  async function saveLivePixCredentials(clientId, clientSecret) {
+    const btn = document.getElementById('ls-pix-save-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Validando...'; }
+    try {
+      const res = await fetch(`${API}/livepix/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: cfg.pixKey, client_id: clientId.trim(), client_secret: clientSecret.trim() }),
+        signal: AbortSignal.timeout(10000)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        cfg.pixConfigured = Boolean(data.configured);
+        if (cfg.pixConfigured && !cfg.pixEnabled) cfg.pixEnabled = true;
+        saveCfg();
+        if (cfg.pixEnabled) startPixPolling();
+        syncPixUI();
+        syncStreamTileBadge();
+        notifyCapsule(
+          cfg.pixConfigured
+            ? 'LivePix validado e conectado! Agora cole a URL de Webhook no painel da LivePix.'
+            : 'Credenciais do LivePix removidas.',
+          3600,
+          cfg.pixConfigured
+        );
+      } else {
+        notifyCapsule(data.error || 'Erro ao validar credenciais do LivePix.', 3800);
+      }
+    } catch (_) {
+      notifyCapsule('Sem conexão com o Worker para salvar LivePix.', 3000);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar API'; }
+  }
+
+  async function triggerRealTestPix() {
+    if (!cfg.pixEnabled) {
+      cfg.pixEnabled = true;
+      saveCfg();
+      startPixPolling();
+      syncPixUI();
+    }
+    pixInitialized = true;
+    try {
+      const res = await fetch(`${API}/livepix/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: cfg.pixKey }),
+        signal: AbortSignal.timeout(8000)
+      });
+      if (res.ok) {
+        await pollLivePix(true);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback offline para prévia local
+    const fallback = {
+      id: 0,
+      author: 'harubiss',
+      amount_cents: 1500,
+      currency: 'BRL',
+      amount: 'R$ 15,00',
+      msg: 'Prévia local do LivePix direto na cápsula!',
+      time: fmtNow()
+    };
+    pixFeed.unshift(fallback);
+    renderPixFeed();
+    pixAlertQueue.push(fallback);
+    playNextPixAlert();
+  }
+
+  // === 4. CARD LUMO STREAM DEBAIXO DO LUMO PING NA GRADE DO RESUMO ===
   function ensureStreamTile() {
     const grid = document.querySelector('#view-resumo .hub-grid');
     if (!grid) return;
@@ -351,10 +558,12 @@
     const tile = document.getElementById('tile-stream');
     const sub = document.getElementById('stream-tile-sub');
     if (!tile || !sub) return;
-    const isLive = wsState === 'connected' && Boolean(cfg.channel);
+    const isLive = (wsState === 'connected' && Boolean(cfg.channel)) || Boolean(cfg.pixEnabled);
     tile.classList.toggle('is-live', isLive);
-    if (isLive) {
-      sub.textContent = alertCount > 0 ? `#${cfg.channel} · ${alertCount} alerta${alertCount > 1 ? 's' : ''}` : `#${cfg.channel}`;
+    if (wsState === 'connected' && cfg.channel) {
+      sub.textContent = alertCount > 0 ? `#${cfg.channel} · ${alertCount} alerta${alertCount > 1 ? 's' : ''}` : `#${cfg.channel}${cfg.pixEnabled ? ' · Pix ON' : ''}`;
+    } else if (cfg.pixEnabled) {
+      sub.textContent = 'LivePix ativo';
     } else if (cfg.obsInvisible || cfg.noGameMode) {
       sub.textContent = cfg.obsInvisible ? 'Invisível no OBS' : 'Sobre jogos ativo';
     } else {
@@ -362,7 +571,7 @@
     }
   }
 
-  // === 4. MOTOR DE REGRAS LOCAL (0ms) + MODERAÇÃO IA EM LOTE ===
+  // === 5. MOTOR DE REGRAS LOCAL (0ms) + MODERAÇÃO IA EM LOTE ===
   function getBannedList() {
     return String(cfg.bannedWords || '')
       .split(/[\n,;]+/)
@@ -456,7 +665,7 @@
     }
   }
 
-  // === 5. CONEXÃO WEBSOCKET TWITCH IRCv3 ===
+  // === 6. CONEXÃO WEBSOCKET TWITCH IRCv3 ===
   function parseIrcTags(rawTagStr) {
     const out = {};
     if (!rawTagStr) return out;
@@ -485,10 +694,8 @@
       rest = rest.slice(sp + 1);
     }
 
-    // Captura room-id imediatamente no ROOMSTATE ou em qualquer PRIVMSG
     if (tags['room-id']) broadcasterId = String(tags['room-id']);
 
-    // Se uma mensagem foi apagada na Twitch, remove do feed local também
     if (rest.includes(' CLEARMSG ') && tags['target-msg-id']) {
       const del = messages.find((m) => m.id === tags['target-msg-id']);
       if (del) { del.hidden = true; renderChatFeed(); }
@@ -549,7 +756,7 @@
       }
     } else {
       enqueueAiMod(msgObj);
-      if (cfg.capsuleChat && !lookingAtStream) {
+      if (cfg.capsuleChat && !lookingAtStream && !pixShowingAlert) {
         const now = Date.now();
         if (now - lastChatToastAt >= 1600) {
           lastChatToastAt = now;
@@ -654,18 +861,7 @@
     }
   }
 
-  // === 6. AÇÕES DE MODERAÇÃO (REAL VIA HELIX + FALLBACK COPIAR) ===
-  function copyText(txt, toastMsg) {
-    const done = () => notifyCapsule(toastMsg, 2800);
-    if (typeof invoke === 'function') {
-      invoke('set_clipboard_text', { text: txt }).then(done).catch(() => {
-        navigator.clipboard?.writeText(txt).then(done).catch(() => {});
-      });
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(txt).then(done).catch(() => {});
-    }
-  }
-
+  // === 7. AÇÕES DE MODERAÇÃO (REAL VIA HELIX + FALLBACK COPIAR) ===
   async function modAction(msgId, action) {
     const m = messages.find((x) => x.id === msgId);
     if (!m) return;
@@ -676,7 +872,6 @@
       return;
     }
 
-    // Se a conta Twitch estiver conectada e a mensagem for real, executa direto na Twitch Helix!
     if (twAuth?.access_token && m.isTwitchId) {
       if (action === 'delete') {
         const res = await callTwitchMod({ action: 'delete', message_id: m.id });
@@ -722,7 +917,6 @@
       }
     }
 
-    // Fallback (sem conta Twitch conectada ou mensagem de teste)
     if (action === 'delete') {
       m.hidden = true;
       renderChatFeed();
@@ -763,26 +957,7 @@
     notifyCapsule(`Alerta (${fake.flagReason}) — ${fake.user}: ${fake.text}`, 4400, true);
   }
 
-  function triggerTestPix() {
-    const samples = [
-      { author: 'Kiq', amount: 'R$ 10,00', msg: 'Bora amassar nessa partida! Lumo Stream tá insano!' },
-      { author: 'harubiss', amount: 'R$ 25,00', msg: 'Salve chat! Passando pra apoiar a live!' },
-      { author: 'Sr. Ricardo', amount: 'R$ 5,00', msg: 'Testando alerta do LivePix direto na cápsula!' }
-    ];
-    const pick = samples[pixFeed.length % samples.length];
-    pixFeed.unshift({ ...pick, time: fmtNow() });
-    if (pixFeed.length > 20) pixFeed.pop();
-    renderPixFeed();
-
-    if (typeof setExpression === 'function') {
-      setExpression('happy');
-      setTimeout(() => { if (typeof restoreIdleExpression === 'function') restoreIdleExpression(); }, 2800);
-    }
-    if (typeof playChirp === 'function') playChirp(520, 760, 0.22);
-    notifyCapsule(`LivePix ${pick.amount} de ${pick.author}: "${pick.msg}"`, 4800, true);
-  }
-
-  // === 7. RENDERIZAÇÃO DA VIEW #view-stream ===
+  // === 8. RENDERIZAÇÃO DA VIEW #view-stream ===
   function mountStreamView() {
     let view = document.getElementById('view-stream');
     if (!view) {
@@ -854,18 +1029,39 @@
           </form>
         </div>
 
-        <!-- ABA 2: LIVEPIX -->
-        <div id="ls-pane-livepix" class="card ls-pane-hidden" style="display:flex; flex-direction:column; gap:9px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <div>
-              <div style="font-size:12px; font-weight:700;">Alertas do LivePix</div>
-              <div style="font-size:10px; color:var(--muted);">Receba mensagens e valores em R$ direto na cápsula.</div>
+        <!-- ABA 2: LIVEPIX WEBHOOK REAL -->
+        <div id="ls-pane-livepix" class="card ls-pane-hidden" style="display:flex; flex-direction:column; gap:8px;">
+          <div class="ls-auth-bar" id="ls-pix-status-bar">
+            <div class="ls-auth-info">
+              <span class="ls-auth-dot"></span>
+              <span id="ls-pix-status-label">Alertas LivePix desligados</span>
             </div>
-            <button type="button" class="btn-primary" id="ls-test-pix-btn" style="padding:6px 10px; font-size:10.5px;">Testar alerta</button>
+            <button type="button" class="ls-mod-btn" id="ls-pix-toggle-btn">Ligar</button>
           </div>
-          <div style="padding:8px 10px; border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid var(--border); font-size:10.3px; color:var(--muted); line-height:1.4;">
-            A integração automática com o Webhook oficial do LivePix chega na Etapa 3. Use <strong>Testar alerta</strong> para ver o aviso aparecer direto na cápsula.
+
+          <div class="ls-pix-box">
+            <div class="ls-rule-label">1. Sua URL de Webhook (cole no painel da LivePix)</div>
+            <div class="ls-pix-url-row">
+              <input type="text" id="ls-pix-url" readonly value="${esc(getWebhookUrl())}" />
+              <button type="button" class="ls-mod-btn" id="ls-pix-copy-btn">Copiar</button>
+            </div>
+
+            <div class="ls-rule-label" style="margin-top:2px;">2. API LivePix v2 (para ler nome, R$ e mensagem)</div>
+            <div class="ls-pix-creds">
+              <input type="text" id="ls-pix-cid" placeholder="Client ID do LivePix" />
+              <input type="password" id="ls-pix-csec" placeholder="Client Secret" />
+            </div>
+            <div class="ls-mini-actions" style="align-items:center; justify-content:space-between;">
+              <label class="ls-check-pill" style="padding:5px 8px;">
+                <input type="checkbox" id="ls-chk-pix-tts" ${cfg.pixTts ? 'checked' : ''} /> Ler em voz alta
+              </label>
+              <div style="display:flex; gap:5px;">
+                <button type="button" class="btn-ghost" id="ls-test-pix-btn" style="padding:5px 9px; font-size:10.2px;">Simular</button>
+                <button type="button" class="btn-primary" id="ls-pix-save-btn" style="padding:5px 10px; font-size:10.2px;">Salvar API</button>
+              </div>
+            </div>
           </div>
+
           <div class="ls-pix-list" id="ls-pix-list"></div>
         </div>
 
@@ -915,6 +1111,7 @@
         view.querySelector('#ls-pane-chat').classList.toggle('ls-pane-hidden', activeTab !== 'chat');
         view.querySelector('#ls-pane-livepix').classList.toggle('ls-pane-hidden', activeTab !== 'livepix');
         view.querySelector('#ls-pane-rules').classList.toggle('ls-pane-hidden', activeTab !== 'rules');
+        if (activeTab === 'livepix') pollLivePix(true);
       });
     });
 
@@ -948,7 +1145,21 @@
       modAction(btn.dataset.msgId, btn.dataset.lsMod);
     });
 
-    view.querySelector('#ls-test-pix-btn').addEventListener('click', triggerTestPix);
+    // Eventos LivePix
+    view.querySelector('#ls-pix-toggle-btn').addEventListener('click', () => setPixEnabled(!cfg.pixEnabled));
+    view.querySelector('#ls-pix-copy-btn').addEventListener('click', () => {
+      copyText(getWebhookUrl(), 'URL de Webhook copiada! Cole nas configurações da LivePix.');
+    });
+    view.querySelector('#ls-pix-save-btn').addEventListener('click', () => {
+      const cid = view.querySelector('#ls-pix-cid').value;
+      const csec = view.querySelector('#ls-pix-csec').value;
+      saveLivePixCredentials(cid, csec);
+    });
+    view.querySelector('#ls-chk-pix-tts').addEventListener('change', (e) => {
+      cfg.pixTts = e.target.checked;
+      saveCfg();
+    });
+    view.querySelector('#ls-test-pix-btn').addEventListener('click', triggerRealTestPix);
     view.querySelector('#ls-test-rule-btn').addEventListener('click', triggerTestRuleAlert);
 
     view.querySelector('#ls-save-rules-btn').addEventListener('click', () => {
@@ -967,6 +1178,7 @@
 
     syncToggleCards();
     syncAuthUI();
+    syncPixUI();
     syncConnectUI();
     renderChatFeed();
     renderPixFeed();
@@ -978,6 +1190,22 @@
     if (ng) ng.classList.toggle('on', Boolean(cfg.noGameMode));
     if (ob) ob.classList.toggle('on', Boolean(cfg.obsInvisible));
     syncStreamTileBadge();
+  }
+
+  function syncPixUI() {
+    const bar = document.getElementById('ls-pix-status-bar');
+    const lbl = document.getElementById('ls-pix-status-label');
+    const btn = document.getElementById('ls-pix-toggle-btn');
+    if (!bar || !lbl || !btn) return;
+
+    bar.classList.toggle('connected', Boolean(cfg.pixEnabled));
+    if (cfg.pixEnabled) {
+      lbl.textContent = cfg.pixConfigured ? 'LivePix ao vivo · API conectada' : 'LivePix ao vivo · aguardando API';
+      btn.textContent = 'Pausar';
+    } else {
+      lbl.textContent = cfg.pixConfigured ? 'LivePix pausado (API salva)' : 'Alertas LivePix desligados';
+      btn.textContent = 'Ligar';
+    }
   }
 
   function syncAuthUI() {
@@ -1091,16 +1319,16 @@
     const box = document.getElementById('ls-pix-list');
     if (!box) return;
     if (!pixFeed.length) {
-      box.innerHTML = '<div class="ls-empty">Nenhum alerta recebido ainda. Clique em <strong>Testar alerta</strong> acima para visualizar.</div>';
+      box.innerHTML = '<div class="ls-empty">Nenhum LivePix recebido ainda. Clique em <strong>Simular</strong> para testar o fluxo real (Worker → D1 → Cápsula).</div>';
       return;
     }
     box.innerHTML = pixFeed.map((p) => `
       <div class="ls-pix-item">
         <div class="ls-pix-top">
-          <span class="ls-pix-author">${esc(p.author)}</span>
+          <span class="ls-pix-author">${esc(p.author)}<span class="ls-pix-time">${esc(p.time || '')}</span></span>
           <span class="ls-pix-amount">${esc(p.amount)}</span>
         </div>
-        <div class="ls-pix-msg">${esc(p.msg)}</div>
+        ${p.msg ? `<div class="ls-pix-msg">${esc(p.msg)}</div>` : ''}
       </div>
     `).join('');
   }
@@ -1114,6 +1342,9 @@
   if (cfg.obsInvisible) {
     setTimeout(() => applyObsInvisible(true, true), 450);
   }
+  if (cfg.pixEnabled) {
+    setTimeout(() => startPixPolling(), 900);
+  }
 
   window.LumoStream = {
     connect: connectTwitch,
@@ -1122,7 +1353,8 @@
     disconnectAccount: disconnectTwitchAccount,
     setNoGameMode: applyNoGameMode,
     setObsInvisible: applyObsInvisible,
-    testPix: triggerTestPix,
+    setPixEnabled,
+    testPix: triggerRealTestPix,
     testRule: triggerTestRuleAlert
   };
 })();

@@ -561,3 +561,51 @@ body.surface-light .ls-msg {
   background: rgba(246, 185, 116, 0.18);
   color: var(--accent);
 }
+
+/* LS_STAGE3_LIVEPIX */
+.ls-pix-box {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+}
+body.surface-light .ls-pix-box {
+  background: rgba(15, 23, 42, 0.035);
+}
+.ls-pix-url-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.ls-pix-url-row input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.ls-pix-creds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ls-pix-creds input {
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 10.4px;
+}
+.ls-pix-list {
+  max-height: 148px;
+}
+.ls-pix-time {
+  font-size: 9px;
+  color: var(--muted);
+  margin-left: 6px;
+  font-weight: 500;
+}
