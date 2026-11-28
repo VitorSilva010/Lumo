@@ -383,6 +383,7 @@ function updateGreetingUI() {
 function saveUserName(e, inputId) {
   e.preventDefault();
   userName = document.getElementById(inputId).value.trim();
+  setTimeout(() => window.dispatchEvent(new Event('lumo-profile-changed')), 80);
   setTimeout(() => window.LumoFriends?.syncProfile?.(), 150);
   localStorage.setItem('lumo_username', userName);
   updateGreetingUI(); hopPill(); setExpression('happy'); burstPillLove(false); playChirp(580, 900, 0.2);
@@ -1108,7 +1109,7 @@ async function checkForUpdates(silent = true) {
       if (canAutoNow) await installRealUpdate(true, newVer, false);
       else if (autoInstallUpdates) pendingAutoUpdate = newVer;
     } else if (!silent) {
-      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.8 (mais recente)!';
+      document.getElementById('update-cfg-status').textContent = 'Você já está na v3.9.9 (mais recente)!';
     }
   } catch (err) {
     if (!silent) document.getElementById('update-cfg-status').textContent = 'Erro: ' + String(err).slice(0, 58);

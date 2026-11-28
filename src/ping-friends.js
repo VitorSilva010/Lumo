@@ -122,7 +122,7 @@
   }
   function getMyColor() {
     const c = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#4ade80';
+    return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#f6b974';
   }
   function fmtTime(ts) {
     try { return new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; }
@@ -1095,5 +1095,9 @@
       clearTimeout(_pingMusicTimer);
       _pingMusicTimer = setTimeout(() => { if (typeof sendHeartbeat === 'function') sendHeartbeat(); }, 1200);
     }
+  });
+
+  window.addEventListener('lumo-profile-changed', () => {
+    if (typeof sendHeartbeat === 'function') sendHeartbeat();
   });
 })();
